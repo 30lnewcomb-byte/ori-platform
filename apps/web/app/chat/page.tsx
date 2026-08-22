@@ -11,20 +11,24 @@ export default function ChatPage() {
         <nav>{nav.map(([label, href]) => <a className={label === 'Chat' ? 'navItem active' : 'navItem'} href={href} key={label}>{label}</a>)}</nav>
         <div className="sidebarFooter">Ori Platform</div>
       </aside>
-      <section className="content">
+      <section className="content chatContent">
         <header className="topbar"><div><p className="eyebrow">CHAT</p><h1>Work with Ori.</h1></div></header>
-        <div className="homeGrid">
-          <section className="sectionBlock">
-            <div className="sectionHeader"><h3>New conversation</h3><span className="eyebrow">READY</span></div>
-            <div className="emptyState"><strong>What should Ori work on?</strong><span>Describe a question, task, or project. Tool execution and task progress will appear here as those systems come online.</span></div>
-            <div className="actions"><a className="primary" href="#composer">Start writing</a></div>
-          </section>
-          <section className="sectionBlock" id="composer">
-            <label htmlFor="prompt"><strong>Message Ori</strong></label>
-            <textarea id="prompt" rows={6} placeholder="Ask Ori to help with something..." style={{width:'100%', marginTop:12, padding:14, border:'1px solid var(--border-subtle)', borderRadius:12, resize:'vertical', background:'var(--surface-base)', color:'var(--text-primary)'}} />
-            <p className="eyebrow" style={{marginTop:10}}>CHAT BACKEND NOT CONNECTED YET</p>
-          </section>
-        </div>
+
+        <section className="conversation" aria-label="Conversation preview">
+          <div className="message userMessage">
+            <div className="messageLabel">You</div>
+            <div className="userBubble">Can you check what's happening with the project?</div>
+          </div>
+          <div className="message oriMessage">
+            <div className="oriIdentity"><span className="oriMark" aria-hidden="true">O</span><span>Ori</span></div>
+            <div className="oriText">I'm ready to check it. When the connected tools are available, I'll be able to inspect the project and report back here.</div>
+          </div>
+        </section>
+
+        <section className="composer" id="composer" aria-label="Message Ori">
+          <textarea id="prompt" rows={2} placeholder="Message Ori..." aria-label="Message Ori" />
+          <button type="button" className="sendButton" aria-label="Send message">↑</button>
+        </section>
       </section>
     </main>
   );
