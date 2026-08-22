@@ -1,4 +1,11 @@
-const nav = ['Home', 'Chat', 'Projects', 'Sandbox', 'Developer', 'Settings'];
+const nav = [
+  ['Home', '/'],
+  ['Chat', '/chat'],
+  ['Projects', '/projects'],
+  ['Sandbox', '/sandbox'],
+  ['Developer', '/developer'],
+  ['Settings', '/settings'],
+];
 
 export default function HomePage() {
   return (
@@ -6,9 +13,9 @@ export default function HomePage() {
       <aside className="sidebar" aria-label="Primary navigation">
         <div className="brand">ORI</div>
         <nav>
-          {nav.map((item, index) => (
-            <a className={index === 0 ? 'navItem active' : 'navItem'} href="#" key={item}>
-              {item}
+          {nav.map(([label, href], index) => (
+            <a className={index === 0 ? 'navItem active' : 'navItem'} href={href} key={label}>
+              {label}
             </a>
           ))}
         </nav>
@@ -32,15 +39,15 @@ export default function HomePage() {
               Start a conversation, open a project, or give Ori a task to work on.
             </p>
             <div className="actions">
-              <button className="primary">Start a chat</button>
-              <button className="secondary">Open projects</button>
+              <a className="primary" href="/chat">Start a chat</a>
+              <a className="secondary" href="/projects">Open projects</a>
             </div>
           </section>
 
           <section className="sectionBlock" aria-labelledby="recent-heading">
             <div className="sectionHeader">
               <h3 id="recent-heading">Continue working</h3>
-              <a href="#">View all</a>
+              <a href="/projects">View all</a>
             </div>
             <div className="emptyState">
               <strong>No recent work yet</strong>
