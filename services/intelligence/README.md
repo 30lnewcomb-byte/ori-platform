@@ -4,35 +4,35 @@ This is the integration boundary for Ori's intelligence architecture.
 
 ## Current architecture
 
-- **TensorFlow core** is Ori's primary learned intelligence and now has a real Keras starter model under `tensorflow_core/model.py`.
-- **Mentor** is a small supporting language-model layer. The current default is **Qwen3-0.6B** for language understanding, task structuring, planning assistance, and evaluation.
+- **Ori TensorFlow model** is the long-term custom learned language component. The first decoder-only Transformer lives under `tensorflow_core/ori_model.py`.
+- **TensorFlow core classifier** remains available under `tensorflow_core/model.py` for intent/complexity signals while the language model is trained.
+- **Mentor** is a supporting language-model layer. The current default is **Qwen3-0.6B** for language understanding, task structuring, planning assistance, and evaluation.
 - **Orchestrator** decides when and how these components interact.
 
-The architecture is intentionally provider/model agnostic at the platform boundary.
+Qwen is deliberately a replaceable Mentor, not the permanent definition of Ori.
 
-## Current state
+## New custom Ori model
 
-The web chat is now wired to the Mentor boundary. The current web adapter uses Hugging Face's OpenAI-compatible Inference Providers endpoint when `HF_TOKEN` is configured. Provider availability and free-tier limits can change.
+`tensorflow_core/ori_model.py` contains a compact decoder-only Transformer implemented directly with TensorFlow/Keras. It includes:
 
-The TensorFlow core is being built alongside this working Mentor path. It is not yet Ori's future super model or the production intelligence core.
+- configurable context length and model size
+- causal self-attention
+- trainable token and position embeddings
+- JSONL training support
+- an explicit tokenizer interface that can later be upgraded to BPE/SentencePiece
+- saved TensorFlow weights and model configuration
 
-## Request flow
+`tensorflow_core/train_ori.py` is the first training pipeline. Starter examples are in `tensorflow_core/data/ori_training.jsonl`.
 
-```text
-User message
-    ↓
-Ori web chat
-    ↓
-/api/chat
-    ↓
-Mentor adapter
-    ↓
-Qwen3-0.6B
-    ↓
-User-facing Ori response
+From `services/intelligence/tensorflow_core`:
+
+```bash
+python train_ori.py --data data/ori_training.jsonl --output artifacts/ori-small
 ```
 
-The long-term flow remains:
+The starter dataset is intentionally tiny. It proves the training path; it is **not** enough to make a good general-purpose language model. The next stage is building a much larger Ori-specific corpus and evaluation suite.
+
+## Architecture boundary
 
 ```text
 User message
@@ -40,25 +40,34 @@ User message
 Platform API
     ↓
 Intelligence Orchestrator
-    ├── TensorFlow Core
-    └── Mentor
+    ├── Ori TensorFlow Model   ← custom language model
+    ├── TensorFlow Core       ← intent/complexity signals
+    └── Mentor                ← optional supporting model
     ↓
-Memory / Tools / Ori World as needed
+Memory / Tools / Ori World
     ↓
 User-facing Ori response
 ```
 
-## Configuration
+The model does **not** own Ori's identity, memory, permissions, tools, or persistent state. Those belong to the platform. This is what lets us improve or replace the model without making Ori stop being Ori.
 
-Set these as environment variables, never in source control:
+## Current state
 
-- `HF_TOKEN` — Hugging Face token with permission to make Inference Provider calls.
-- `ORI_MENTOR_MODEL` — model identifier; current default is `Qwen/Qwen3-0.6B`.
-
-## Rules
+The working web chat still uses the Mentor boundary when configured. The custom TensorFlow language model has now been added as the foundation for Ori's own model and has a real training path.
 
 Do not claim live intelligence until the configured model connection is working and its health/status can be verified.
 
-Do not expose provider-specific credentials to the browser. Keep inference credentials server-side.
+## Configuration
 
-Do not silently turn the Mentor into the permanent definition of Ori's core intelligence. It is the current supporting model adapter while the TensorFlow core is developed.
+Set provider credentials as environment variables, never in source control:
+
+- `HF_TOKEN` — Hugging Face token for the supporting Mentor path.
+- `ORI_MENTOR_MODEL` — supporting model identifier; current default is `Qwen/Qwen3-0.6B`.
+
+## Rules
+
+Do not expose provider-specific credentials to the browser.
+
+Do not silently turn the Mentor into the permanent definition of Ori's core intelligence.
+
+Do not treat the starter TensorFlow model as production-ready yet. It is the foundation we will train, evaluate, and improve into Ori's own small language model.
