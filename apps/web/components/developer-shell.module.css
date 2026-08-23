@@ -4,9 +4,11 @@
 .brand { color: #16191f; font-size: 18px; font-weight: 850; letter-spacing: .18em; }
 .product { color: #6b7280; font-size: 13px; font-weight: 700; }
 .nav { display: grid; gap: 3px; }
-.navItem { display: block; padding: 10px 12px; border-radius: 9px; color: #656b76; font-size: 14px; font-weight: 600; }
+.navItem { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 9px; color: #656b76; font-size: 14px; font-weight: 600; }
 .navItem:hover { background: #eef3ff; color: #2f5bd3; }
 .navItem.active { background: #e8f0ff; color: #2f5bd3; font-weight: 750; }
+.planned { opacity: .65; cursor: default; }
+.planned small { color: #9aa1ad; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
 .footer { margin-top: auto; padding: 12px; border-top: 1px solid #edf0f4; }
 .footer a { color: #747b86; font-size: 12px; font-weight: 650; }
 .footer a:hover { color: #2f5bd3; }
