@@ -2,7 +2,7 @@ import AppShell from '../../components/app-shell'
 
 export default function OriWorldPage() {
   return (
-    <AppShell active="Sandbox">
+    <AppShell active="Ori World">
       <header className="topbar"><div><p className="eyebrow">ORI WORLD</p><h1>Ori&apos;s world.</h1><p className="appIntro">A small, purpose-built working environment for code, files, experiments, tests, and controlled work.</p></div></header>
       <div className="homeGrid">
         <section className="sectionBlock">
