@@ -1,15 +1,15 @@
 import type { ReactNode } from 'react'
 import styles from './developer-shell.module.css'
 
-type DeveloperNavItem = { label: string; href?: string; status?: string }
+type DeveloperNavItem = { label: string; href: string }
 
 const developerNav: DeveloperNavItem[] = [
   { label: 'Overview', href: '/developer' },
-  { label: 'Projects', status: 'Planned' },
-  { label: 'API', status: 'Planned' },
-  { label: 'Tools', status: 'Planned' },
-  { label: 'Models', status: 'Planned' },
-  { label: 'Events', status: 'Planned' },
+  { label: 'Projects', href: '/developer/projects' },
+  { label: 'API', href: '/developer/api' },
+  { label: 'Tools', href: '/developer/tools' },
+  { label: 'Models', href: '/developer/models' },
+  { label: 'Events', href: '/developer/events' },
   { label: 'Docs', href: '/developer/docs' },
 ]
 
@@ -22,27 +22,17 @@ export default function DeveloperShell({
 }) {
   return (
     <main className={styles.shell}>
-      <aside className={styles.sidebar} aria-label="Developer navigation">
+      <header className={styles.header}>
         <div className={styles.brandRow}>
           <a className={styles.brand} href="/" aria-label="Return to Ori Platform">ORI</a>
-          <span className={styles.product}>Developer</span>
+          <span className={styles.product}>Developer Platform</span>
         </div>
-
-        <nav className={styles.nav}>
+        <nav className={styles.tabs} aria-label="Developer Platform navigation">
           {developerNav.map((item) => {
             const isActive = item.label === active
-            const className = isActive ? `${styles.navItem} ${styles.active}` : styles.navItem
-            if (!item.href) {
-              return (
-                <span className={`${className} ${styles.planned}`} key={item.label} aria-disabled="true">
-                  {item.label}
-                  <small>{item.status}</small>
-                </span>
-              )
-            }
             return (
               <a
-                className={className}
+                className={isActive ? `${styles.tab} ${styles.active}` : styles.tab}
                 href={item.href}
                 key={item.label}
                 aria-current={isActive ? 'page' : undefined}
@@ -52,11 +42,8 @@ export default function DeveloperShell({
             )
           })}
         </nav>
-
-        <div className={styles.footer}>
-          <a href="/">← Back to Ori</a>
-        </div>
-      </aside>
+        <a className={styles.back} href="/">Back to Ori</a>
+      </header>
       <section className={styles.content}>{children}</section>
     </main>
   )
