@@ -44,15 +44,15 @@ docs/
 
 Ori World is a small, purpose-built working environment for Ori. It is designed around code, files, tests, experiments, and other controlled work that Ori actually needs. It is not intended to be a generic hosted sandbox product or a required paid service.
 
-The current web experience lives at `/sandbox` because the route predates the product name; the user-facing navigation label is **Ori World everywhere**. The execution environment is not connected yet.
+The current web route remains `/sandbox` because the route predates the product name; the user-facing navigation label is **Ori World everywhere**. The execution environment is not connected yet.
 
 ## Developer Platform
 
-The Developer Platform is a first-class part of Ori Platform. It provides the future public surface for projects, API access, authentication, tools, models/intelligence, events, SDKs, the Developer Console, and dedicated Developer Docs.
+The Developer Platform is a first-class part of Ori Platform, but it is its **own destination** inside the product. It provides the future public surface for projects, API access, authentication, tools, models/intelligence, events, SDKs, the Developer Console, and dedicated Developer Docs.
 
 The canonical Developer Docs source lives under `dev-platform/docs/`. The Next.js route under `apps/web/app/developer/docs/` is only the web presentation layer.
 
-The Developer destination is a separate workspace and opens in a new browser tab from the primary sidebar. Its UI should stay focused on developer work instead of being embedded into Home.
+The Developer destination is a separate in-app workspace. It does not open a new browser tab and is not embedded into Home.
 
 The platform and its documentation must clearly distinguish implemented capabilities from planned work.
 
@@ -64,7 +64,7 @@ Ori's current primary navigation is:
 
 Desktop uses a persistent sidebar. Mobile/compact navigation is a later polish pass and should not change the canonical destination set.
 
-Home is the app workspace for starting and resuming work, not a marketing landing page. Chat is where the user works with Ori. Projects organize work. Tasks track substantial work. Activity shows system events. Search finds work. Ori World represents where Ori will perform controlled work. Developer contains the platform and docs. Settings contains configuration.
+Home is the app workspace for starting and resuming work, not a marketing landing page. Chat is where the user works with Ori. Projects organize work. Tasks track substantial work. Activity shows system events. Search finds work. Ori World represents where Ori will perform controlled work. Developer is a separate in-app workspace for the platform and docs. Settings contains configuration.
 
 ## Typography direction
 
