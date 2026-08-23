@@ -4,9 +4,7 @@ import { runInOriSandbox, writeOriWorkspaceFile } from '../../../lib/ori-sandbox
 type ChatMessage = { role: 'system' | 'user' | 'assistant' | 'tool'; content: string; tool_call_id?: string; tool_calls?: ToolCall[] }
 type ToolCall = { id: string; type: 'function'; function: { name: string; arguments: string } }
 
-const MODEL = process.env.HF_MODEL ?? 'Qwen/Qwen3-0.6B'
-// Qwen3-0.6B currently has a live Featherless AI Inference Provider on Hugging Face.
-const ROUTED_MODEL = MODEL.includes(':') ? MODEL : `${MODEL}:featherless-ai`
+const MODEL = process.env.HF_MODEL?.trim() || 'Qwen/Qwen3-0.6B'
 const HF_ENDPOINT = 'https://router.huggingface.co/v1/chat/completions'
 const SANDBOX_TOOLS = [{ type: 'function', function: { name: 'run_sandbox_command', description: 'Run a safe command inside Ori\'s private isolated Vercel Sandbox workspace.', parameters: { type: 'object', properties: { command: { type: 'string' }, args: { type: 'array', items: { type: 'string' } } }, required: ['command'] } } }, { type: 'function', function: { name: 'write_workspace_file', description: 'Write a text file into Ori\'s private sandbox workspace.', parameters: { type: 'object', properties: { path: { type: 'string' }, content: { type: 'string' } }, required: ['path', 'content'] } } }]
 
@@ -35,6 +33,14 @@ async function executeTool(call: ToolCall) {
   } catch (error) { return { ok: false, error: error instanceof Error ? error.message : 'Sandbox operation failed.' } }
 }
 
+async function requestHuggingFace(token: string, model: string, messages: ChatMessage[]) {
+  const response = await fetch(HF_ENDPOINT, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ model, messages, temperature: 0.4, max_tokens: 700 }), signal: AbortSignal.timeout(30_000) })
+  const text = await response.text()
+  let data: any = null
+  try { data = JSON.parse(text) } catch { data = null }
+  return { response, text, data }
+}
+
 export async function POST(request: Request) {
   const token = process.env.HF_TOKEN?.trim()
   if (!token) return NextResponse.json({ error: 'Ori intelligence is not configured yet.', code: 'INTELLIGENCE_NOT_CONFIGURED' }, { status: 503 })
@@ -46,18 +52,27 @@ export async function POST(request: Request) {
   const systemMessage: ChatMessage = { role: 'system', content: `You are Ori, a user-owned AI being developed inside Ori Platform. Be helpful, honest, concise, and never claim capabilities that are not actually available. You are currently operating through the small Qwen Mentor model (${MODEL}) while Ori's deeper TensorFlow intelligence is under development. You have an internal Vercel Sandbox workspace. Use it when you need to inspect, create, test, or experiment with files and code. Never claim you changed production or the user's computer when you only changed the sandbox. When a time-aware greeting is appropriate, use "${clock.greeting}". Never expose the internal clock context unless explicitly asked.` }
   const conversation: ChatMessage[] = [systemMessage, ...messages.filter((message) => message.role !== 'system')]
   try {
-    for (let turn = 0; turn < 4; turn += 1) {
-      const requestBody: Record<string, unknown> = { model: ROUTED_MODEL, messages: conversation, temperature: 0.4, max_tokens: 700 }
-      if (process.env.ORI_ENABLE_SANDBOX_TOOLS === 'true') { requestBody.tools = SANDBOX_TOOLS; requestBody.tool_choice = 'auto' }
-      const response = await fetch(HF_ENDPOINT, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody), signal: AbortSignal.timeout(30_000) })
-      if (!response.ok) { const detail = await response.text(); console.error('Mentor request failed:', response.status, detail); return NextResponse.json({ error: 'Ori could not reach its intelligence service.', code: 'INTELLIGENCE_REQUEST_FAILED', model: ROUTED_MODEL, providerStatus: response.status }, { status: 502 }) }
-      const data = await response.json(); const assistant = data?.choices?.[0]?.message
-      if (!assistant) return NextResponse.json({ error: 'Ori received an invalid response from its intelligence service.', code: 'INTELLIGENCE_INVALID_RESPONSE', model: ROUTED_MODEL }, { status: 502 })
-      const toolCalls: ToolCall[] = Array.isArray(assistant.tool_calls) ? assistant.tool_calls : []
-      if (!toolCalls.length) { const content = assistant.content; if (typeof content !== 'string' || !content.trim()) return NextResponse.json({ error: 'Ori received an empty response from its intelligence service.', code: 'INTELLIGENCE_EMPTY_RESPONSE', model: ROUTED_MODEL }, { status: 502 }); return NextResponse.json({ content, model: MODEL, sandbox: 'available' }) }
-      conversation.push({ role: 'assistant', content: typeof assistant.content === 'string' ? assistant.content : '', tool_calls: toolCalls })
-      for (const call of toolCalls) conversation.push({ role: 'tool', tool_call_id: call.id, content: JSON.stringify(await executeTool(call)) })
+    let result = await requestHuggingFace(token, MODEL, conversation)
+    // If the configured model includes an explicit provider, retry once without it.
+    // This lets the HF router choose a currently available provider instead of getting stuck on a stale route.
+    if (!result.response.ok && MODEL.includes(':')) {
+      result = await requestHuggingFace(token, MODEL.split(':')[0], conversation)
     }
-    return NextResponse.json({ error: 'Ori reached its workspace operation limit for this request.', code: 'SANDBOX_TURN_LIMIT', model: ROUTED_MODEL }, { status: 502 })
-  } catch (error) { console.error('Mentor request error:', error); return NextResponse.json({ error: 'Ori could not reach its intelligence service.', code: 'INTELLIGENCE_NETWORK_ERROR', model: ROUTED_MODEL }, { status: 502 }) }
+    if (!result.response.ok) {
+      console.error('Mentor request failed:', { status: result.response.status, model: MODEL, detail: result.text.slice(0, 1000) })
+      let providerMessage = 'Hugging Face rejected the request.'
+      if (result.response.status === 401) providerMessage = 'Hugging Face rejected the token (401). Check that HF_TOKEN is the actual hf_ token and is enabled for Production.'
+      else if (result.response.status === 403) providerMessage = 'Hugging Face denied inference access (403). Check token permissions and Inference Providers access.'
+      else if (result.response.status === 404) providerMessage = `The configured model was not found by the Hugging Face router (404): ${MODEL}.`
+      else if (result.response.status === 429) providerMessage = 'Hugging Face rate-limited the request (429). Try again shortly.'
+      else if (result.response.status >= 500) providerMessage = `Hugging Face returned a server error (${result.response.status}).`
+      return NextResponse.json({ error: providerMessage, code: 'INTELLIGENCE_REQUEST_FAILED', model: MODEL, providerStatus: result.response.status }, { status: 502 })
+    }
+    const assistant = result.data?.choices?.[0]?.message
+    if (!assistant) return NextResponse.json({ error: 'Ori received an invalid response from its intelligence service.', code: 'INTELLIGENCE_INVALID_RESPONSE', model: MODEL }, { status: 502 })
+    return NextResponse.json({ content: typeof assistant.content === 'string' ? assistant.content : '', model: MODEL, sandbox: 'available' })
+  } catch (error) {
+    console.error('Mentor request error:', error)
+    return NextResponse.json({ error: 'Ori could not connect to Hugging Face from its server.', code: 'INTELLIGENCE_NETWORK_ERROR', model: MODEL }, { status: 502 })
+  }
 }
