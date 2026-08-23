@@ -1,4 +1,4 @@
-.shell { min-height: 100vh; background: #0b0d0f; color: #f4f5f6; }
+.shell { min-height: 100vh; width: 100%; background: #0b0d0f; color: #f4f5f6; }
 .header { position: sticky; top: 0; z-index: 10; display: grid; grid-template-columns: auto 1fr auto; align-items: center; min-height: 72px; gap: 28px; padding: 0 32px; background: rgba(11,13,15,.94); border-bottom: 1px solid rgba(255,255,255,.09); backdrop-filter: blur(14px); }
 .brandRow { display: flex; align-items: baseline; gap: 10px; white-space: nowrap; }
 .brand { color: #f7f8fa; font-size: 18px; font-weight: 850; letter-spacing: .18em; }
@@ -11,11 +11,11 @@
 .tab.active::after { content: ''; position: absolute; right: 12px; bottom: 0; left: 12px; height: 2px; border-radius: 999px 999px 0 0; background: #4f7cff; }
 .back { justify-self: end; color: #9298a3; font-size: 12px; font-weight: 650; white-space: nowrap; padding: 7px 10px; border: 1px solid rgba(255,255,255,.09); border-radius: 9px; }
 .back:hover { color: #ffffff; border-color: rgba(79,124,255,.45); background: rgba(79,124,255,.08); }
-.content { width: min(1280px, 100%); margin: 0 auto; padding: 24px 46px 76px; }
+.content { width: 100%; max-width: none; min-height: calc(100vh - 72px); margin: 0; padding: 0; background: #0b0d0f; }
 @media (max-width: 900px) {
   .header { grid-template-columns: 1fr auto; gap: 12px; padding: 0 18px; min-height: 66px; }
   .tabs { grid-column: 1 / -1; grid-row: 2; min-height: 46px; overflow-x: auto; border-top: 1px solid rgba(255,255,255,.05); }
   .tab { flex: 0 0 auto; padding: 0 11px; }
   .back { grid-column: 2; grid-row: 1; }
-  .content { padding: 20px 18px 58px; }
+  .content { min-height: calc(100vh - 112px); }
 }
