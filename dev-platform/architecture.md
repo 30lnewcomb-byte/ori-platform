@@ -14,19 +14,26 @@ Ori Developer Platform
 ├── Events / logs
 ├── SDKs
 ├── Developer Console
-└── Developer Documentation
+└── Developer Docs
 ```
+
+## Documentation ownership
+
+The canonical developer documentation source lives under `dev-platform/docs/`.
+
+The Next.js route at `apps/web/app/developer/docs/` is the **web presentation layer** for those docs. It is kept with the web app because Next.js needs route components there, but the Developer Platform owns the documentation content and structure.
 
 ## Relationship to the rest of Ori
 
 ```text
 Ori Platform
 ├── Web application
-│   └── Developer experience / Console
+│   └── Developer experience / Console / Docs UI
 ├── Platform API
 ├── Tool system
 ├── Intelligence orchestration
 ├── Developer Platform
+│   └── Docs
 └── OriOS Lite integration
 ```
 
