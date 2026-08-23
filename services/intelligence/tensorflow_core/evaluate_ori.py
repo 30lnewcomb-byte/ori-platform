@@ -1,8 +1,4 @@
-"""Evaluate an Ori checkpoint against a small held-out behavior set.
-
-This intentionally measures useful Ori behavior, not just training loss.
-It can be expanded as the evaluation corpus grows.
-"""
+"""Evaluate an Ori checkpoint against a held-out behavior set."""
 
 from __future__ import annotations
 
@@ -49,8 +45,9 @@ def score_completion(model, tokenizer, prompt: str, expected: str) -> float:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data", default="data/ori_eval.jsonl")
+    parser.add_argument("--data", default="data/ori_eval_expanded.jsonl")
     parser.add_argument("--artifact", default="artifacts/ori-small")
+    parser.add_argument("--report", default="artifacts/evaluation/ori_eval_report.json")
     args = parser.parse_args()
 
     artifact = Path(args.artifact)
@@ -62,14 +59,33 @@ def main() -> None:
     model.load_weights(artifact / "model.weights.h5")
 
     rows = load_eval(Path(args.data))
-    scores = [score_completion(model, vocab, r["prompt"], r["expected"]) for r in rows]
+    details = []
+    for row in rows:
+        score = score_completion(model, vocab, row["prompt"], row["expected"])
+        minimum = float(row.get("minimum_score", 0.0))
+        details.append({
+            "prompt": row["prompt"],
+            "score": float(score),
+            "minimum_score": minimum,
+            "passed": score >= minimum,
+        })
+
+    scores = [item["score"] for item in details]
+    passed = sum(item["passed"] for item in details)
     result = {
-        "examples": len(scores),
+        "model": "ori-small",
+        "examples": len(details),
         "mean_token_accuracy": float(np.mean(scores)),
-        "passed": int(sum(score >= r.get("minimum_score", 0.0) for score, r in zip(scores, rows))),
+        "median_token_accuracy": float(np.median(scores)),
+        "passed": passed,
+        "pass_rate": passed / len(details),
+        "details": details,
     }
-    result["pass_rate"] = result["passed"] / result["examples"]
-    print(json.dumps(result, indent=2))
+
+    report = Path(args.report)
+    report.parent.mkdir(parents=True, exist_ok=True)
+    report.write_text(json.dumps(result, indent=2), encoding="utf-8")
+    print(json.dumps({k: v for k, v in result.items() if k != "details"}, indent=2))
 
 
 if __name__ == "__main__":
