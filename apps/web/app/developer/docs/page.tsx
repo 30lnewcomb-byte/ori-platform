@@ -1,4 +1,4 @@
-import AppShell from '../../../components/app-shell'
+import DeveloperShell from '../../../components/developer-shell'
 import styles from './docs.module.css'
 
 const sections = [
@@ -14,12 +14,12 @@ const sections = [
 
 export default function DeveloperDocsPage() {
   return (
-    <AppShell active="Developer">
+    <DeveloperShell active="Docs">
       <div className={styles.page}>
         <header className={styles.header}>
           <div>
             <a className={styles.back} href="/developer">← Developer Platform</a>
-            <p className={styles.eyebrow}>ORI DEVELOPER DOCS</p>
+            <p className={styles.eyebrow}>DEVELOPER DOCS</p>
             <h1>Build with Ori.</h1>
             <p className={styles.lede}>The documentation home for Ori Platform developers.</p>
           </div>
@@ -49,6 +49,6 @@ export default function DeveloperDocsPage() {
           <a href="/">Ori Platform</a>
         </footer>
       </div>
-    </AppShell>
+    </DeveloperShell>
   )
 }
