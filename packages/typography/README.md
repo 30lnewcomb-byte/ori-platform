@@ -21,4 +21,8 @@ The glyphs must be original. We are taking inspiration from qualities we like in
 
 ## Current stage
 
-The type system is now wired into the design tokens and CSS using the `Ori Display`, `Ori Text`, and `Ori Mono` family names with safe fallbacks. Actual custom font files still need to be generated from the glyph design work before they are shipped as binary assets.
+The first original **Ori Text starter font** is now shipped as `apps/web/public/fonts/OriText-Regular.woff2` and is loaded by the web app.
+
+For the first implementation pass, Ori Display and Ori Mono intentionally reuse the same original starter glyph set through their CSS family aliases. Separate Display and Mono glyph designs can be refined later without changing the app's type contract.
+
+This is an **experimental starter font**, not the final Ori typeface. The next typography pass can refine letterforms, spacing, weights, and optical sizes after the product UI has settled.
