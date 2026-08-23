@@ -1,3 +1,27 @@
+@font-face {
+  font-family: 'Ori Text';
+  src: url('/fonts/OriText-Regular.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ori Display';
+  src: url('/fonts/OriText-Regular.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ori Mono';
+  src: url('/fonts/OriText-Regular.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 :root {
   --surface-base: #f7f7f5;
   --surface-raised: #ffffff;
@@ -58,7 +82,12 @@ h1 { margin: 0; font-size: clamp(28px, 4vw, 42px); letter-spacing: -.035em; }
 .statusDot { width: 9px; height: 9px; flex: 0 0 auto; border-radius: 50%; background: var(--status-success); }
 
 .chatContent { width: min(900px, 100%); display: flex; flex-direction: column; min-height: calc(100vh - 98px); }
-.conversation { flex: 1; display: flex; flex-direction: column; gap: 34px; padding: 58px 10px 130px; }
+.conversation { flex: 1; display: flex; flex-direction: column; gap: 20px; padding: 58px 10px 130px; }
+.messageRow { display: flex; width: 100%; }
+.messageRow.user { justify-content: flex-end; }
+.userMessage { max-width: min(70%, 620px); padding: 11px 14px; border-radius: 16px 16px 4px 16px; background: var(--accent-blue-soft); color: var(--text-primary); }
+.oriMessage { max-width: min(82%, 720px); padding: 4px 0; color: var(--text-primary); line-height: 1.6; }
+.chatError { color: #9c2f35; background: #fff0f1; border: 1px solid #f1c8cb; border-radius: 12px; padding: 10px 12px; font-size: 13px; }
 .composer { position: fixed; bottom: 24px; left: calc(50% + 118px); transform: translateX(-50%); width: min(820px, calc(100vw - 330px)); display: flex; align-items: flex-end; gap: 8px; padding: 10px; background: var(--surface-raised); border: 1px solid var(--border-subtle); border-radius: 18px; box-shadow: 0 8px 30px rgb(0 0 0 / 8%); }
 .composer:focus-within { border-color: #afc2ff; box-shadow: 0 10px 34px rgb(63 109 246 / 12%); }
 .composer textarea { flex: 1; min-height: 42px; max-height: 180px; padding: 10px 12px; border: 0; outline: 0; resize: none; background: transparent; color: var(--text-primary); line-height: 1.45; }
@@ -78,7 +107,7 @@ h1 { margin: 0; font-size: clamp(28px, 4vw, 42px); letter-spacing: -.035em; }
   .quickActions { justify-content: flex-start; margin-top: 18px; }
   .homeColumns { grid-template-columns: 1fr; }
   .chatContent { min-height: calc(100vh - 96px); }
-  .conversation { padding: 38px 0 125px; gap: 28px; }
+  .conversation { padding: 38px 0 125px; gap: 18px; }
   .composer { left: 18px; right: 18px; bottom: 76px; transform: none; width: auto; }
 }
 
