@@ -17,6 +17,7 @@ The open-source foundation for Ori: a user-owned AI platform with a professional
 ```text
 apps/
   web/                 # Ori web application
+  web/app/api/chat/    # server-side Mentor chat adapter
 
 packages/
   ui/                  # shared Ori design system
@@ -48,7 +49,7 @@ The current web route remains `/sandbox` because the route predates the product 
 
 ## Developer Platform
 
-The Developer Platform is a first-class part of Ori Platform, but it is its **own product experience inside the same URL**. It has a dedicated developer shell, navigation, workspace, and documentation experience while sharing the underlying Ori Platform.
+The Developer Platform is a first-class part of Ori Platform, but it is its **own product experience inside the same URL**. It has a dedicated developer shell, top-level tabs, workspace, and documentation experience while sharing the underlying Ori Platform.
 
 The entry point lives in the normal Ori sidebar's **••• menu** near the bottom-left, keeping the primary assistant navigation focused on everyday Ori work. Entering Developer changes the interface into the specialized Developer Platform rather than opening a new browser tab.
 
@@ -66,9 +67,9 @@ The Developer Platform is intentionally accessed outside that primary list throu
 
 Home is the app workspace for starting and resuming work, not a marketing landing page. Chat is where the user works with Ori. Projects organize work. Tasks track substantial work. Activity shows system events. Search finds work. Ori World represents where Ori will perform controlled work. Developer is a separate in-app workspace for developer work. Settings contains configuration.
 
-## Typography direction
+## Typography
 
-The planned Ori type family combines editorial character with highly readable UI forms while using original glyph designs rather than copying an existing typeface.
+An original **Ori Text starter font** is now shipped at `apps/web/public/fonts/OriText-Regular.woff2` and loaded by the web app. The app currently reuses that original starter glyph set for the Ori Display and Ori Mono roles while the dedicated designs are refined.
 
 Planned families:
 
@@ -76,12 +77,16 @@ Planned families:
 - **Ori Text** — UI, chat, and documentation
 - **Ori Mono** — code, logs, and technical data
 
-The role names are wired into the design system, but the actual custom font binaries are still a separate font-production task.
-
 ## Intelligence
 
-The intelligence service is currently an integration boundary, not a live model connection. The architecture is intended to support Ori's TensorFlow core, Mentor, and an orchestrator without claiming that live inference exists before it is actually connected and verified.
+The first live intelligence path is now the **Mentor** integration behind `/api/chat`. It uses a server-side Hugging Face Inference Providers connection when `HF_TOKEN` is configured. The TensorFlow core remains Ori's intended primary learned intelligence and is not yet the production inference path.
+
+Provider credentials stay server-side and the browser only talks to Ori's own `/api/chat` endpoint.
+
+## Configuration
+
+Use `.env.example` as the reference for the current Mentor integration. Never commit a real inference token.
 
 ## Status
 
-Early foundation. The interface and platform boundaries are being stabilized before the first production intelligence connection.
+The platform UI and developer workspace are being stabilized while the first real intelligence path is being connected. Ori's deeper TensorFlow core, tools, and Ori World remain future implementation phases.
