@@ -1,12 +1,31 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import AppShell from '../components/app-shell'
 
+function getGreeting(date = new Date()) {
+  const hour = date.getHours()
+  if (hour < 12) return 'Good morning.'
+  if (hour < 18) return 'Good afternoon.'
+  return 'Good evening.'
+}
+
 export default function HomePage() {
+  const [greeting, setGreeting] = useState('Hello.')
+
+  useEffect(() => {
+    const updateGreeting = () => setGreeting(getGreeting())
+    updateGreeting()
+    const interval = window.setInterval(updateGreeting, 60_000)
+    return () => window.clearInterval(interval)
+  }, [])
+
   return (
     <AppShell active="Home">
       <header className="topbar">
         <div>
           <p className="eyebrow">ORI PLATFORM</p>
-          <h1>Good evening.</h1>
+          <h1>{greeting}</h1>
           <p className="appIntro">Start something new or pick up where you left off.</p>
         </div>
         <button className="avatar" aria-label="Open profile">L</button>
