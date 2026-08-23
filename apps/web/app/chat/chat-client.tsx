@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 
 type Message = {
   role: 'user' | 'assistant'
@@ -14,6 +14,21 @@ export default function ChatClient() {
   const [value, setValue] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const conversationRef = useRef<HTMLElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    const conversation = conversationRef.current
+    if (!conversation) return
+    conversation.scrollTo({ top: conversation.scrollHeight, behavior: 'smooth' })
+  }, [messages, busy, error])
+
+  useEffect(() => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+    textarea.style.height = 'auto'
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 180)}px`
+  }, [value])
 
   async function sendMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -30,7 +45,10 @@ export default function ChatClient() {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: nextMessages }),
+        body: JSON.stringify({
+          messages: nextMessages,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        }),
       })
       const data = await response.json()
 
@@ -43,16 +61,17 @@ export default function ChatClient() {
       setError(requestError instanceof Error ? requestError.message : 'Ori could not respond.')
     } finally {
       setBusy(false)
+      textareaRef.current?.focus()
     }
   }
 
   return (
     <>
-      <section className="conversation" aria-label="Conversation">
+      <section ref={conversationRef} className="conversation" aria-label="Conversation" aria-live="polite">
         {messages.length === 0 ? (
-          <div className="emptyState" style={{ margin: 'auto 0', minHeight: 0, alignItems: 'center', textAlign: 'center' }}>
+          <div className="emptyState chatEmptyState">
             <strong>Start a conversation with Ori.</strong>
-            <span>Your conversation will appear here.</span>
+            <span>Ask anything about your projects, tasks, or what you want to build.</span>
           </div>
         ) : (
           messages.map((message, index) => (
@@ -60,7 +79,7 @@ export default function ChatClient() {
               {message.role === 'user' ? (
                 <div className="userMessage">{message.content}</div>
               ) : (
-                <div className="oriMessage">{message.content}</div>
+                <div className="oriMessage"><span className="messageLabel">ORI</span>{message.content}</div>
               )}
             </div>
           ))
@@ -68,7 +87,7 @@ export default function ChatClient() {
 
         {busy && (
           <div className="messageRow assistant" aria-live="polite">
-            <div className="oriMessage">Ori is thinking…</div>
+            <div className="oriMessage"><span className="messageLabel">ORI</span><span className="thinkingDots" aria-label="Ori is thinking"><i /><i /><i /></span></div>
           </div>
         )}
 
@@ -77,8 +96,9 @@ export default function ChatClient() {
 
       <form className="composer" onSubmit={sendMessage} aria-label="Message Ori">
         <textarea
+          ref={textareaRef}
           id="prompt"
-          rows={2}
+          rows={1}
           placeholder="Message Ori..."
           aria-label="Message Ori"
           value={value}
