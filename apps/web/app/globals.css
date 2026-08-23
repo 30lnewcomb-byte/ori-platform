@@ -2,7 +2,7 @@
   font-family: 'Ori Text';
   src: url('/fonts/OriText-Regular.woff2') format('woff2');
   font-style: normal;
-  font-weight: 100 900;
+  font-weight: 400;
   font-display: swap;
 }
 
@@ -10,7 +10,7 @@
   font-family: 'Ori Display';
   src: url('/fonts/OriText-Regular.woff2') format('woff2');
   font-style: normal;
-  font-weight: 100 900;
+  font-weight: 400;
   font-display: swap;
 }
 
@@ -18,7 +18,7 @@
   font-family: 'Ori Mono';
   src: url('/fonts/OriText-Regular.woff2') format('woff2');
   font-style: normal;
-  font-weight: 100 900;
+  font-weight: 400;
   font-display: swap;
 }
 
@@ -93,6 +93,7 @@ h1 { margin: 0; font-size: clamp(28px, 4vw, 42px); letter-spacing: -.035em; }
 .composer textarea { flex: 1; min-height: 42px; max-height: 180px; padding: 10px 12px; border: 0; outline: 0; resize: none; background: transparent; color: var(--text-primary); line-height: 1.45; }
 .sendButton { width: 38px; height: 38px; border: 0; border-radius: 50%; background: var(--accent-primary); color: #fff; font-size: 20px; line-height: 1; }
 .sendButton:hover { background: var(--accent-strong); }
+.sendButton:disabled { cursor: default; opacity: .45; }
 
 .appIntro { max-width: 700px; color: var(--text-secondary); line-height: 1.6; margin: 8px 0 0; }
 .dataList { display: grid; gap: 10px; }
