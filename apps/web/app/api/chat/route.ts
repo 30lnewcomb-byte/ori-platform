@@ -5,7 +5,8 @@ type ChatMessage = { role: 'system' | 'user' | 'assistant' | 'tool'; content: st
 type ToolCall = { id: string; type: 'function'; function: { name: string; arguments: string } }
 
 const MODEL = process.env.HF_MODEL ?? 'Qwen/Qwen3-0.6B'
-const ROUTED_MODEL = MODEL.includes(':') ? MODEL : `${MODEL}:fastest`
+// Qwen3-0.6B currently has a live Featherless AI Inference Provider on Hugging Face.
+const ROUTED_MODEL = MODEL.includes(':') ? MODEL : `${MODEL}:featherless-ai`
 const HF_ENDPOINT = 'https://router.huggingface.co/v1/chat/completions'
 const SANDBOX_TOOLS = [{ type: 'function', function: { name: 'run_sandbox_command', description: 'Run a safe command inside Ori\'s private isolated Vercel Sandbox workspace.', parameters: { type: 'object', properties: { command: { type: 'string' }, args: { type: 'array', items: { type: 'string' } } }, required: ['command'] } } }, { type: 'function', function: { name: 'write_workspace_file', description: 'Write a text file into Ori\'s private sandbox workspace.', parameters: { type: 'object', properties: { path: { type: 'string' }, content: { type: 'string' } }, required: ['path', 'content'] } } }]
 
