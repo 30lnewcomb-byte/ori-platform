@@ -1,6 +1,6 @@
 const nav = [
   ['Home', '/'], ['Chat', '/chat'], ['Search', '/search'], ['Projects', '/projects'],
-  ['Tasks', '/tasks'], ['Activity', '/notifications'], ['Sandbox', '/sandbox'],
+  ['Tasks', '/tasks'], ['Activity', '/notifications'], ['Ori World', '/sandbox'],
   ['Developer', '/developer'], ['Settings', '/settings'],
 ];
 
