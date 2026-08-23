@@ -1,6 +1,7 @@
 const nav = [
-  ['Home', '/'], ['Chat', '/chat'], ['Projects', '/projects'],
-  ['Sandbox', '/sandbox'], ['Developer', '/developer'], ['Settings', '/settings'],
+  ['Home', '/'], ['Chat', '/chat'], ['Search', '/search'], ['Projects', '/projects'],
+  ['Tasks', '/tasks'], ['Activity', '/notifications'], ['Sandbox', '/sandbox'],
+  ['Developer', '/developer'], ['Settings', '/settings'],
 ];
 
 export default function ProjectsPage() {
