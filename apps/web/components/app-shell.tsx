@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import styles from './app-shell.module.css'
 
-type NavItem = { label: string; href: string }
+type NavItem = { label: string; href: string; newTab?: boolean }
 
 const navItems: NavItem[] = [
   { label: 'Home', href: '/' },
@@ -10,12 +10,12 @@ const navItems: NavItem[] = [
   { label: 'Projects', href: '/projects' },
   { label: 'Tasks', href: '/tasks' },
   { label: 'Activity', href: '/notifications' },
-  { label: 'Sandbox', href: '/sandbox' },
-  { label: 'Developer', href: '/developer' },
+  { label: 'Ori World', href: '/sandbox' },
+  { label: 'Developer', href: '/developer', newTab: true },
   { label: 'Settings', href: '/settings' },
 ]
 
-export type AppSection = 'Home' | 'Chat' | 'Search' | 'Projects' | 'Tasks' | 'Activity' | 'Sandbox' | 'Developer' | 'Settings'
+export type AppSection = 'Home' | 'Chat' | 'Search' | 'Projects' | 'Tasks' | 'Activity' | 'Ori World' | 'Developer' | 'Settings'
 
 export default function AppShell({
   active,
@@ -34,8 +34,6 @@ export default function AppShell({
         <div className={styles.brand}>ORI</div>
         <nav className={styles.nav}>
           {navItems.map((item) => {
-            const isOriWorld = item.label === 'Sandbox' && active === 'Sandbox'
-            const displayLabel = isOriWorld ? 'Ori World' : item.label
             const isActive = item.label === active
             return (
               <a
@@ -43,8 +41,10 @@ export default function AppShell({
                 href={item.href}
                 key={item.label}
                 aria-current={isActive ? 'page' : undefined}
+                target={item.newTab ? '_blank' : undefined}
+                rel={item.newTab ? 'noreferrer' : undefined}
               >
-                {displayLabel}
+                {item.label}
               </a>
             )
           })}
