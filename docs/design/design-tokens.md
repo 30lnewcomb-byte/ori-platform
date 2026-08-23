@@ -18,22 +18,20 @@ space-8  = 64px
 ## Typography roles
 
 ```text
-display       → major product moments
+display       → Ori Display
 heading-xl    → page titles
 heading-lg    → section titles
 heading-md    → component titles
 body-lg       → prominent body copy
-body          → standard UI and chat
+body          → Ori Text / standard UI and chat
 body-sm       → secondary information
 label         → controls and metadata
-mono          → code and technical values
+mono          → Ori Mono / code and technical values
 ```
 
-The eventual Ori type family will provide Display, Text, and Mono roles.
+The eventual Ori type family provides Display, Text, and Mono roles. The application references those family names now with safe fallbacks while the original glyph work is completed.
 
 ## Semantic colors
-
-The initial system defines roles rather than locking final brand colors:
 
 ```text
 surface-base
@@ -44,12 +42,17 @@ text-secondary
 text-muted
 border-subtle
 accent-primary
+accent-blue
+accent-blue-soft
+accent-blue-strong
 status-success
 status-warning
 status-danger
 status-info
 focus-ring
 ```
+
+Ori blue is an interaction and identity accent, not a blanket surface color. It is used for navigation state, primary actions, focus, links, and selected product moments.
 
 Status must remain understandable without color alone.
 
