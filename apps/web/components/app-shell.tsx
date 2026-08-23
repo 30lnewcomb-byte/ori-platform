@@ -11,11 +11,10 @@ const navItems: NavItem[] = [
   { label: 'Tasks', href: '/tasks' },
   { label: 'Activity', href: '/notifications' },
   { label: 'Ori World', href: '/sandbox' },
-  { label: 'Developer', href: '/developer' },
   { label: 'Settings', href: '/settings' },
 ]
 
-export type AppSection = 'Home' | 'Chat' | 'Search' | 'Projects' | 'Tasks' | 'Activity' | 'Ori World' | 'Developer' | 'Settings'
+export type AppSection = 'Home' | 'Chat' | 'Search' | 'Projects' | 'Tasks' | 'Activity' | 'Ori World' | 'Settings'
 
 export default function AppShell({
   active,
@@ -47,7 +46,18 @@ export default function AppShell({
             )
           })}
         </nav>
-        <div className={styles.sidebarFooter}>Ori Platform</div>
+        <div className={styles.sidebarBottom}>
+          <details className={styles.moreMenu}>
+            <summary className={styles.moreButton} aria-label="More options">•••</summary>
+            <div className={styles.morePanel}>
+              <a href="/developer" className={styles.moreItem}>
+                <strong>Developer Platform</strong>
+                <span>Build with Ori</span>
+              </a>
+            </div>
+          </details>
+          <div className={styles.sidebarFooter}>Ori Platform</div>
+        </div>
       </aside>
       <section className={contentClass}>{children}</section>
     </main>
