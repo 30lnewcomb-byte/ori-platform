@@ -1,0 +1,22 @@
+.page { min-height: 100vh; padding: 48px clamp(20px, 5vw, 80px) 72px; background: #0b0d0f; color: #f4f5f6; }
+.header, .notice, .grid, .footer { width: min(1180px, 100%); margin: 0 auto; }
+.header { display: flex; justify-content: space-between; gap: 40px; align-items: flex-end; padding: 30px 0 52px; }
+.back { display: inline-block; margin-bottom: 34px; color: #9ca6ba; font-size: 13px; }
+.back:hover { color: #6a91ff; }
+.eyebrow { margin: 0 0 12px; font-size: 12px; font-weight: 700; letter-spacing: .14em; color: #7f9cff; }
+h1 { margin: 0; font-size: clamp(48px, 7vw, 82px); line-height: .98; letter-spacing: -.055em; }
+.lede { max-width: 620px; margin: 20px 0 0; font-size: 20px; line-height: 1.5; color: #aeb4bf; }
+.version { padding: 8px 11px; border: 1px solid rgba(79,124,255,.3); border-radius: 999px; color: #aebfff; font-size: 11px; font-weight: 700; letter-spacing: .08em; white-space: nowrap; }
+.notice { display: grid; gap: 7px; padding: 22px 24px; border: 1px solid rgba(79,124,255,.28); border-radius: 16px; background: rgba(79,124,255,.07); }
+.notice strong { color: #d9e2ff; }
+.notice span { color: #aeb4bf; line-height: 1.55; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 28px; }
+.card { min-height: 210px; padding: 24px; border: 1px solid rgba(255,255,255,.10); border-radius: 16px; background: rgba(255,255,255,.035); transition: border-color .18s ease, transform .18s ease, background .18s ease; }
+.card:hover { border-color: rgba(79,124,255,.42); background: rgba(79,124,255,.06); transform: translateY(-2px); }
+.number { color: #6a91ff; font-size: 12px; font-weight: 700; }
+.card h2 { margin: 28px 0 8px; font-size: 23px; letter-spacing: -.025em; }
+.card p { margin: 0; max-width: 520px; color: #9ea5b1; line-height: 1.55; }
+.link { display: inline-block; margin-top: 24px; color: #8eabff; font-size: 13px; font-weight: 650; }
+.footer { display: flex; gap: 20px; padding-top: 46px; color: #8f96a2; font-size: 13px; }
+.footer a:hover { color: #6a91ff; }
+@media (max-width: 700px) { .header { display: block; } .version { display: inline-block; margin-top: 24px; } .grid { grid-template-columns: 1fr; } .page { padding: 28px 16px 56px; } }
