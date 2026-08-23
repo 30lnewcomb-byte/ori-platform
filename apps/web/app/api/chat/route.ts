@@ -47,32 +47,33 @@ export async function POST(request: Request) {
   let body: { messages?: ChatMessage[]; timezone?: string }
   try { body = await request.json() } catch { return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 }) }
   const messages = Array.isArray(body.messages) ? body.messages.filter((message) => message && ['system', 'user', 'assistant', 'tool'].includes(message.role) && typeof message.content === 'string').slice(-24) : []
-  if (!messages.length) return NextResponse.json({ error: 'At least one message is required.' }, { status: 400 })
+  if (!messages.length) return NextResponse.json({ error: 'At least one message is required.', code: 'INVALID_MESSAGES' }, { status: 400 })
   const clock = getSystemTimeContext(body.timezone ?? 'UTC')
   const systemMessage: ChatMessage = { role: 'system', content: `You are Ori, a user-owned AI being developed inside Ori Platform. Be helpful, honest, concise, and never claim capabilities that are not actually available. You are currently operating through the small Qwen Mentor model (${MODEL}) while Ori's deeper TensorFlow intelligence is under development. You have an internal Vercel Sandbox workspace. Use it when you need to inspect, create, test, or experiment with files and code. Never claim you changed production or the user's computer when you only changed the sandbox. When a time-aware greeting is appropriate, use "${clock.greeting}". Never expose the internal clock context unless explicitly asked.` }
   const conversation: ChatMessage[] = [systemMessage, ...messages.filter((message) => message.role !== 'system')]
   try {
     let result = await requestHuggingFace(token, MODEL, conversation)
-    // If the configured model includes an explicit provider, retry once without it.
-    // This lets the HF router choose a currently available provider instead of getting stuck on a stale route.
-    if (!result.response.ok && MODEL.includes(':')) {
-      result = await requestHuggingFace(token, MODEL.split(':')[0], conversation)
-    }
+    if (!result.response.ok && MODEL.includes(':')) result = await requestHuggingFace(token, MODEL.split(':')[0], conversation)
     if (!result.response.ok) {
-      console.error('Mentor request failed:', { status: result.response.status, model: MODEL, detail: result.text.slice(0, 1000) })
-      let providerMessage = 'Hugging Face rejected the request.'
-      if (result.response.status === 401) providerMessage = 'Hugging Face rejected the token (401). Check that HF_TOKEN is the actual hf_ token and is enabled for Production.'
-      else if (result.response.status === 403) providerMessage = 'Hugging Face denied inference access (403). Check token permissions and Inference Providers access.'
-      else if (result.response.status === 404) providerMessage = `The configured model was not found by the Hugging Face router (404): ${MODEL}.`
-      else if (result.response.status === 429) providerMessage = 'Hugging Face rate-limited the request (429). Try again shortly.'
-      else if (result.response.status >= 500) providerMessage = `Hugging Face returned a server error (${result.response.status}).`
-      return NextResponse.json({ error: providerMessage, code: 'INTELLIGENCE_REQUEST_FAILED', model: MODEL, providerStatus: result.response.status }, { status: 502 })
+      const status = result.response.status
+      console.error('Mentor request failed:', { status, model: MODEL, detail: result.text.slice(0, 1000) })
+      let error = `Hugging Face returned HTTP ${status}.`
+      if (status === 400) error = 'Hugging Face rejected the chat request (400). Check the selected model and request format.'
+      else if (status === 401) error = 'Hugging Face rejected HF_TOKEN (401). Make sure the token value is the actual hf_ token and the variable is enabled for Production.'
+      else if (status === 403) error = 'Hugging Face denied inference access (403). The token is present, but this account may not have access to the selected inference provider.'
+      else if (status === 404) error = `Hugging Face could not find an inference route for ${MODEL} (404).`
+      else if (status === 402) error = 'Hugging Face requires available Inference Provider credits for this request (402).'
+      else if (status === 429) error = 'Hugging Face rate-limited Ori (429). Try again shortly.'
+      else if (status >= 500) error = `Hugging Face had a server/provider error (${status}).`
+      return NextResponse.json({ error, code: 'INTELLIGENCE_REQUEST_FAILED', model: MODEL, providerStatus: status }, { status: 502 })
     }
     const assistant = result.data?.choices?.[0]?.message
     if (!assistant) return NextResponse.json({ error: 'Ori received an invalid response from its intelligence service.', code: 'INTELLIGENCE_INVALID_RESPONSE', model: MODEL }, { status: 502 })
-    return NextResponse.json({ content: typeof assistant.content === 'string' ? assistant.content : '', model: MODEL, sandbox: 'available' })
+    const content = typeof assistant.content === 'string' ? assistant.content.trim() : ''
+    if (!content) return NextResponse.json({ error: 'Ori received an empty response from its intelligence service.', code: 'INTELLIGENCE_EMPTY_RESPONSE', model: MODEL }, { status: 502 })
+    return NextResponse.json({ content, model: MODEL, sandbox: 'available' })
   } catch (error) {
     console.error('Mentor request error:', error)
-    return NextResponse.json({ error: 'Ori could not connect to Hugging Face from its server.', code: 'INTELLIGENCE_NETWORK_ERROR', model: MODEL }, { status: 502 })
+    return NextResponse.json({ error: 'Ori could not connect to Hugging Face from its server. Check the Vercel deployment logs for the network error.', code: 'INTELLIGENCE_NETWORK_ERROR', model: MODEL }, { status: 502 })
   }
 }
