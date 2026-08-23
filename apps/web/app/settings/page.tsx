@@ -2,8 +2,8 @@ import AppShell from '../../components/app-shell'
 
 export default function SettingsPage() {
   return (
-    <AppShell active="Settings">
-      <header className="topbar"><div><p className="eyebrow">SETTINGS</p><h1>Configure Ori.</h1><p className="appIntro">Account, appearance, permissions, notifications, and integrations will live here.</p></div></header>
+    <AppShell active="Home">
+      <header className="topbar"><div><p className="eyebrow">SETTINGS</p><h1>Configure Ori.</h1><p className="appIntro">Account, appearance, intelligence, permissions, notifications, and integrations will live here.</p></div></header>
       <div className="homeGrid">
         <section className="sectionBlock">
           <div className="sectionHeader"><h3>Account</h3></div>
