@@ -10,11 +10,10 @@ const navItems: NavItem[] = [
   { label: 'Projects', href: '/projects' },
   { label: 'Tasks', href: '/tasks' },
   { label: 'Activity', href: '/notifications' },
-  { label: 'Ori World', href: '/sandbox' },
   { label: 'Settings', href: '/settings' },
 ]
 
-export type AppSection = 'Home' | 'Chat' | 'Search' | 'Projects' | 'Tasks' | 'Activity' | 'Ori World' | 'Settings'
+export type AppSection = 'Home' | 'Chat' | 'Search' | 'Projects' | 'Tasks' | 'Activity' | 'Settings'
 
 export default function AppShell({
   active,
