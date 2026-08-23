@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import styles from './app-shell.module.css'
 
-type NavItem = { label: string; href: string; newTab?: boolean }
+type NavItem = { label: string; href: string }
 
 const navItems: NavItem[] = [
   { label: 'Home', href: '/' },
@@ -11,7 +11,7 @@ const navItems: NavItem[] = [
   { label: 'Tasks', href: '/tasks' },
   { label: 'Activity', href: '/notifications' },
   { label: 'Ori World', href: '/sandbox' },
-  { label: 'Developer', href: '/developer', newTab: true },
+  { label: 'Developer', href: '/developer' },
   { label: 'Settings', href: '/settings' },
 ]
 
@@ -41,8 +41,6 @@ export default function AppShell({
                 href={item.href}
                 key={item.label}
                 aria-current={isActive ? 'page' : undefined}
-                target={item.newTab ? '_blank' : undefined}
-                rel={item.newTab ? 'noreferrer' : undefined}
               >
                 {item.label}
               </a>
