@@ -34,7 +34,8 @@ export default function AppShell({
         <div className={styles.brand}>ORI</div>
         <nav className={styles.nav}>
           {navItems.map((item) => {
-            const displayLabel = active === 'Sandbox' && item.label === 'Sandbox' ? 'Ori World' : item.label
+            const isOriWorld = item.label === 'Sandbox' && active === 'Sandbox'
+            const displayLabel = isOriWorld ? 'Ori World' : item.label
             const isActive = item.label === active
             return (
               <a
