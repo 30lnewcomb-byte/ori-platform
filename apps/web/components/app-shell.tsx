@@ -1,10 +1,7 @@
 import type { ReactNode } from 'react'
 import styles from './app-shell.module.css'
 
-type NavItem = {
-  label: string
-  href: string
-}
+type NavItem = { label: string; href: string }
 
 const navItems: NavItem[] = [
   { label: 'Home', href: '/' },
@@ -18,18 +15,19 @@ const navItems: NavItem[] = [
   { label: 'Settings', href: '/settings' },
 ]
 
-export type AppSection =
-  | 'Home'
-  | 'Chat'
-  | 'Search'
-  | 'Projects'
-  | 'Tasks'
-  | 'Activity'
-  | 'Sandbox'
-  | 'Developer'
-  | 'Settings'
+export type AppSection = 'Home' | 'Chat' | 'Search' | 'Projects' | 'Tasks' | 'Activity' | 'Sandbox' | 'Developer' | 'Settings'
 
-export default function AppShell({ active, children }: { active: AppSection; children: ReactNode }) {
+export default function AppShell({
+  active,
+  contentClassName,
+  children,
+}: {
+  active: AppSection
+  contentClassName?: string
+  children: ReactNode
+}) {
+  const contentClass = contentClassName ? `${styles.content} ${contentClassName}` : styles.content
+
   return (
     <main className={styles.shell}>
       <aside className={styles.sidebar} aria-label="Primary navigation">
@@ -52,7 +50,7 @@ export default function AppShell({ active, children }: { active: AppSection; chi
         </nav>
         <div className={styles.sidebarFooter}>Ori Platform</div>
       </aside>
-      <section className={styles.content}>{children}</section>
+      <section className={contentClass}>{children}</section>
     </main>
   )
 }
