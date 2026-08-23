@@ -1,16 +1,22 @@
-const nav = [['Home','/'],['Chat','/chat'],['Search','/search'],['Projects','/projects'],['Tasks','/tasks'],['Activity','/notifications'],['Sandbox','/sandbox'],['Developer','/developer'],['Settings','/settings']];
+import AppShell from '../../components/app-shell'
 
 export default function NotificationsPage() {
   return (
-    <main className="shell">
-      <aside className="sidebar" aria-label="Primary navigation"><div className="brand">ORI</div><nav>{nav.map(([label,href]) => <a className={label === 'Activity' ? 'navItem active' : 'navItem'} href={href} key={label}>{label}</a>)}</nav><div className="sidebarFooter">Ori Platform</div></aside>
-      <section className="content">
-        <header className="topbar"><div><p className="eyebrow">ACTIVITY</p><h1>What Ori is doing.</h1></div></header>
-        <div className="homeGrid">
-          <section className="sectionBlock"><div className="sectionHeader"><h3>Activity</h3><span className="eyebrow">LIVE SYSTEM</span></div><div className="emptyState"><strong>No active activity</strong><span>When Ori starts work, important status changes, issues, approvals, and completed tasks can appear here.</span></div></section>
-          <section className="sectionBlock"><div className="sectionHeader"><h3>Notifications</h3></div><div className="emptyState"><strong>You’re all caught up</strong><span>Notification preferences and external reporting channels will connect here later.</span></div></section>
-        </div>
-      </section>
-    </main>
-  );
+    <AppShell active="Activity">
+      <header className="topbar"><div><p className="eyebrow">ACTIVITY</p><h1>What Ori is doing.</h1><p className="appIntro">A live record of important changes, approvals, issues, and completed work.</p></div><span className="eyebrow">LIVE SYSTEM</span></header>
+      <div className="homeGrid">
+        <section className="sectionBlock">
+          <div className="sectionHeader"><h3>Today</h3><span className="eyebrow">0 EVENTS</span></div>
+          <div className="emptyState"><strong>No activity yet</strong><span>When Ori starts work, meaningful system events will appear here instead of fake activity.</span></div>
+        </section>
+        <section className="sectionBlock">
+          <div className="sectionHeader"><h3>Notifications</h3></div>
+          <div className="dataList">
+            <div className="dataRow"><div><strong>Important system events</strong><span>Issues, approvals, completed tasks, and meaningful changes.</span></div><span>Ready</span></div>
+            <div className="dataRow"><div><strong>External reporting</strong><span>Google Chat and email escalation can connect here later.</span></div><span>Planned</span></div>
+          </div>
+        </section>
+      </div>
+    </AppShell>
+  )
 }
