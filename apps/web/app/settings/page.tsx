@@ -1,16 +1,25 @@
-const nav = [['Home','/'],['Chat','/chat'],['Search','/search'],['Projects','/projects'],['Tasks','/tasks'],['Activity','/notifications'],['Sandbox','/sandbox'],['Developer','/developer'],['Settings','/settings']];
+import AppShell from '../../components/app-shell'
 
 export default function SettingsPage() {
   return (
-    <main className="shell">
-      <aside className="sidebar" aria-label="Primary navigation"><div className="brand">ORI</div><nav>{nav.map(([label,href]) => <a className={label === 'Settings' ? 'navItem active' : 'navItem'} href={href} key={label}>{label}</a>)}</nav><div className="sidebarFooter">Ori Platform</div></aside>
-      <section className="content">
-        <header className="topbar"><div><p className="eyebrow">SETTINGS</p><h1>How Ori works for you.</h1></div></header>
-        <div className="homeGrid">
-          <section className="sectionBlock"><div className="sectionHeader"><h3>Account</h3></div><div className="statusRow"><div><strong>Liam</strong><span>Account controls will live here.</span></div></div></section>
-          <section className="sectionBlock"><div className="sectionHeader"><h3>System</h3></div><div className="emptyState"><strong>Platform settings are coming together</strong><span>Appearance, permissions, notifications, integrations, and system preferences will be connected as the underlying services are implemented.</span></div></section>
-        </div>
-      </section>
-    </main>
-  );
+    <AppShell active="Settings">
+      <header className="topbar"><div><p className="eyebrow">SETTINGS</p><h1>Configure Ori.</h1><p className="appIntro">Account, appearance, permissions, notifications, and integrations will live here.</p></div></header>
+      <div className="homeGrid">
+        <section className="sectionBlock">
+          <div className="sectionHeader"><h3>Account</h3></div>
+          <div className="dataList">
+            <div className="dataRow"><div><strong>Liam</strong><span>Account controls and identity.</span></div><span>Connected</span></div>
+          </div>
+        </section>
+        <section className="sectionBlock">
+          <div className="sectionHeader"><h3>Preferences</h3></div>
+          <div className="dataList">
+            <div className="dataRow"><div><strong>Appearance</strong><span>Theme and interface preferences.</span></div><span>Planned</span></div>
+            <div className="dataRow"><div><strong>Notifications</strong><span>Control where Ori reports important events.</span></div><span>Planned</span></div>
+            <div className="dataRow"><div><strong>Integrations</strong><span>Connect services explicitly when you're ready.</span></div><span>Planned</span></div>
+          </div>
+        </section>
+      </div>
+    </AppShell>
+  )
 }
