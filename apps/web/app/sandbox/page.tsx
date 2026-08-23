@@ -1,12 +1,13 @@
 const nav = [
-  ['Home', '/'], ['Chat', '/chat'], ['Projects', '/projects'],
-  ['Ori World', '/sandbox'], ['Developer', '/developer'], ['Settings', '/settings'],
+  ['Home', '/'], ['Chat', '/chat'], ['Search', '/search'], ['Projects', '/projects'],
+  ['Tasks', '/tasks'], ['Activity', '/notifications'], ['Sandbox', '/sandbox'],
+  ['Developer', '/developer'], ['Settings', '/settings'],
 ];
 
 export default function OriWorldPage() {
   return (
     <main className="shell">
-      <aside className="sidebar" aria-label="Primary navigation"><div className="brand">ORI</div><nav>{nav.map(([label, href]) => <a className={label === 'Ori World' ? 'navItem active' : 'navItem'} href={href} key={label}>{label}</a>)}</nav><div className="sidebarFooter">Ori Platform</div></aside>
+      <aside className="sidebar" aria-label="Primary navigation"><div className="brand">ORI</div><nav>{nav.map(([label, href]) => <a className={label === 'Sandbox' ? 'navItem active' : 'navItem'} href={href} key={label}>{label === 'Sandbox' ? 'Ori World' : label}</a>)}</nav><div className="sidebarFooter">Ori Platform</div></aside>
       <section className="content">
         <header className="topbar"><div><p className="eyebrow">ORI WORLD</p><h1>Ori&apos;s world.</h1></div></header>
         <div className="homeGrid">
