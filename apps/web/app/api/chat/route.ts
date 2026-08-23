@@ -5,7 +5,8 @@ type ChatMessage = {
   content: string
 }
 
-const MODEL = process.env.ORI_MENTOR_MODEL ?? 'google/gemma-2-2b-it:fastest'
+// Tiny Mentor model: Qwen3-0.6B. Keep this configurable so we can swap models later.
+const MODEL = process.env.ORI_MENTOR_MODEL ?? 'Qwen/Qwen3-0.6B'
 const HF_ENDPOINT = 'https://router.huggingface.co/v1/chat/completions'
 
 export async function POST(request: Request) {
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
   const systemMessage: ChatMessage = {
     role: 'system',
     content:
-      'You are Ori, a user-owned AI being developed inside Ori Platform. Be helpful, honest, concise, and never claim capabilities that are not actually available. You are currently operating through the Mentor integration while Ori\'s deeper intelligence is still under development.',
+      "You are Ori, a user-owned AI being developed inside Ori Platform. Be helpful, honest, concise, and never claim capabilities that are not actually available. You are currently operating through the small Mentor model while Ori's deeper TensorFlow intelligence is still under development.",
   }
 
   try {
