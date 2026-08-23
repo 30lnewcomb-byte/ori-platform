@@ -4,23 +4,42 @@ export default function HomePage() {
   return (
     <AppShell active="Home">
       <header className="topbar">
-        <div><p className="eyebrow">ORI PLATFORM</p><h1>Good evening.</h1></div>
+        <div>
+          <p className="eyebrow">ORI PLATFORM</p>
+          <h1>Good evening.</h1>
+          <p className="appIntro">Start something new or pick up where you left off.</p>
+        </div>
         <button className="avatar" aria-label="Open profile">L</button>
       </header>
-      <div className="homeGrid">
-        <section className="hero">
-          <p className="eyebrow">READY</p>
-          <h2>What are we building today?</h2>
-          <p className="heroCopy">Start a conversation, open a project, or give Ori a task to work on.</p>
-          <div className="actions"><a className="primary" href="/chat">Start a chat</a><a className="secondary" href="/projects">Open projects</a></div>
+
+      <div className="homeWorkspace">
+        <section className="quickStart" aria-labelledby="quick-start-heading">
+          <div>
+            <p className="eyebrow">QUICK START</p>
+            <h2 id="quick-start-heading">What do you want to work on?</h2>
+          </div>
+          <div className="quickActions">
+            <a className="primary" href="/chat">Start a chat</a>
+            <a className="secondary" href="/projects">Open a project</a>
+            <a className="secondary" href="/tasks">View tasks</a>
+          </div>
         </section>
-        <section className="sectionBlock" aria-labelledby="recent-heading">
-          <div className="sectionHeader"><h3 id="recent-heading">Continue working</h3><a href="/projects">View all</a></div>
-          <div className="emptyState"><strong>No recent work yet</strong><span>Your conversations and projects will appear here.</span></div>
-        </section>
-        <section className="sectionBlock" aria-labelledby="status-heading">
-          <div className="sectionHeader"><h3 id="status-heading">System</h3><a href="/notifications">View activity</a></div>
-          <div className="statusRow"><span className="statusDot" aria-hidden="true" /><div><strong>Ori is ready</strong><span>No active tasks are running.</span></div></div>
+
+        <div className="homeColumns">
+          <section className="sectionBlock" aria-labelledby="recent-heading">
+            <div className="sectionHeader"><h3 id="recent-heading">Recent work</h3><a href="/projects">View all</a></div>
+            <div className="emptyState"><strong>Nothing here yet</strong><span>Your recent conversations and projects will appear here once you start working.</span></div>
+          </section>
+
+          <section className="sectionBlock" aria-labelledby="tasks-heading">
+            <div className="sectionHeader"><h3 id="tasks-heading">Tasks</h3><a href="/tasks">View all</a></div>
+            <div className="emptyState"><strong>No active tasks</strong><span>When Ori has work in progress, active tasks will appear here.</span></div>
+          </section>
+        </div>
+
+        <section className="sectionBlock" aria-labelledby="activity-heading">
+          <div className="sectionHeader"><h3 id="activity-heading">Activity</h3><a href="/notifications">View activity</a></div>
+          <div className="statusRow"><span className="statusDot" aria-hidden="true" /><div><strong>Platform online</strong><span>The interface is connected and ready. Ori&apos;s intelligence is not connected yet.</span></div></div>
         </section>
       </div>
     </AppShell>
