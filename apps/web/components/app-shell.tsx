@@ -10,10 +10,9 @@ const navItems: NavItem[] = [
   { label: 'Projects', href: '/projects' },
   { label: 'Tasks', href: '/tasks' },
   { label: 'Activity', href: '/notifications' },
-  { label: 'Settings', href: '/settings' },
 ]
 
-export type AppSection = 'Home' | 'Chat' | 'Search' | 'Projects' | 'Tasks' | 'Activity' | 'Settings'
+export type AppSection = 'Home' | 'Chat' | 'Search' | 'Projects' | 'Tasks' | 'Activity'
 
 export default function AppShell({
   active,
@@ -49,6 +48,10 @@ export default function AppShell({
           <details className={styles.moreMenu}>
             <summary className={styles.moreButton} aria-label="More options">•••</summary>
             <div className={styles.morePanel}>
+              <a href="/settings" className={styles.moreItem}>
+                <strong>Settings</strong>
+                <span>Configure Ori</span>
+              </a>
               <a href="/developer" className={styles.moreItem}>
                 <strong>Developer Platform</strong>
                 <span>Build with Ori</span>
