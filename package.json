@@ -4,8 +4,7 @@
   "scripts": {
     "dev": "next dev apps/web",
     "build": "next build apps/web",
-    "start": "next start apps/web",
-    "lint": "next lint"
+    "start": "next start apps/web"
   },
   "dependencies": {
     "next": "latest",
