@@ -51,7 +51,7 @@ export async function getOriSandbox() {
 export async function runInOriSandbox(command: string, args: string[] = []) {
   validateCommand(command, args)
   const sandbox = await getOriSandbox()
-  const result = await sandbox.runCommand(command, args, { cwd: WORKDIR })
+  const result = await sandbox.runCommand(command, args)
   return {
     exitCode: result.exitCode,
     stdout: await result.stdout(),
