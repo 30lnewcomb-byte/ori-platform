@@ -1,25 +1,21 @@
-const nav = [
-  ['Home', '/'], ['Chat', '/chat'], ['Search', '/search'], ['Projects', '/projects'],
-  ['Tasks', '/tasks'], ['Activity', '/notifications'], ['Sandbox', '/sandbox'],
-  ['Developer', '/developer'], ['Settings', '/settings'],
-];
+import AppShell from '../../components/app-shell'
 
 export default function ChatPage() {
   return (
-    <main className="shell">
-      <aside className="sidebar" aria-label="Primary navigation">
-        <div className="brand">ORI</div>
-        <nav>{nav.map(([label, href]) => <a className={label === 'Chat' ? 'navItem active' : 'navItem'} href={href} key={label}>{label}</a>)}</nav>
-        <div className="sidebarFooter">Ori Platform</div>
-      </aside>
-      <section className="content chatContent">
-        <header className="topbar"><div><p className="eyebrow">CHAT</p><h1>Work with Ori.</h1></div></header>
-        <section className="conversation" aria-label="Conversation preview">
-          <div className="message userMessage"><div className="messageLabel">You</div><div className="userBubble">Can you check what's happening with the project?</div></div>
-          <div className="message oriMessage"><div className="oriIdentity"><span className="oriMark" aria-hidden="true">O</span><span>Ori</span></div><div className="oriText">I'm ready to check it. When the connected tools are available, I'll be able to inspect the project and report back here.</div></div>
+    <AppShell active="Chat">
+      <section className="chatContent">
+        <header className="topbar"><div><p className="eyebrow">CHAT</p><h1>Chat</h1></div></header>
+        <section className="conversation" aria-label="Conversation">
+          <div className="emptyState" style={{ margin: 'auto 0', minHeight: 0, alignItems: 'center', textAlign: 'center' }}>
+            <strong>Start a conversation with Ori.</strong>
+            <span>Your conversation will appear here.</span>
+          </div>
         </section>
-        <section className="composer" id="composer" aria-label="Message Ori"><textarea id="prompt" rows={2} placeholder="Message Ori..." aria-label="Message Ori" /><button type="button" className="sendButton" aria-label="Send message">↑</button></section>
+        <section className="composer" id="composer" aria-label="Message Ori">
+          <textarea id="prompt" rows={2} placeholder="Message Ori..." aria-label="Message Ori" />
+          <button type="button" className="sendButton" aria-label="Send message">↑</button>
+        </section>
       </section>
-    </main>
-  );
+    </AppShell>
+  )
 }
