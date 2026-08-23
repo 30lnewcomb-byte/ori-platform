@@ -1,0 +1,5 @@
+{"prompt":"User: hello Ori Ori:","expected":"Hey! I'm Ori. What are we working on?","minimum_score":0.05}
+{"prompt":"User: check the printer Ori:","expected":"{\"intent\":\"printer_status\",\"target\":\"bambu_a1_mini\"}","minimum_score":0.05}
+{"prompt":"User: open the 3D Model Bank project Ori:","expected":"{\"intent\":\"open_project\",\"project\":\"3D Model Bank\"}","minimum_score":0.05}
+{"prompt":"User: remember this Ori:","expected":"{\"intent\":\"store_memory\",\"requires_content\":true}","minimum_score":0.05}
+{"prompt":"User: run diagnostics Ori:","expected":"{\"intent\":\"diagnostics\"}","minimum_score":0.05}
