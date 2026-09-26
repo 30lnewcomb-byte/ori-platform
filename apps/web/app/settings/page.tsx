@@ -7,7 +7,7 @@ export default function SettingsPage() {
         <div>
           <p className="eyebrow">SETTINGS</p>
           <h1>Configure Ori.</h1>
-          <p className="appIntro">Manage Ori's preferences, intelligence, permissions, notifications, and integrations.</p>
+          <p className="appIntro">Manage Ori&apos;s preferences, intelligence, permissions, notifications, and integrations.</p>
         </div>
       </header>
 
@@ -18,7 +18,7 @@ export default function SettingsPage() {
             <a className="dataRow" href="/settings/intelligence" style={{ textDecoration: 'none', color: 'inherit' }}>
               <div>
                 <strong>Ori Intelligence</strong>
-                <span>Configure Hugging Face, the Qwen Mentor, and Ori's model services.</span>
+                <span>Configure Ori&apos;s native TensorFlow runtime and model services.</span>
               </div>
               <span>Open →</span>
             </a>
@@ -37,7 +37,7 @@ export default function SettingsPage() {
           <div className="dataList">
             <div className="dataRow"><div><strong>Appearance</strong><span>Theme and interface preferences.</span></div><span>Planned</span></div>
             <div className="dataRow"><div><strong>Notifications</strong><span>Control where Ori reports important events.</span></div><span>Planned</span></div>
-            <div className="dataRow"><div><strong>Integrations</strong><span>Connect services explicitly when you're ready.</span></div><span>Planned</span></div>
+            <div className="dataRow"><div><strong>Integrations</strong><span>Connect services explicitly when you&apos;re ready.</span></div><span>Planned</span></div>
           </div>
         </section>
       </div>
