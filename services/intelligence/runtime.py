@@ -95,7 +95,7 @@ CORE_MODEL = load_core_model()
 LANGUAGE_MODEL = load_language_model()
 
 
-TOOL_CALL_PATTERN = re.compile(r"TOOL_CALL\\s*(\\{.*?\\})\\s*END_TOOL", re.DOTALL)
+TOOL_CALL_PATTERN = re.compile(r"TOOL_CALL\s*(\{.*?\})\s*END_TOOL", re.DOTALL)
 
 
 def build_tool_context(tools: list[dict[str, Any]]) -> str:
