@@ -2,14 +2,14 @@ import DeveloperShell from '../../../components/developer-shell'
 import styles from './docs.module.css'
 
 const sections = [
-  ['Getting started', 'Learn the platform concepts and the path from your first project to your first integration.'],
-  ['Platform overview', 'Understand Projects, API boundaries, tools, intelligence, events, authentication, and the Developer Console.'],
-  ['API reference', 'Reference the stable HTTP interface, request formats, responses, errors, and versioning as the API becomes available.'],
-  ['Authentication', 'Learn how developer identity, project-scoped credentials, permissions, and revocation will work.'],
-  ['Projects', 'Use projects as the durable unit for application configuration, resources, tools, and activity.'],
-  ['Tools', 'Connect capabilities to Ori through explicit interfaces, permissions, and execution contracts.'],
-  ['SDKs', 'Use official SDKs once the public API contract is stable.'],
-  ['Guides', 'Follow practical workflows for building integrations and working with Ori capabilities.'],
+  ['Getting started', 'Platform concepts, projects, authentication, and the path to your first integration.'],
+  ['Platform overview', 'Projects, API boundaries, tools, intelligence, events, authentication, and the Developer Console.'],
+  ['API reference', 'HTTP interfaces, request formats, responses, errors, and versioning.'],
+  ['Authentication', 'Developer identity, project credentials, permissions, and revocation.'],
+  ['Projects', 'Projects as the durable unit for application configuration, resources, tools, and activity.'],
+  ['Tools', 'Explicit interfaces, permissions, and execution contracts for capabilities.'],
+  ['SDKs', 'Official SDKs and language-specific integration patterns.'],
+  ['Guides', 'Practical workflows for building with Ori Platform.'],
 ]
 
 export default function DeveloperDocsPage() {
@@ -21,27 +21,17 @@ export default function DeveloperDocsPage() {
             <a className={styles.back} href="/developer">← Developer Platform</a>
             <p className={styles.eyebrow}>DEVELOPER DOCS</p>
             <h1>Build with Ori.</h1>
-            <p className={styles.lede}>The documentation home for Ori Platform developers.</p>
+            <p className={styles.lede}>Reference material for Ori Platform developers.</p>
           </div>
-          <div className={styles.version}>EARLY DEVELOPMENT</div>
+          <div className={styles.version}>PLATFORM REFERENCE</div>
         </header>
-        <section className={styles.notice}>
-          <strong>Documentation follows the product.</strong>
-          <span>Only capabilities that are actually implemented will be documented as available. Planned features are clearly marked so the docs never pretend Ori can do something it cannot.</span>
-        </section>
         <section className={styles.grid} aria-label="Developer documentation sections">
           {sections.map(([title, text], index) => (
-            <a
-              className={styles.card}
-              href={`#${title.toLowerCase().replaceAll(' ', '-')}`}
-              key={title}
-              id={title.toLowerCase().replaceAll(' ', '-')}
-            >
+            <article className={styles.card} key={title}>
               <span className={styles.number}>{String(index + 1).padStart(2, '0')}</span>
               <h2>{title}</h2>
               <p>{text}</p>
-              <span className={styles.link}>Read section →</span>
-            </a>
+            </article>
           ))}
         </section>
         <footer className={styles.footer}>
