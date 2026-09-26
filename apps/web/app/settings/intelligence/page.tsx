@@ -47,10 +47,23 @@ export default function IntelligenceSettingsPage() {
             </div>
             <div className="dataRow">
               <div>
-                <strong>Ori language model</strong>
-                <span>Generative TensorFlow model slot reserved for the next intelligence stage.</span>
+                <strong>ori-small</strong>
+                <span>Compact learned TensorFlow language model used for server-side generation.</span>
               </div>
-              <span>In development</span>
+              <span>Bootstrap</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="sectionBlock">
+          <div className="sectionHeader"><h3>Execution runtime</h3></div>
+          <div className="dataList">
+            <div className="dataRow">
+              <div>
+                <strong>Ori VM Runtime</strong>
+                <span>The platform sandbox is routed through the private Render VM service using a server-side API connection.</span>
+              </div>
+              <span>Render</span>
             </div>
           </div>
         </section>
