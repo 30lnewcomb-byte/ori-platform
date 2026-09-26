@@ -6,7 +6,6 @@ Models are loaded from the runtime filesystem; they are never sent to the browse
 
 from __future__ import annotations
 
-import hashlib
 import hmac
 import os
 from pathlib import Path
