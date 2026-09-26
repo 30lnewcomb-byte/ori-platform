@@ -1,39 +1,47 @@
 # Ori TensorFlow Core
 
-This directory contains the learned TensorFlow side of Ori.
+This is Ori's native learned-intelligence boundary.
 
-## Two stages
+## Runtime architecture
 
-### Current Core
-`model.py` is the existing compact TensorFlow classifier. It can provide intent/complexity signals to the orchestrator.
-
-### Ori Language Model
-`ori_lm.py` is the foundation for Ori's own small decoder-only Transformer. It is intentionally separate from the Mentor model.
-
-## Mentor relationship
-
-Mentor remains the supporting language model and is currently Qwen3-0.6B. Mentor is allowed to help with language understanding, planning, data generation, evaluation, and difficult requests while the custom Ori model is trained.
-
-Mentor must NOT silently become Ori's permanent core identity.
-
-## Long-term architecture
-
-```text
-User
-  |
-  v
-Ori Platform
-  |
-  v
-Orchestrator
-  |--------------------|
-  v                    v
-Ori TensorFlow LM    Mentor (Qwen3-0.6B)
-  |                    |
-  |---- reasoning -----|
-           |
-           v
-Memory / Tools / Ori World
+```
+Ori Platform (Vercel)
+        |
+        | authenticated HTTPS
+        v
+Ori TensorFlow Runtime
+        |
+        +--> /v1/status
+        +--> /v1/models
+        +--> /v1/predict
+        +--> /v1/chat
+        |
+        v
+TensorFlow / Keras models
 ```
 
-The orchestrator should be able to change the balance between Ori LM and Mentor without changing Ori's identity layer.
+The Vercel application is the control plane. The TensorFlow runtime owns model loading and inference. Model files and service credentials stay server-side.
+
+## Current model
+
+`model.py` contains Ori's first real trainable TensorFlow/Keras classifier. It is a learned model, not a scripted decision tree. It currently provides intent signals for the orchestrator.
+
+A classifier is deliberately not presented as a chat model. The runtime reserves `/v1/chat` for a future trained TensorFlow generative model.
+
+## Model contract
+
+Every deployed model should have:
+
+- a stable model id
+- an explicit version
+- a framework/task declaration
+- a server-side load path
+- a stable inference contract
+
+That lets Ori add larger TensorFlow models later without changing the Vercel frontend.
+
+## Security
+
+The runtime API requires a server-side bearer credential. Keep the runtime private where the hosting platform supports private networking. Never put the runtime credential in client-side code, localStorage, query parameters, or browser-visible responses.
+
+Hugging Face is not part of this production intelligence path. Ori calls its own TensorFlow runtime.
