@@ -1,18 +1,14 @@
-"""Ori's small custom TensorFlow language model.
+"""Ori's compact, native TensorFlow language model.
 
-This is a compact decoder-only Transformer designed to become Ori's own
-language model over time. It deliberately does not own Ori's identity,
-memory, tools, or permissions; those remain in the platform core.
-
-The model is trainable from plain JSONL records and can later be replaced or
-scaled without changing the surrounding Ori architecture.
+The language model provides learned language generation. Identity, memory,
+tools, permissions, and orchestration stay outside the model in Ori Core.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from pathlib import Path
 import json
+from pathlib import Path
 import re
 
 import tensorflow as tf
@@ -20,12 +16,12 @@ import tensorflow as tf
 
 @dataclass(frozen=True)
 class OriLMConfig:
-    vocab_size: int = 8192
+    vocab_size: int = 2048
     context_length: int = 256
-    d_model: int = 256
+    d_model: int = 192
     num_heads: int = 4
-    num_layers: int = 6
-    d_ff: int = 1024
+    num_layers: int = 4
+    d_ff: int = 768
     dropout: float = 0.1
     pad_id: int = 0
     bos_id: int = 1
@@ -34,11 +30,10 @@ class OriLMConfig:
 
 
 class OriTokenizer:
-    """Transparent starter tokenizer.
+    """Small transparent tokenizer for the bootstrap Ori corpus.
 
-    It is intentionally simple so the first Ori model is easy to inspect.
-    Once the training corpus grows, this interface can be backed by BPE or a
-    SentencePiece-style tokenizer without changing the model API.
+    The tokenizer deliberately stays inspectable. Its API is stable so it can
+    later be backed by a subword tokenizer without changing the model runtime.
     """
 
     SPECIAL = ("<pad>", "<bos>", "<eos>", "<unk>")
@@ -49,10 +44,11 @@ class OriTokenizer:
 
     @staticmethod
     def split(text: str) -> list[str]:
-        return re.findall(r"\w+|[^\w\s]", text.lower(), flags=re.UNICODE)
+        pattern = r"[A-Za-z0-9_]+(?:['’][A-Za-z0-9_]+)?|[^\\w\\s]"
+        return re.findall(pattern, text, flags=re.UNICODE)
 
     @classmethod
-    def build(cls, texts: list[str], vocab_size: int = 8192) -> "OriTokenizer":
+    def build(cls, texts: list[str], vocab_size: int = 2048) -> "OriTokenizer":
         counts: dict[str, int] = {}
         for text in texts:
             for token in cls.split(text):
@@ -75,10 +71,20 @@ class OriTokenizer:
         return ids
 
     def decode(self, ids: list[int]) -> str:
-        tokens = [self.inverse.get(i, "<unk>") for i in ids]
-        tokens = [t for t in tokens if t not in self.SPECIAL]
-        text = " ".join(tokens)
-        return re.sub(r"\s+([,.!?;:])", r"\1", text)
+        output: list[str] = []
+        for token_id in ids:
+            token = self.inverse.get(token_id, "<unk>")
+            if token == "<eos>":
+                break
+            if token in self.SPECIAL:
+                continue
+            output.append(token)
+
+        text = " ".join(output)
+        text = re.sub(r"\\s+([,.!?;:%\\)\\]\\}])", r"\\1", text)
+        text = re.sub(r"([\\(\\[\\{])\\s+", r"\\1", text)
+        text = re.sub(r"\\s+([/])\\s+", r"\\1", text)
+        return text.strip()
 
     def save(self, path: str | Path) -> None:
         Path(path).write_text(json.dumps(self.vocab, indent=2), encoding="utf-8")
@@ -98,36 +104,57 @@ class TransformerBlock(tf.keras.layers.Layer):
             dropout=config.dropout,
         )
         self.norm2 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
-        self.ffn = tf.keras.Sequential([
-            tf.keras.layers.Dense(config.d_ff, activation=tf.nn.gelu),
-            tf.keras.layers.Dropout(config.dropout),
-            tf.keras.layers.Dense(config.d_model),
-        ])
+        self.ffn = tf.keras.Sequential(
+            [
+                tf.keras.layers.Dense(config.d_ff, activation=tf.nn.gelu),
+                tf.keras.layers.Dropout(config.dropout),
+                tf.keras.layers.Dense(config.d_model),
+            ],
+            name="ffn",
+        )
         self.dropout = tf.keras.layers.Dropout(config.dropout)
 
     def call(self, x, training=False):
         length = tf.shape(x)[1]
-        mask = tf.linalg.band_part(
+        causal_mask = tf.linalg.band_part(
             tf.ones((length, length), dtype=tf.bool), -1, 0
         )
-        y = self.attn(self.norm1(x), self.norm1(x), attention_mask=mask, training=training)
-        x = x + self.dropout(y, training=training)
-        x = x + self.dropout(self.ffn(self.norm2(x), training=training), training=training)
+        normalized = self.norm1(x)
+        attention = self.attn(
+            normalized,
+            normalized,
+            attention_mask=causal_mask,
+            training=training,
+        )
+        x = x + self.dropout(attention, training=training)
+        x = x + self.dropout(
+            self.ffn(self.norm2(x), training=training),
+            training=training,
+        )
         return x
 
 
 class OriLanguageModel(tf.keras.Model):
-    """Compact decoder-only Transformer for Ori."""
+    """Compact decoder-only Transformer used by Ori's language path."""
 
     def __init__(self, config: OriLMConfig, **kwargs):
         super().__init__(**kwargs)
         self.config = config
-        self.tokens = tf.keras.layers.Embedding(config.vocab_size, config.d_model, name="token_embedding")
-        self.positions = tf.keras.layers.Embedding(config.context_length, config.d_model, name="position_embedding")
+        self.tokens = tf.keras.layers.Embedding(
+            config.vocab_size, config.d_model, name="token_embedding"
+        )
+        self.positions = tf.keras.layers.Embedding(
+            config.context_length, config.d_model, name="position_embedding"
+        )
         self.dropout = tf.keras.layers.Dropout(config.dropout)
-        self.blocks = [TransformerBlock(config, name=f"transformer_{i}") for i in range(config.num_layers)]
+        self.blocks = [
+            TransformerBlock(config, name=f"transformer_{i}")
+            for i in range(config.num_layers)
+        ]
         self.norm = tf.keras.layers.LayerNormalization(epsilon=1e-6)
-        self.lm_head = tf.keras.layers.Dense(config.vocab_size, use_bias=False, name="lm_head")
+        self.lm_head = tf.keras.layers.Dense(
+            config.vocab_size, use_bias=False, name="lm_head"
+        )
 
     def call(self, token_ids, training=False):
         length = tf.shape(token_ids)[1]
@@ -140,6 +167,63 @@ class OriLanguageModel(tf.keras.Model):
 
     def next_logits(self, token_ids):
         return self(token_ids, training=False)[:, -1, :]
+
+    def generate(
+        self,
+        tokenizer: OriTokenizer,
+        prompt: str,
+        max_new_tokens: int = 96,
+        temperature: float = 0.2,
+        top_k: int = 20,
+    ) -> tuple[str, str]:
+        """Generate text from learned weights and return (text, finish_reason)."""
+        if not prompt.strip():
+            raise ValueError("Generation prompt is empty.")
+        if max_new_tokens < 1 or max_new_tokens > 256:
+            raise ValueError("max_new_tokens must be between 1 and 256.")
+        if temperature < 0 or temperature > 2:
+            raise ValueError("temperature must be between 0 and 2.")
+
+        context = tokenizer.encode(prompt, add_bos=True, add_eos=False)
+        context = context[-self.config.context_length :]
+        generated: list[int] = []
+
+        for _ in range(max_new_tokens):
+            logits = self.next_logits(
+                tf.constant([context], dtype=tf.int32)
+            )[0]
+
+            blocked = tf.reduce_any(
+                tf.one_hot(
+                    [tokenizer.vocab["<pad>"], tokenizer.vocab["<bos>"], tokenizer.vocab["<unk>"]],
+                    depth=self.config.vocab_size,
+                    dtype=tf.bool,
+                ),
+                axis=0,
+            )
+            logits = tf.where(blocked, tf.fill(tf.shape(logits), tf.constant(-1e9)), logits)
+
+            if temperature <= 1e-6:
+                next_id = int(tf.argmax(logits).numpy())
+            else:
+                scaled = logits / temperature
+                if top_k > 0:
+                    k = min(top_k, self.config.vocab_size)
+                    values, indices = tf.math.top_k(scaled, k=k)
+                    sampled = tf.random.categorical(values[tf.newaxis, :], 1)[0, 0]
+                    next_id = int(indices[sampled].numpy())
+                else:
+                    sampled = tf.random.categorical(scaled[tf.newaxis, :], 1)[0, 0]
+                    next_id = int(sampled.numpy())
+
+            if next_id == tokenizer.vocab["<eos>"]:
+                return tokenizer.decode(generated), "stop"
+
+            generated.append(next_id)
+            context.append(next_id)
+            context = context[-self.config.context_length :]
+
+        return tokenizer.decode(generated), "length"
 
 
 def build_model(config: OriLMConfig | None = None) -> OriLanguageModel:
