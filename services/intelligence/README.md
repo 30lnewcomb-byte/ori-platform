@@ -1,73 +1,99 @@
 # Ori Intelligence Service
 
-This is the integration boundary for Ori's intelligence architecture.
+This service is the server-side intelligence boundary for Ori Platform.
 
-## Current architecture
+## Architecture
 
-- **Ori TensorFlow model** is the long-term custom learned language component. The first decoder-only Transformer lives under `tensorflow_core/ori_model.py`.
-- **TensorFlow core classifier** remains available under `tensorflow_core/model.py` for intent/complexity signals while the language model is trained.
-- **Mentor** is a supporting language-model layer. The current default is **Qwen3-0.6B** for language understanding, task structuring, planning assistance, and evaluation.
-- **Orchestrator** decides when and how these components interact.
+- **Ori TensorFlow language model** is the native learned language component.
+- **TensorFlow Core** provides the small intent classifier used for platform signals.
+- **Ori Core** owns identity, memory, tools, permissions, orchestration, and state outside the model weights.
+- **The web app** talks to this service server-to-server. Runtime credentials are never exposed to the browser.
 
-Qwen is deliberately a replaceable Mentor, not the permanent definition of Ori.
+The production intelligence path no longer depends on a hosted external language-model provider.
 
-## New custom Ori model
+## Native Ori model
 
-`tensorflow_core/ori_model.py` contains a compact decoder-only Transformer implemented directly with TensorFlow/Keras. It includes:
+`tensorflow_core/ori_model.py` contains a compact decoder-only Transformer implemented directly with TensorFlow/Keras. It supports:
 
-- configurable context length and model size
 - causal self-attention
 - trainable token and position embeddings
-- JSONL training support
-- an explicit tokenizer interface that can later be upgraded to BPE/SentencePiece
-- saved TensorFlow weights and model configuration
+- configurable model size and context length
+- real learned generation from saved weights
+- a stable tokenizer interface that can later be backed by a subword tokenizer
+- JSONL training and held-out evaluation
 
-`tensorflow_core/train_ori.py` is the first training pipeline. Starter examples are in `tensorflow_core/data/ori_training.jsonl`.
+The bootstrap training corpus is `tensorflow_core/data/ori_training_expanded.jsonl`.
 
 From `services/intelligence/tensorflow_core`:
 
 ```bash
-python train_ori.py --data data/ori_training.jsonl --output artifacts/ori-small
+python train_ori.py --data data/ori_training_expanded.jsonl --output artifacts/ori-small
 ```
 
-The starter dataset is intentionally tiny. It proves the training path; it is **not** enough to make a good general-purpose language model. The next stage is building a much larger Ori-specific corpus and evaluation suite.
+For the deployed intelligence image, the Docker build trains this bootstrap model and packages its weights with the runtime.
 
-## Architecture boundary
+The corpus is intentionally small. It establishes the native learned path; it is not intended to be a general-purpose language model yet. The next intelligence stage is a substantially larger Ori-specific corpus, better tokenization, broader held-out evaluation, and a stronger training loop.
+
+## API
+
+Authenticated endpoints:
+
+- `GET /v1/status` — runtime and model readiness
+- `GET /v1/models` — registered TensorFlow models
+- `POST /v1/predict` — intent classification
+- `POST /v1/chat` — learned language generation
+
+The runtime requires `Authorization: Bearer <ORI_INTELLIGENCE_API_KEY>` for these endpoints.
+
+## Model boundary
 
 ```text
 User message
     ↓
-Platform API
+Ori Platform / server route
     ↓
-Intelligence Orchestrator
-    ├── Ori TensorFlow Model   ← custom language model
-    ├── TensorFlow Core       ← intent/complexity signals
-    └── Mentor                ← optional supporting model
+Authenticated TensorFlow runtime
+    ├── ori-small       ← learned language generation
+    └── ori-core        ← intent classification
     ↓
-Memory / Tools / Ori World
+Ori Core
+    ├── identity
+    ├── memory
+    ├── tools
+    ├── permissions
+    └── orchestration
     ↓
-User-facing Ori response
+User-facing response
 ```
 
-The model does **not** own Ori's identity, memory, permissions, tools, or persistent state. Those belong to the platform. This is what lets us improve or replace the model without making Ori stop being Ori.
-
-## Current state
-
-The working web chat still uses the Mentor boundary when configured. The custom TensorFlow language model has now been added as the foundation for Ori's own model and has a real training path.
-
-Do not claim live intelligence until the configured model connection is working and its health/status can be verified.
+The model does not own Ori's identity, memory, permissions, tools, or persistent state. This lets us improve or replace the weights without redefining Ori.
 
 ## Configuration
 
-Set provider credentials as environment variables, never in source control:
+Runtime:
 
-- `HF_TOKEN` — Hugging Face token for the supporting Mentor path.
-- `ORI_MENTOR_MODEL` — supporting model identifier; current default is `Qwen/Qwen3-0.6B`.
+- `ORI_INTELLIGENCE_API_KEY` — shared secret used for server-to-server authentication.
+- `ORI_LM_DIR` — path to the `ori-small` artifact directory; defaults to `artifacts/ori-small`.
+- `ORI_MODEL_DIR` — path to the intent-classifier model directory; defaults to `models`.
+- `LOG_LEVEL` — runtime log level; defaults to `INFO`.
+
+Web application:
+
+- `ORI_INTELLIGENCE_URL` — server-side URL of the TensorFlow runtime.
+- `ORI_INTELLIGENCE_API_KEY` — same shared secret as the runtime.
+
+Never commit these credentials or expose them to client-side code.
+
+## Current state
+
+The web chat route is wired to the native TensorFlow runtime, and the runtime can load and generate from the trained `ori-small` artifact.
+
+A live deployment is only considered connected when the runtime URL and API key are configured and `/v1/status` confirms that `ori-small` is loaded.
 
 ## Rules
 
-Do not expose provider-specific credentials to the browser.
+Do not add a hosted external language-model dependency to the production intelligence path.
 
-Do not silently turn the Mentor into the permanent definition of Ori's core intelligence.
+Do not give the language model direct device authority.
 
-Do not treat the starter TensorFlow model as production-ready yet. It is the foundation we will train, evaluate, and improve into Ori's own small language model.
+Do not claim live intelligence until the configured runtime has been health-checked and its model readiness verified.
