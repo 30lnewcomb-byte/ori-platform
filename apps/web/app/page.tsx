@@ -58,7 +58,7 @@ export default function HomePage() {
 
         <section className="sectionBlock" aria-labelledby="activity-heading">
           <div className="sectionHeader"><h3 id="activity-heading">Activity</h3><a href="/notifications">View activity</a></div>
-          <div className="statusRow"><span className="statusDot" aria-hidden="true" /><div><strong>Platform online</strong><span>The interface is connected and ready. Ori&apos;s intelligence is not connected yet.</span></div></div>
+          <div className="statusRow"><span className="statusDot" aria-hidden="true" /><div><strong>Platform online</strong><span>Your Ori workspace is online. Intelligence services run behind the platform&apos;s server-side boundary.</span></div></div>
         </section>
       </div>
     </AppShell>

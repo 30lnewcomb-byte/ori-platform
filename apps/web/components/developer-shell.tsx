@@ -5,11 +5,6 @@ type DeveloperNavItem = { label: string; href: string }
 
 const developerNav: DeveloperNavItem[] = [
   { label: 'Overview', href: '/developer' },
-  { label: 'Projects', href: '/developer/projects' },
-  { label: 'API', href: '/developer/api' },
-  { label: 'Tools', href: '/developer/tools' },
-  { label: 'Models', href: '/developer/models' },
-  { label: 'Events', href: '/developer/events' },
   { label: 'Docs', href: '/developer/docs' },
 ]
 

@@ -177,12 +177,6 @@
   font-size: 14px;
 }
 
-.coming {
-  margin-top: auto;
-  font-size: 12px;
-  opacity: .42;
-}
-
 .platform,
 .boundary {
   display: grid;
