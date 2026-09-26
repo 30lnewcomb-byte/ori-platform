@@ -35,9 +35,9 @@ export default function SettingsPage() {
         <section className="sectionBlock">
           <div className="sectionHeader"><h3>Preferences</h3></div>
           <div className="dataList">
-            <div className="dataRow"><div><strong>Appearance</strong><span>Theme and interface preferences.</span></div><span>Planned</span></div>
-            <div className="dataRow"><div><strong>Notifications</strong><span>Control where Ori reports important events.</span></div><span>Planned</span></div>
-            <div className="dataRow"><div><strong>Integrations</strong><span>Connect services explicitly when you&apos;re ready.</span></div><span>Planned</span></div>
+            <div className="dataRow"><div><strong>Appearance</strong><span>Theme and interface preferences.</span></div><span>Not configured</span></div>
+            <div className="dataRow"><div><strong>Notifications</strong><span>Choose where important Ori events are reported.</span></div><span>Not configured</span></div>
+            <div className="dataRow"><div><strong>Integrations</strong><span>Connect external services when you need them.</span></div><span>Not connected</span></div>
           </div>
         </section>
       </div>
