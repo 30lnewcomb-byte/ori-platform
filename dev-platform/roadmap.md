@@ -8,6 +8,8 @@ This is an implementation roadmap, not a claim that every item below exists toda
 - [x] Project model foundation
 - [x] Tool registration foundation
 - [x] Platform event foundation
+- [x] Native TensorFlow runtime boundary
+- [x] Initial TensorFlow model contract
 - [ ] Connect the platform API
 - [ ] Define stable API versioning
 
@@ -19,6 +21,7 @@ This is an implementation roadmap, not a claim that every item below exists toda
 - [ ] Tool management
 - [ ] Usage/activity view
 - [ ] Settings
+- [ ] Model registry and version management
 
 ## API
 
@@ -29,6 +32,7 @@ This is an implementation roadmap, not a claim that every item below exists toda
 - [ ] Event/log endpoints
 - [ ] Error model
 - [ ] Request validation
+- [ ] Public model/intelligence endpoints
 
 ## SDKs
 
@@ -46,12 +50,21 @@ This is an implementation roadmap, not a claim that every item below exists toda
 - [ ] Authentication guide
 - [ ] Projects guide
 - [ ] Tools guide
+- [ ] Models/intelligence guide
 - [ ] SDK guides
 - [ ] Changelog/versioning guidance
 
-## Future
+## Future intelligence
 
-- [ ] Model/intelligence APIs
+- [x] Private TensorFlow service boundary
+- [x] `ori-core` learned TensorFlow classifier
+- [ ] Train and register Ori's generative TensorFlow model
+- [ ] Model version promotion/rollback
+- [ ] Model evaluation pipeline
+- [ ] Model artifact storage
+
+## Future platform
+
 - [ ] Webhooks
 - [ ] Usage metering
 - [ ] Advanced permissions
