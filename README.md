@@ -4,14 +4,14 @@ The open-source foundation for Ori: a user-owned AI platform with a professional
 
 ## Design principles
 
-- **User-owned:** Ori is built for Liam to own and control.
+- **User-owned:** Ori is built for the creator to own and control.
 - **Truthful UI:** the interface reflects real system state; it never invents activity or capabilities.
-- **Professional:** intentional typography, spacing, hierarchy, accessibility, and responsive behavior.
+- **Professional:** Intentional typography, spacing, hierarchy, accessibility, and responsive behavior.
 - **Human:** approachable without becoming childish or gimmicky.
 - **Technical:** powerful developer capabilities without exposing unnecessary complexity.
 - **Calm:** important problems are clear without creating noise.
 - **Iterative:** the system is tested, reviewed, and improved continuously.
-
+-  The repo is here so the creator and necessary tools can edit and also make it so Vercel, the site that is hosting Ori, can get at it.
 ## Current architecture
 
 ```text
