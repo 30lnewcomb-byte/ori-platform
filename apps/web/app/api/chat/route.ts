@@ -79,7 +79,7 @@ export async function POST(request: Request) {
 
     const content = typeof data?.content === 'string' ? data.content.trim() : ''
     if (!content) return NextResponse.json({ error: 'Ori received an empty response from its TensorFlow intelligence runtime.', code: 'INTELLIGENCE_EMPTY_RESPONSE' }, { status: 502 })
-    return NextResponse.json({ content, model: data.model ?? 'ori-tensorflow', sandbox: 'available' })
+    return NextResponse.json({ content, model: data.model ?? 'ori-tensorflow', sandbox: 'render-vm' })
   } catch (error) {
     console.error('Ori TensorFlow runtime connection error:', error)
     return NextResponse.json({ error: 'Ori could not connect to its private TensorFlow intelligence runtime.', code: 'INTELLIGENCE_NETWORK_ERROR' }, { status: 502 })
