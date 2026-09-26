@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { runInOriSandbox, writeOriWorkspaceFile } from '../../../lib/ori-sandbox'
+import { runInOriSandbox, writeOriWorkspaceFile, readOriWorkspaceFile } from '../../../lib/ori-sandbox'
 
 type ChatMessage = {
   role: 'system' | 'user' | 'assistant' | 'tool'
@@ -15,6 +15,7 @@ const INTELLIGENCE_API_KEY = process.env.ORI_INTELLIGENCE_API_KEY?.trim()
 const SANDBOX_TOOLS = [
   { type: 'function', function: { name: 'run_sandbox_command', description: "Run a safe command inside Ori's private isolated sandbox workspace.", parameters: { type: 'object', properties: { command: { type: 'string' }, args: { type: 'array', items: { type: 'string' } } }, required: ['command'] } } },
   { type: 'function', function: { name: 'write_workspace_file', description: "Write a text file into Ori's private sandbox workspace.", parameters: { type: 'object', properties: { path: { type: 'string' }, content: { type: 'string' } }, required: ['path', 'content'] } } },
+  { type: 'function', function: { name: 'read_workspace_file', description: "Read a text file from Ori's private sandbox workspace.", parameters: { type: 'object', properties: { path: { type: 'string' } }, required: ['path'] } } },
 ]
 
 function getSystemTimeContext(timeZone: string) {
@@ -38,6 +39,10 @@ async function executeTool(call: ToolCall) {
       await writeOriWorkspaceFile(args.path, args.content)
       return { ok: true, path: args.path }
     }
+    if (call.function.name === 'read_workspace_file') {
+      if (typeof args.path !== 'string') return { ok: false, error: 'A path is required.' }
+      return { ok: true, ...(await readOriWorkspaceFile(args.path)) }
+    }
     return { ok: false, error: `Unknown tool: ${call.function.name}` }
   } catch (error) { return { ok: false, error: error instanceof Error ? error.message : 'Sandbox operation failed.' } }
 }
@@ -51,7 +56,7 @@ export async function POST(request: Request) {
   try { body = await request.json() } catch { return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 }) }
 
   const messages = Array.isArray(body.messages)
-    ? body.messages.filter((message) => message && ['system', 'user', 'assistant', 'tool'].includes(message.role) && typeof message.content === 'string').slice(-24)
+    ? body.messages.filter((message) => message && ['user', 'assistant'].includes(message.role) && typeof message.content === 'string').slice(-24)
     : []
   if (!messages.length) return NextResponse.json({ error: 'At least one message is required.', code: 'INVALID_MESSAGES' }, { status: 400 })
 
@@ -62,24 +67,66 @@ export async function POST(request: Request) {
   }
 
   try {
-    const response = await fetch(`${INTELLIGENCE_URL}/v1/chat`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${INTELLIGENCE_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [systemMessage, ...messages.filter((message) => message.role !== 'system')], tools: SANDBOX_TOOLS }),
-      signal: AbortSignal.timeout(30_000),
-    })
-    const text = await response.text()
-    let data: any = null
-    try { data = JSON.parse(text) } catch { data = null }
+    const loopMessages: ChatMessage[] = [systemMessage, ...messages]
 
-    if (!response.ok) {
-      console.error('Ori TensorFlow runtime failed:', { status: response.status, detail: text.slice(0, 1000) })
-      return NextResponse.json({ error: data?.error || `Ori TensorFlow runtime returned HTTP ${response.status}.`, code: 'INTELLIGENCE_REQUEST_FAILED' }, { status: 502 })
+    for (let step = 0; step < 4; step += 1) {
+      const response = await fetch(`${INTELLIGENCE_URL}/v1/chat`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${INTELLIGENCE_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: loopMessages, tools: SANDBOX_TOOLS }),
+        signal: AbortSignal.timeout(30_000),
+      })
+      const responseText = await response.text()
+      let data: any = null
+      try { data = JSON.parse(responseText) } catch { data = null }
+
+      if (!response.ok) {
+        console.error('Ori TensorFlow runtime failed:', { status: response.status, detail: responseText.slice(0, 1000) })
+        return NextResponse.json({ error: data?.error || `Ori TensorFlow runtime returned HTTP ${response.status}.`, code: 'INTELLIGENCE_REQUEST_FAILED' }, { status: 502 })
+      }
+
+      const content = typeof data?.content === 'string' ? data.content.trim() : ''
+      const toolCalls = Array.isArray(data?.tool_calls) ? data.tool_calls : []
+
+      if (!toolCalls.length) {
+        if (!content) {
+          return NextResponse.json({ error: 'Ori received an empty response from its TensorFlow intelligence runtime.', code: 'INTELLIGENCE_EMPTY_RESPONSE' }, { status: 502 })
+        }
+        return NextResponse.json({
+          content,
+          model: data.model ?? 'ori-small',
+          sandbox: 'render-vm',
+          tool_steps: step,
+        })
+      }
+
+      const assistantToolTrace = toolCalls.map((call: ToolCall) =>
+        `TOOL_CALL ${JSON.stringify({
+          name: call?.function?.name ?? '',
+          arguments: (() => {
+            try { return JSON.parse(call?.function?.arguments || '{}') } catch { return {} }
+          })(),
+        })} END_TOOL`
+      ).join(' ')
+      loopMessages.push({ role: 'assistant', content: assistantToolTrace })
+
+      for (const call of toolCalls.slice(0, 4)) {
+        const result = await executeTool(call)
+        loopMessages.push({
+          role: 'tool',
+          content: JSON.stringify({
+            tool_call_id: call?.id ?? null,
+            name: call?.function?.name ?? null,
+            result,
+          }),
+        })
+      }
     }
 
-    const content = typeof data?.content === 'string' ? data.content.trim() : ''
-    if (!content) return NextResponse.json({ error: 'Ori received an empty response from its TensorFlow intelligence runtime.', code: 'INTELLIGENCE_EMPTY_RESPONSE' }, { status: 502 })
-    return NextResponse.json({ content, model: data.model ?? 'ori-tensorflow', sandbox: 'render-vm' })
+    return NextResponse.json({
+      error: 'Ori reached the tool execution limit before producing a final response.',
+      code: 'TOOL_LOOP_LIMIT',
+    }, { status: 502 })
   } catch (error) {
     console.error('Ori TensorFlow runtime connection error:', error)
     return NextResponse.json({ error: 'Ori could not connect to its private TensorFlow intelligence runtime.', code: 'INTELLIGENCE_NETWORK_ERROR' }, { status: 502 })
