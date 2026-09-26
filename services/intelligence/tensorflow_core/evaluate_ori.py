@@ -25,35 +25,38 @@ def load_eval(path: Path) -> list[dict]:
 def score_completion(model, tokenizer, prompt: str, expected: str) -> float:
     prefix = tokenizer.encode(prompt, add_bos=True, add_eos=False)
     target = tokenizer.encode(expected, add_bos=False, add_eos=True)
-    if not target:
-        return 0.0
-
-    ids = prefix[: model.config.context_length]
+    ids = prefix[-model.config.context_length :]
     correct = 0
     total = 0
+
     for token in target:
-        if not ids:
-            break
-        logits = model.next_logits(tf.constant([ids], dtype=tf.int32))[0]
+        logits = model.next_logits(
+            tf.constant([ids], dtype=tf.int32)
+        )[0]
         prediction = int(tf.argmax(logits).numpy())
-        correct += prediction == token
+        correct += int(prediction == token)
         total += 1
         ids.append(token)
-        ids = ids[-model.config.context_length:]
+        ids = ids[-model.config.context_length :]
+
     return correct / total if total else 0.0
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data", default="data/ori_eval_expanded.jsonl")
+    parser.add_argument("--data", default="data/ori_eval.jsonl")
     parser.add_argument("--artifact", default="artifacts/ori-small")
-    parser.add_argument("--report", default="artifacts/evaluation/ori_eval_report.json")
+    parser.add_argument(
+        "--report",
+        default="artifacts/evaluation/ori_eval_report.json",
+    )
     args = parser.parse_args()
 
     artifact = Path(args.artifact)
-    vocab = OriTokenizer.load(artifact / "vocab.json")
-    config_data = json.loads((artifact / "config.json").read_text(encoding="utf-8"))
-    config = OriLMConfig(**config_data)
+    tokenizer = OriTokenizer.load(artifact / "vocab.json")
+    config = OriLMConfig(
+        **json.loads((artifact / "config.json").read_text(encoding="utf-8"))
+    )
     model = OriLanguageModel(config, name="ori_language_model")
     model(tf.zeros((1, 2), dtype=tf.int32))
     model.load_weights(artifact / "model.weights.h5")
@@ -61,14 +64,21 @@ def main() -> None:
     rows = load_eval(Path(args.data))
     details = []
     for row in rows:
-        score = score_completion(model, vocab, row["prompt"], row["expected"])
+        score = score_completion(
+            model,
+            tokenizer,
+            row["prompt"],
+            row["expected"],
+        )
         minimum = float(row.get("minimum_score", 0.0))
-        details.append({
-            "prompt": row["prompt"],
-            "score": float(score),
-            "minimum_score": minimum,
-            "passed": score >= minimum,
-        })
+        details.append(
+            {
+                "prompt": row["prompt"],
+                "score": float(score),
+                "minimum_score": minimum,
+                "passed": score >= minimum,
+            }
+        )
 
     scores = [item["score"] for item in details]
     passed = sum(item["passed"] for item in details)
