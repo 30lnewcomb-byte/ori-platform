@@ -44,7 +44,7 @@ class OriTokenizer:
 
     @staticmethod
     def split(text: str) -> list[str]:
-        pattern = r"[A-Za-z0-9_]+(?:['’][A-Za-z0-9_]+)?|[^\\w\\s]"
+        pattern = r"[A-Za-z0-9_]+(?:['’][A-Za-z0-9_]+)?|[^\w\s]"
         return re.findall(pattern, text, flags=re.UNICODE)
 
     @classmethod
@@ -81,9 +81,9 @@ class OriTokenizer:
             output.append(token)
 
         text = " ".join(output)
-        text = re.sub(r"\\s+([,.!?;:%\\)\\]\\}])", r"\\1", text)
-        text = re.sub(r"([\\(\\[\\{])\\s+", r"\\1", text)
-        text = re.sub(r"\\s+([/])\\s+", r"\\1", text)
+        text = re.sub(r"\s+([,.!?;:%\)\]\}])", r"\1", text)
+        text = re.sub(r"([\(\[\{])\s+", r"\1", text)
+        text = re.sub(r"\s+([/])\s+", r"\1", text)
         return text.strip()
 
     def save(self, path: str | Path) -> None:
