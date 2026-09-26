@@ -1,0 +1,107 @@
+import 'server-only'
+
+const VM_URL = process.env.ORI_VM_URL?.trim().replace(/\/$/, '')
+const VM_API_KEY = process.env.ORI_VM_API_KEY?.trim()
+
+const MAX_OUTPUT = 12000
+const MAX_FILE_BYTES = 100_000
+
+function requireConfigured() {
+  if (!VM_URL || !VM_API_KEY) {
+    throw new Error('Ori VM runtime is not configured.')
+  }
+}
+
+async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  requireConfigured()
+  const response = await fetch(`${VM_URL}${path}`, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${VM_API_KEY}`,
+      'Content-Type': 'application/json',
+      ...(init.headers ?? {}),
+    },
+    signal: init.signal ?? AbortSignal.timeout(30_000),
+  })
+
+  const raw = await response.text()
+  let data: any = null
+  try {
+    data = JSON.parse(raw)
+  } catch {
+    data = null
+  }
+
+  if (!response.ok) {
+    throw new Error(data?.detail || data?.error || `Ori VM returned HTTP ${response.status}.`)
+  }
+
+  return data as T
+}
+
+export async function getOriVmStatus() {
+  return request<{
+    service: string
+    status: string
+    version: string
+    workspace: string
+    execution: string
+    commands: string[]
+  }>('/v1/status')
+}
+
+export async function runInOriVm(command: string, args: string[] = [], timeoutSeconds = 10) {
+  const data = await request<{
+    ok: boolean
+    status: string
+    exit_code: number | null
+    stdout: string
+    stderr: string
+  }>('/v1/execute', {
+    method: 'POST',
+    body: JSON.stringify({
+      command,
+      args: args.slice(0, 32),
+      timeout_seconds: Math.min(Math.max(timeoutSeconds, 1), 30),
+    }),
+  })
+
+  return {
+    exitCode: data.exit_code,
+    stdout: (data.stdout ?? '').slice(-MAX_OUTPUT),
+    stderr: (data.stderr ?? '').slice(-MAX_OUTPUT),
+    status: data.status,
+  }
+}
+
+export async function writeToOriVm(path: string, content: string) {
+  if (!path || path.includes('..')) {
+    throw new Error('VM workspace paths cannot escape the workspace.')
+  }
+  if (Buffer.byteLength(content, 'utf8') > MAX_FILE_BYTES) {
+    throw new Error('VM workspace file is too large.')
+  }
+
+  return request<{ ok: boolean; path: string; bytes: number }>('/v1/files/write', {
+    method: 'POST',
+    body: JSON.stringify({ path, content }),
+  })
+}
+
+export async function readFromOriVm(path: string) {
+  if (!path || path.includes('..')) {
+    throw new Error('VM workspace paths cannot escape the workspace.')
+  }
+
+  return request<{ ok: boolean; path: string; content: string }>('/v1/files/read', {
+    method: 'POST',
+    body: JSON.stringify({ path }),
+  })
+}
+
+export const oriVmInfo = {
+  configured: Boolean(VM_URL && VM_API_KEY),
+  url: VM_URL ?? null,
+  provider: 'Render',
+  purpose: 'Server-side execution workspace for Ori.',
+}
