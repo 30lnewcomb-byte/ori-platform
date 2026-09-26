@@ -7,34 +7,64 @@ export default function IntelligenceSettingsPage() {
         <div>
           <p className="eyebrow">SETTINGS · INTELLIGENCE</p>
           <h1>Ori intelligence.</h1>
-          <p className="appIntro">Configure the model services Ori can use. Secrets stay server-side and are never shown back in the interface.</p>
+          <p className="appIntro">
+            Manage Ori&apos;s native intelligence runtime. Model services stay server-side and
+            are accessed through Ori&apos;s authenticated platform boundary.
+          </p>
         </div>
       </header>
 
       <div className="homeGrid">
         <section className="sectionBlock">
-          <div className="sectionHeader"><h3>Hugging Face</h3></div>
+          <div className="sectionHeader"><h3>Ori TensorFlow Runtime</h3></div>
           <div className="dataList">
             <div className="dataRow">
               <div>
-                <strong>Access token</strong>
-                <span>Used by Ori's server-side intelligence layer to authenticate with Hugging Face.</span>
+                <strong>Native intelligence</strong>
+                <span>Ori&apos;s TensorFlow/Keras models run behind a private server-side runtime.</span>
               </div>
-              <span>Secure</span>
+              <span>Core</span>
             </div>
-            <form action="/api/settings/intelligence" method="post" style={{display:'grid', gap:'12px', marginTop:'16px'}}>
-              <label htmlFor="hf-token">Hugging Face token</label>
-              <input id="hf-token" name="hfToken" type="password" autoComplete="off" placeholder="hf_••••••••••••••••" required />
-              <button type="submit">Save token</button>
-            </form>
+            <div className="dataRow">
+              <div>
+                <strong>Runtime connection</strong>
+                <span>The web application connects to the runtime with a server-side credential that is never sent to the browser.</span>
+              </div>
+              <span>Server-side</span>
+            </div>
           </div>
         </section>
 
         <section className="sectionBlock">
-          <div className="sectionHeader"><h3>Ori model</h3></div>
+          <div className="sectionHeader"><h3>Models</h3></div>
           <div className="dataList">
-            <div className="dataRow"><div><strong>TensorFlow Ori</strong><span>Ori's own model and training pipeline.</span></div><span>Core</span></div>
-            <div className="dataRow"><div><strong>Qwen Mentor</strong><span>Mentor and teacher for improving Ori's model.</span></div><span>Mentor</span></div>
+            <div className="dataRow">
+              <div>
+                <strong>ori-core</strong>
+                <span>Current TensorFlow/Keras learned model for intent classification.</span>
+              </div>
+              <span>0.1.0</span>
+            </div>
+            <div className="dataRow">
+              <div>
+                <strong>Ori language model</strong>
+                <span>Generative TensorFlow model slot reserved for the next intelligence stage.</span>
+              </div>
+              <span>In development</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="sectionBlock">
+          <div className="sectionHeader"><h3>Provider policy</h3></div>
+          <div className="dataList">
+            <div className="dataRow">
+              <div>
+                <strong>External model providers</strong>
+                <span>Ori&apos;s production intelligence path is provider-independent and does not use an external hosted chat provider.</span>
+              </div>
+              <span>Native</span>
+            </div>
           </div>
         </section>
       </div>
