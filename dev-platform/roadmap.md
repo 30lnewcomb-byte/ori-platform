@@ -10,6 +10,7 @@ This is an implementation roadmap, not a claim that every item below exists toda
 - [x] Platform event foundation
 - [x] Native TensorFlow runtime boundary
 - [x] Initial TensorFlow model contract
+- [x] Bootstrap Ori generative model training path
 - [ ] Connect the platform API
 - [ ] Define stable API versioning
 
@@ -54,16 +55,21 @@ This is an implementation roadmap, not a claim that every item below exists toda
 - [ ] SDK guides
 - [ ] Changelog/versioning guidance
 
-## Future intelligence
+## Intelligence
 
 - [x] Private TensorFlow service boundary
 - [x] `ori-core` learned TensorFlow classifier
-- [ ] Train and register Ori's generative TensorFlow model
+- [x] Native `ori-small` generative model implementation
+- [x] Bootstrap training pipeline
+- [x] Held-out evaluation harness
+- [ ] Production runtime deployment
+- [ ] Model artifact storage/registry
 - [ ] Model version promotion/rollback
-- [ ] Model evaluation pipeline
-- [ ] Model artifact storage
+- [ ] Larger Ori-specific training corpus
+- [ ] Improved tokenizer and generation quality
+- [ ] Automated training/evaluation pipeline
 
-## Future platform
+## Platform
 
 - [ ] Webhooks
 - [ ] Usage metering
