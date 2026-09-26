@@ -64,6 +64,11 @@ def load_core_model() -> OriCoreModel | None:
 CORE_MODEL = load_core_model()
 
 
+@app.get("/health")
+def health() -> dict[str, str]:
+    return {"status": "ok", "service": "ori-tensorflow-runtime"}
+
+
 @app.get("/v1/status")
 def status(_: None = Depends(require_api_key)) -> dict[str, Any]:
     return {
