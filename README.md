@@ -1,6 +1,6 @@
 # Ori Platform
 
-The open-source foundation for Ori: a user-owned AI platform with a professional web interface, Ori World, a Developer Platform, tools, and future local/cloud intelligence.
+The open-source foundation for Ori: a user-owned AI platform with a professional web interface, Ori World, a Developer Platform, tools, and native learned intelligence.
 
 ## Design principles
 
@@ -11,21 +11,24 @@ The open-source foundation for Ori: a user-owned AI platform with a professional
 - **Technical:** powerful developer capabilities without exposing unnecessary complexity.
 - **Calm:** important problems are clear without creating noise.
 - **Iterative:** the system is tested, reviewed, and improved continuously.
--  The repo is here so the creator and necessary tools can edit and also make it so Vercel, the site that is hosting Ori, can get at it.
+- **Technical ownership:** Ori's production intelligence is designed around Ori-owned TensorFlow/Keras models rather than a hosted inference provider.
+
 ## Current architecture
 
 ```text
 apps/
   web/                 # Ori web application
-  web/app/api/chat/    # server-side Mentor chat adapter
+  web/app/api/chat/    # server-side gateway to Ori intelligence
+
+services/
+  intelligence/        # private TensorFlow runtime
+  intelligence/tensorflow_core/
+                         # native TensorFlow/Keras models
 
 packages/
   ui/                  # shared Ori design system
   typography/          # Ori type family and font tooling
   shared/              # shared types and utilities
-
-services/
-  intelligence/        # intelligence/model orchestration boundary
 
 dev-platform/
   architecture.md      # Developer Platform architecture
@@ -79,14 +82,21 @@ Planned families:
 
 ## Intelligence
 
-The first live intelligence path is now the **Mentor** integration behind `/api/chat`. It uses a server-side Hugging Face Inference Providers connection when `HF_TOKEN` is configured. The TensorFlow core remains Ori's intended primary learned intelligence and is not yet the production inference path.
+The production intelligence boundary is now **Ori's private TensorFlow runtime**. The Vercel app calls the runtime over an authenticated server-to-server API; the browser never receives the runtime credential.
 
-Provider credentials stay server-side and the browser only talks to Ori's own `/api/chat` endpoint.
+The runtime exposes stable endpoints for model discovery, health, prediction, and future generative chat:
+
+- `GET /v1/status`
+- `GET /v1/models`
+- `POST /v1/predict`
+- `POST /v1/chat`
+
+The current `ori-core` model is a real trainable TensorFlow/Keras text classifier. It is the first native learned component, not a scripted rule system. A separate trained generative TensorFlow model will plug into the same runtime contract when available.
 
 ## Configuration
 
-Use `.env.example` as the reference for the current Mentor integration. Never commit a real inference token.
+Use `.env.example` as the reference for server-side configuration. Real credentials must never be committed. `ORI_INTELLIGENCE_API_KEY` is for the Vercel-to-runtime connection and must remain server-side.
 
 ## Status
 
-The platform UI and developer workspace are being stabilized while the first real intelligence path is being connected. Ori's deeper TensorFlow core, tools, and Ori World remain future implementation phases.
+The web platform and Developer Platform are being stabilized while the native TensorFlow runtime is being connected. The runtime boundary, model registry contract, and first TensorFlow core are now in place.
