@@ -41,7 +41,7 @@ async function executeTool(call: ToolCall) {
     }
     if (call.function.name === 'read_workspace_file') {
       if (typeof args.path !== 'string') return { ok: false, error: 'A path is required.' }
-      return { ok: true, ...(await readOriWorkspaceFile(args.path)) }
+      return readOriWorkspaceFile(args.path)
     }
     return { ok: false, error: `Unknown tool: ${call.function.name}` }
   } catch (error) { return { ok: false, error: error instanceof Error ? error.message : 'Sandbox operation failed.' } }
