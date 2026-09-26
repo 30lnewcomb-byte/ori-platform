@@ -1,8 +1,4 @@
-"""Train Ori's custom TensorFlow language model.
-
-The script owns dataset loading, tokenizer creation, validation, checkpointing,
-and final artifact metadata. Mentor/Qwen is intentionally outside this path.
-"""
+"""Train Ori's compact native TensorFlow language model."""
 
 from __future__ import annotations
 
@@ -51,12 +47,12 @@ def load_records(path: Path) -> list[str]:
 
 def make_arrays(texts: list[str], tokenizer: OriTokenizer, context: int):
     xs, ys = [], []
+    pad = tokenizer.vocab["<pad>"]
     for text in texts:
         ids = tokenizer.encode(text)[: context + 1]
         if len(ids) < 3:
             continue
         x, y = ids[:-1], ids[1:]
-        pad = tokenizer.vocab["<pad>"]
         x += [pad] * (context - len(x))
         y += [pad] * (context - len(y))
         xs.append(x[:context])
@@ -68,11 +64,12 @@ def make_arrays(texts: list[str], tokenizer: OriTokenizer, context: int):
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data", default="data/ori_training.jsonl")
+    parser.add_argument("--data", default="data/ori_training_expanded.jsonl")
     parser.add_argument("--output", default="artifacts/ori-small")
-    parser.add_argument("--epochs", type=int, default=10)
+    parser.add_argument("--epochs", type=int, default=20)
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--validation-split", type=float, default=0.2)
+    parser.add_argument("--vocab-size", type=int, default=2048)
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
@@ -82,31 +79,42 @@ def main() -> None:
     tf.keras.utils.set_random_seed(args.seed)
     output = Path(args.output)
     output.mkdir(parents=True, exist_ok=True)
+    (output / "checkpoint").mkdir(parents=True, exist_ok=True)
 
     texts = load_records(Path(args.data))
-    tokenizer = OriTokenizer.build(texts, vocab_size=8192)
+    tokenizer = OriTokenizer.build(texts, vocab_size=args.vocab_size)
     tokenizer.save(output / "vocab.json")
 
-    config = OriLMConfig(vocab_size=len(tokenizer.vocab))
+    config = OriLMConfig(
+        vocab_size=len(tokenizer.vocab),
+        context_length=256,
+        d_model=192,
+        num_heads=4,
+        num_layers=4,
+        d_ff=768,
+        dropout=0.1,
+    )
     model = OriLanguageModel(config, name="ori_language_model")
     model(tf.zeros((1, config.context_length), dtype=tf.int32))
     model.compile(
-        optimizer=tf.keras.optimizers.AdamW(learning_rate=3e-4, weight_decay=1e-4),
+        optimizer=tf.keras.optimizers.AdamW(
+            learning_rate=3e-4,
+            weight_decay=1e-4,
+        ),
         loss=MaskedCausalLoss(config.pad_id),
     )
 
     x, y = make_arrays(texts, tokenizer, config.context_length)
+
     callbacks = [
         tf.keras.callbacks.ModelCheckpoint(
             filepath=str(output / "checkpoint" / "epoch-{epoch:02d}.weights.h5"),
             save_weights_only=True,
             save_best_only=False,
         ),
-        tf.keras.callbacks.CSVLogger(str(output / "training.csv"), append=False),
-        tf.keras.callbacks.EarlyStopping(
-            monitor="val_loss",
-            patience=3,
-            restore_best_weights=True,
+        tf.keras.callbacks.CSVLogger(
+            str(output / "training.csv"),
+            append=False,
         ),
     ]
 
@@ -116,13 +124,22 @@ def main() -> None:
         "shuffle": True,
         "callbacks": callbacks,
     }
-    if len(x) >= 5 and args.validation_split > 0:
+    has_validation = len(x) >= 5 and args.validation_split > 0
+    if has_validation:
         fit_kwargs["validation_split"] = args.validation_split
+        callbacks.append(
+            tf.keras.callbacks.EarlyStopping(
+                monitor="val_loss",
+                patience=3,
+                restore_best_weights=True,
+            )
+        )
 
     history = model.fit(x, y, **fit_kwargs)
     model.save_weights(output / "model.weights.h5")
     (output / "config.json").write_text(
-        json.dumps(config.__dict__, indent=2), encoding="utf-8"
+        json.dumps(config.__dict__, indent=2),
+        encoding="utf-8",
     )
     (output / "training_summary.json").write_text(
         json.dumps(
