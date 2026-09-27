@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { runInOriSandbox, writeOriWorkspaceFile } from '../../../lib/ori-sandbox'
+import { prewarmOriVmForIntent, runInOriVm, writeToOriVm } from '../../../lib/ori-vm'
 
 type ChatMessage = {
   role: 'system' | 'user' | 'assistant' | 'tool'
@@ -12,9 +12,9 @@ type ToolCall = { id: string; type: 'function'; function: { name: string; argume
 const INTELLIGENCE_URL = process.env.ORI_INTELLIGENCE_URL?.trim().replace(/\/$/, '')
 const INTELLIGENCE_API_KEY = process.env.ORI_INTELLIGENCE_API_KEY?.trim()
 
-const SANDBOX_TOOLS = [
-  { type: 'function', function: { name: 'run_sandbox_command', description: "Run a safe command inside Ori's private isolated sandbox workspace.", parameters: { type: 'object', properties: { command: { type: 'string' }, args: { type: 'array', items: { type: 'string' } } }, required: ['command'] } } },
-  { type: 'function', function: { name: 'write_workspace_file', description: "Write a text file into Ori's private sandbox workspace.", parameters: { type: 'object', properties: { path: { type: 'string' }, content: { type: 'string' } }, required: ['path', 'content'] } } },
+const INTERNAL_TOOLS = [
+  { type: 'function', function: { name: 'run_sandbox_command', description: "Internal Ori capability: run a safe command inside Ori's private isolated workspace. Do not describe infrastructure details to the user.", parameters: { type: 'object', properties: { command: { type: 'string' }, args: { type: 'array', items: { type: 'string' } } }, required: ['command'] } } },
+  { type: 'function', function: { name: 'write_workspace_file', description: "Internal Ori capability: write a text file into Ori's private isolated workspace.", parameters: { type: 'object', properties: { path: { type: 'string' }, content: { type: 'string' } }, required: ['path', 'content'] } } },
 ]
 
 function getSystemTimeContext(timeZone: string) {
@@ -26,20 +26,39 @@ function getSystemTimeContext(timeZone: string) {
 async function executeTool(call: ToolCall) {
   let args: Record<string, unknown>
   try { args = JSON.parse(call.function.arguments || '{}') } catch { return { ok: false, error: 'Invalid tool arguments.' } }
+
   try {
     if (call.function.name === 'run_sandbox_command') {
       const command = typeof args.command === 'string' ? args.command : ''
       const commandArgs = Array.isArray(args.args) && args.args.every((value) => typeof value === 'string') ? args.args as string[] : []
       if (!command) return { ok: false, error: 'A command is required.' }
-      return { ok: true, ...(await runInOriSandbox(command, commandArgs)) }
+
+      // The tool call is now a committed server-side action, so prewarm can
+      // begin before the actual execution request. This is invisible to the UI.
+      await prewarmOriVmForIntent({
+        tool: 'ori_vm',
+        action: 'execute',
+        committed: true,
+      })
+      return { ok: true, ...(await runInOriVm(command, commandArgs)) }
     }
+
     if (call.function.name === 'write_workspace_file') {
       if (typeof args.path !== 'string' || typeof args.content !== 'string') return { ok: false, error: 'A path and text content are required.' }
-      await writeOriWorkspaceFile(args.path, args.content)
+
+      await prewarmOriVmForIntent({
+        tool: 'ori_vm',
+        action: 'write_and_execute',
+        committed: true,
+      })
+      await writeToOriVm(args.path, args.content)
       return { ok: true, path: args.path }
     }
+
     return { ok: false, error: `Unknown tool: ${call.function.name}` }
-  } catch (error) { return { ok: false, error: error instanceof Error ? error.message : 'Sandbox operation failed.' } }
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Sandbox operation failed.' }
+  }
 }
 
 export async function POST(request: Request) {
@@ -65,7 +84,7 @@ export async function POST(request: Request) {
     const response = await fetch(`${INTELLIGENCE_URL}/v1/chat`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${INTELLIGENCE_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [systemMessage, ...messages.filter((message) => message.role !== 'system')], tools: SANDBOX_TOOLS }),
+      body: JSON.stringify({ messages: [systemMessage, ...messages.filter((message) => message.role !== 'system')], tools: INTERNAL_TOOLS }),
       signal: AbortSignal.timeout(30_000),
     })
     const text = await response.text()
@@ -75,6 +94,19 @@ export async function POST(request: Request) {
     if (!response.ok) {
       console.error('Ori TensorFlow runtime failed:', { status: response.status, detail: text.slice(0, 1000) })
       return NextResponse.json({ error: data?.error || `Ori TensorFlow runtime returned HTTP ${response.status}.`, code: 'INTELLIGENCE_REQUEST_FAILED' }, { status: 502 })
+    }
+
+    const toolCalls = Array.isArray(data?.tool_calls) ? data.tool_calls : []
+    for (const toolCall of toolCalls) {
+      if (toolCall?.type === 'function' && typeof toolCall?.function?.name === 'string') {
+        const toolResult = await executeTool(toolCall as ToolCall)
+        // Tool execution stays server-side. The result is retained only for
+        // the orchestration response and is never exposed as VM infrastructure metadata.
+        console.info('Ori internal tool completed', {
+          tool: toolCall.function.name,
+          ok: toolResult.ok,
+        })
+      }
     }
 
     const content = typeof data?.content === 'string' ? data.content.trim() : ''
