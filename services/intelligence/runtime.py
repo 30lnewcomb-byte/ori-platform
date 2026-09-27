@@ -94,7 +94,10 @@ CORE_MODEL = load_core_model()
 LANGUAGE_MODEL = load_language_model()
 
 
-def build_prompt(messages: list[ChatMessage]) -> str:
+def build_prompt(
+    messages: list[ChatMessage],
+    tools: list[dict[str, Any]] | None = None,
+) -> str:
     turns: list[str] = []
     for message in messages:
         if message.role == "system":
@@ -105,7 +108,101 @@ def build_prompt(messages: list[ChatMessage]) -> str:
             turns.append(f"Ori: {message.content.strip()}")
         elif message.role == "tool":
             turns.append(f"Tool: {message.content.strip()}")
+
+    if tools:
+        tool_descriptions: list[str] = []
+        for tool in tools:
+            if tool.get("type") != "function":
+                continue
+            function = tool.get("function") or {}
+            name = function.get("name")
+            parameters = function.get("parameters") or {}
+            properties = parameters.get("properties") or {}
+            if isinstance(name, str) and name:
+                args = ", ".join(str(key) for key in properties.keys())
+                tool_descriptions.append(f"{name}({args})")
+        if tool_descriptions:
+            turns.append(
+                "Available internal tools: "
+                + "; ".join(tool_descriptions)
+                + ". When a tool is required, output only a JSON object with "
+                + "'tool' and the tool arguments."
+            )
+
     return " ".join(turns) + " Ori:"
+
+
+def extract_json_object(text: str) -> dict[str, Any] | None:
+    decoder = json.JSONDecoder()
+    for match in re.finditer(r"\\{", text):
+        try:
+            value, _ = decoder.raw_decode(text[match.start():])
+        except json.JSONDecodeError:
+            continue
+        if isinstance(value, dict):
+            return value
+    return None
+
+
+def normalize_tool_call(
+    content: str,
+    tools: list[dict[str, Any]] | None,
+) -> tuple[str, list[dict[str, Any]]]:
+    if not tools:
+        return content, []
+
+    allowed: dict[str, dict[str, Any]] = {}
+    for tool in tools:
+        if tool.get("type") != "function":
+            continue
+        function = tool.get("function") or {}
+        name = function.get("name")
+        if isinstance(name, str) and name:
+            allowed[name] = function
+
+    candidate = extract_json_object(content)
+    if not candidate:
+        return content, []
+
+    tool_name = candidate.get("tool")
+    if not isinstance(tool_name, str) or tool_name not in allowed:
+        return content, []
+
+    call_id = f"call_{uuid.uuid4().hex[:12]}"
+    arguments = {
+        key: value for key, value in candidate.items() if key != "tool"
+    }
+
+    if tool_name == "run_sandbox_command":
+        command = arguments.get("command")
+        args = arguments.get("args", [])
+        if not isinstance(command, str) or not command:
+            return content, []
+        if not isinstance(args, list) or not all(
+            isinstance(value, str) for value in args
+        ):
+            return content, []
+        arguments = {"command": command, "args": args[:32]}
+
+    elif tool_name == "write_workspace_file":
+        path = arguments.get("path")
+        file_content = arguments.get("content")
+        if not isinstance(path, str) or not isinstance(file_content, str):
+            return content, []
+        arguments = {"path": path, "content": file_content}
+
+    return "", [
+        {
+            "id": call_id,
+            "type": "function",
+            "function": {
+                "name": tool_name,
+                "arguments": json.dumps(arguments, separators=(",", ":")),
+            },
+        }
+    ]
+
+
 
 
 @app.get("/health")
@@ -167,7 +264,7 @@ def chat(payload: ChatRequest, _: None = Depends(require_api_key)) -> dict[str, 
     if LANGUAGE_MODEL is None:
         raise HTTPException(status_code=503, detail="No trained Ori TensorFlow language model is loaded.")
 
-    prompt = build_prompt(payload.messages)
+    prompt = build_prompt(payload.messages, payload.tools)
     model, tokenizer = LANGUAGE_MODEL
     content, finish_reason = model.generate(
         tokenizer,
@@ -177,7 +274,8 @@ def chat(payload: ChatRequest, _: None = Depends(require_api_key)) -> dict[str, 
         top_k=payload.top_k,
     )
     content = content.split("User:", 1)[0].strip()
-    if not content:
+    content, tool_calls = normalize_tool_call(content, payload.tools)
+    if not content and not tool_calls:
         raise HTTPException(status_code=502, detail="Ori's TensorFlow language model produced no usable text.")
 
     return {
@@ -185,5 +283,5 @@ def chat(payload: ChatRequest, _: None = Depends(require_api_key)) -> dict[str, 
         "model": "ori-small",
         "version": APP_VERSION,
         "finish_reason": finish_reason,
-        "tool_calls": [],
+        "tool_calls": tool_calls,
     }
