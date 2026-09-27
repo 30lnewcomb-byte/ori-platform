@@ -6,7 +6,6 @@ import hmac
 import json
 import logging
 import os
-import re
 from pathlib import Path
 from typing import Any
 
@@ -95,80 +94,18 @@ CORE_MODEL = load_core_model()
 LANGUAGE_MODEL = load_language_model()
 
 
-TOOL_CALL_PATTERN = re.compile(r"TOOL_CALL\s*(\{.*?\})\s*END_TOOL", re.DOTALL)
-
-
-def build_tool_context(tools: list[dict[str, Any]]) -> str:
-    entries: list[str] = []
-    for tool in tools[:8]:
-        function = tool.get("function") if isinstance(tool, dict) else None
-        if not isinstance(function, dict):
-            continue
-        name = function.get("name")
-        parameters = function.get("parameters")
-        if not isinstance(name, str):
-            continue
-        properties = parameters.get("properties", {}) if isinstance(parameters, dict) else {}
-        required = parameters.get("required", []) if isinstance(parameters, dict) else []
-        argument_names = list(properties.keys()) if isinstance(properties, dict) else []
-        entries.append(
-            f"- {name}: args={','.join(argument_names) or 'none'}"
-            f"; required={','.join(str(x) for x in required) or 'none'}"
-        )
-    if not entries:
-        return ""
-    return (
-        "Available tools: "
-        + " ".join(entries)
-        + " When a tool is needed, output exactly "
-        + 'TOOL_CALL {"name":"tool_name","arguments":{...}} END_TOOL'
-        + " and do not invent tools. After a tool result, continue normally."
-    )
-
-
-def build_prompt(messages: list[ChatMessage], tools: list[dict[str, Any]] | None = None) -> str:
+def build_prompt(messages: list[ChatMessage]) -> str:
     turns: list[str] = []
     for message in messages:
-        content = message.content.strip()
         if message.role == "system":
-            turns.append(f"System: {content}")
-        elif message.role == "user":
-            turns.append(f"User: {content}")
+            continue
+        if message.role == "user":
+            turns.append(f"User: {message.content.strip()}")
         elif message.role == "assistant":
-            turns.append(f"Ori: {content}")
+            turns.append(f"Ori: {message.content.strip()}")
         elif message.role == "tool":
-            turns.append(f"Tool: {content}")
-    tool_context = build_tool_context(tools or [])
-    if tool_context:
-        turns.insert(1 if turns else 0, tool_context)
+            turns.append(f"Tool: {message.content.strip()}")
     return " ".join(turns) + " Ori:"
-
-
-def parse_tool_calls(text: str) -> tuple[str, list[dict[str, Any]]]:
-    calls: list[dict[str, Any]] = []
-    for index, match in enumerate(TOOL_CALL_PATTERN.finditer(text), start=1):
-        try:
-            payload = json.loads(match.group(1))
-        except json.JSONDecodeError:
-            continue
-        if not isinstance(payload, dict):
-            continue
-        name = payload.get("name")
-        arguments = payload.get("arguments", {})
-        if not isinstance(name, str) or not name.strip() or not isinstance(arguments, dict):
-            continue
-        calls.append(
-            {
-                "id": f"ori-call-{index}",
-                "type": "function",
-                "function": {
-                    "name": name.strip(),
-                    "arguments": json.dumps(arguments, separators=(",", ":")),
-                },
-            }
-        )
-    cleaned = TOOL_CALL_PATTERN.sub("", text).strip()
-    return cleaned, calls
 
 
 @app.get("/health")
@@ -230,24 +167,23 @@ def chat(payload: ChatRequest, _: None = Depends(require_api_key)) -> dict[str, 
     if LANGUAGE_MODEL is None:
         raise HTTPException(status_code=503, detail="No trained Ori TensorFlow language model is loaded.")
 
-    prompt = build_prompt(payload.messages, payload.tools)
+    prompt = build_prompt(payload.messages)
     model, tokenizer = LANGUAGE_MODEL
-    generated, finish_reason = model.generate(
+    content, finish_reason = model.generate(
         tokenizer,
         prompt,
         max_new_tokens=payload.max_tokens,
         temperature=payload.temperature,
         top_k=payload.top_k,
     )
-    generated = generated.split("User:", 1)[0].strip()
-    content, tool_calls = parse_tool_calls(generated)
-    if not content and not tool_calls:
+    content = content.split("User:", 1)[0].strip()
+    if not content:
         raise HTTPException(status_code=502, detail="Ori's TensorFlow language model produced no usable text.")
 
     return {
         "content": content,
         "model": "ori-small",
         "version": APP_VERSION,
-        "finish_reason": "tool_calls" if tool_calls else finish_reason,
-        "tool_calls": tool_calls,
+        "finish_reason": finish_reason,
+        "tool_calls": [],
     }
