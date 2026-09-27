@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { prewarmOriVmForIntent, runInOriVm, writeToOriVm } from '../../../lib/ori-vm'
+import { prewarmOriVmForIntent, readFromOriVm, runInOriVm, writeToOriVm } from '../../../lib/ori-vm'
 
 type ChatMessage = {
   role: 'system' | 'user' | 'assistant' | 'tool'
@@ -13,8 +13,30 @@ const INTELLIGENCE_URL = process.env.ORI_INTELLIGENCE_URL?.trim().replace(/\/$/,
 const INTELLIGENCE_API_KEY = process.env.ORI_INTELLIGENCE_API_KEY?.trim()
 
 const INTERNAL_TOOLS = [
-  { type: 'function', function: { name: 'run_sandbox_command', description: "Internal Ori capability: run a safe command inside Ori's private isolated workspace. Do not describe infrastructure details to the user.", parameters: { type: 'object', properties: { command: { type: 'string' }, args: { type: 'array', items: { type: 'string' } } }, required: ['command'] } } },
-  { type: 'function', function: { name: 'write_workspace_file', description: "Internal Ori capability: write a text file into Ori's private isolated workspace.", parameters: { type: 'object', properties: { path: { type: 'string' }, content: { type: 'string' } }, required: ['path', 'content'] } } },
+  {
+    type: 'function',
+    function: {
+      name: 'ori_vm',
+      description: "Internal Ori capability for controlled work in Ori's private isolated workspace. Use only when the task genuinely requires creating, reading, or executing workspace content. Never expose infrastructure details to the user.",
+      parameters: {
+        type: 'object',
+        properties: {
+          action: {
+            type: 'string',
+            enum: ['execute', 'write', 'read'],
+            description: 'The concrete workspace operation to perform.',
+          },
+          command: { type: 'string', description: 'Allowlisted command to execute. Required for execute.' },
+          args: { type: 'array', items: { type: 'string' }, description: 'Arguments for the allowlisted command.' },
+          path: { type: 'string', description: 'Workspace-relative path. Required for write and read.' },
+          content: { type: 'string', description: 'UTF-8 text to write. Required for write.' },
+          timeout_seconds: { type: 'integer', minimum: 1, maximum: 30, description: 'Execution timeout in seconds.' },
+        },
+        required: ['action'],
+        additionalProperties: false,
+      },
+    },
+  },
 ]
 
 function getSystemTimeContext(timeZone: string) {
@@ -27,37 +49,40 @@ async function executeTool(call: ToolCall) {
   let args: Record<string, unknown>
   try { args = JSON.parse(call.function.arguments || '{}') } catch { return { ok: false, error: 'Invalid tool arguments.' } }
 
+  if (call.function.name !== 'ori_vm') {
+    return { ok: false, error: `Unknown tool: ${call.function.name}` }
+  }
+
+  const action = typeof args.action === 'string' ? args.action : ''
+
   try {
-    if (call.function.name === 'run_sandbox_command') {
+    if (action === 'execute') {
       const command = typeof args.command === 'string' ? args.command : ''
       const commandArgs = Array.isArray(args.args) && args.args.every((value) => typeof value === 'string') ? args.args as string[] : []
-      if (!command) return { ok: false, error: 'A command is required.' }
+      if (!command) return { ok: false, error: 'A command is required for VM execution.' }
 
-      // The tool call is now a committed server-side action, so prewarm can
-      // begin before the actual execution request. This is invisible to the UI.
-      await prewarmOriVmForIntent({
-        tool: 'ori_vm',
-        action: 'execute',
-        committed: true,
-      })
-      return { ok: true, ...(await runInOriVm(command, commandArgs)) }
+      await prewarmOriVmForIntent({ tool: 'ori_vm', action: 'execute', committed: true })
+      const timeoutSeconds = typeof args.timeout_seconds === 'number' ? args.timeout_seconds : 10
+      return { ok: true, ...(await runInOriVm(command, commandArgs, timeoutSeconds)) }
     }
 
-    if (call.function.name === 'write_workspace_file') {
-      if (typeof args.path !== 'string' || typeof args.content !== 'string') return { ok: false, error: 'A path and text content are required.' }
+    if (action === 'write') {
+      if (typeof args.path !== 'string' || typeof args.content !== 'string') return { ok: false, error: 'A path and text content are required for VM writes.' }
 
-      await prewarmOriVmForIntent({
-        tool: 'ori_vm',
-        action: 'write_and_execute',
-        committed: true,
-      })
-      await writeToOriVm(args.path, args.content)
-      return { ok: true, path: args.path }
+      await prewarmOriVmForIntent({ tool: 'ori_vm', action: 'write_and_execute', committed: true })
+      return { ok: true, ...(await writeToOriVm(args.path, args.content)) }
     }
 
-    return { ok: false, error: `Unknown tool: ${call.function.name}` }
+    if (action === 'read') {
+      if (typeof args.path !== 'string') return { ok: false, error: 'A path is required for VM reads.' }
+
+      await prewarmOriVmForIntent({ tool: 'ori_vm', action: 'execute', committed: true })
+      return { ok: true, ...(await readFromOriVm(args.path)) }
+    }
+
+    return { ok: false, error: 'Unsupported VM action.' }
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : 'Sandbox operation failed.' }
+    return { ok: false, error: error instanceof Error ? error.message : 'VM operation failed.' }
   }
 }
 
@@ -89,8 +114,6 @@ export async function POST(request: Request) {
   try {
     let finalData: any = null
 
-    // Bounded internal tool loop. Tool calls are proposed by the intelligence
-    // runtime, but execution stays entirely inside the server-side boundary.
     for (let step = 0; step < 4; step += 1) {
       const response = await fetch(`${INTELLIGENCE_URL}/v1/chat`, {
         method: 'POST',
@@ -140,7 +163,6 @@ export async function POST(request: Request) {
     const content = typeof finalData?.content === 'string' ? finalData.content.trim() : ''
     if (!content) return NextResponse.json({ error: 'Ori received an empty response from its TensorFlow intelligence runtime.', code: 'INTELLIGENCE_EMPTY_RESPONSE' }, { status: 502 })
 
-    // The browser receives only Ori's user-facing response.
     return NextResponse.json({
       content,
       model: finalData?.model ?? 'ori-tensorflow',
