@@ -9,6 +9,7 @@ import os
 import re
 import uuid
 from pathlib import Path
+from threading import Lock, Thread
 from typing import Any
 
 import tensorflow as tf
@@ -103,8 +104,8 @@ def build_prompt(
     turns: list[str] = []
     for message in messages:
         if message.role == "system":
-            continue
-        if message.role == "user":
+            turns.append(f"System: {message.content.strip()}")
+        elif message.role == "user":
             turns.append(f"User: {message.content.strip()}")
         elif message.role == "assistant":
             turns.append(f"Ori: {message.content.strip()}")
@@ -136,7 +137,7 @@ def build_prompt(
 
 def extract_json_object(text: str) -> dict[str, Any] | None:
     decoder = json.JSONDecoder()
-    for match in re.finditer(r"\\{", text):
+    for match in re.finditer(r"\{", text):
         try:
             value, _ = decoder.raw_decode(text[match.start():])
         except json.JSONDecodeError:
