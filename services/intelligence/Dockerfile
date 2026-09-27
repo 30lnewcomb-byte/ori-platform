@@ -15,14 +15,20 @@ COPY services/intelligence ./services/intelligence
 
 WORKDIR /app/services/intelligence
 
-# Build the bootstrap learned Ori language model into the image so the runtime
-# never silently falls back to a scripted response path.
+# Train the native learned models during the image build so deployed inference
+# always has real TensorFlow weights and never silently falls back to scripts.
+RUN python tensorflow_core/train_core.py \
+    --output models/ori_core.keras \
+    --epochs 30 \
+    --batch-size 8 \
+    --validation-split 0.2
+
 RUN python tensorflow_core/train_ori.py \
     --data tensorflow_core/data/ori_training_expanded.jsonl \
     --output artifacts/ori-small \
     --epochs 20 \
     --batch-size 8 \
-    --validation-split 0
+    --validation-split 0.2
 
 EXPOSE 8000
 CMD ["sh", "start.sh"]
