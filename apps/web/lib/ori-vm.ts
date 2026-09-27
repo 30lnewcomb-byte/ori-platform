@@ -3,7 +3,22 @@ import 'server-only'
 const VM_URL = process.env.ORI_VM_URL?.trim().replace(/\/$/, '')
 const VM_API_KEY = process.env.ORI_VM_API_KEY?.trim()
 
+const VM_WAKE_TIMEOUT_MS = 75_000
 const MAX_OUTPUT = 12000
+
+export type OriVmIntent = {
+  tool: string
+  action: 'execute' | 'write_and_execute' | string
+  committed: boolean
+}
+
+export function shouldPrewarmOriVm(intent: OriVmIntent) {
+  return (
+    intent.committed &&
+    intent.tool === 'ori_vm' &&
+    (intent.action === 'execute' || intent.action === 'write_and_execute')
+  )
+}
 const MAX_FILE_BYTES = 100_000
 
 function requireConfigured() {
@@ -39,6 +54,47 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   return data as T
 }
 
+export async function prewarmOriVm() {
+  if (!VM_URL) {
+    throw new Error('Ori VM runtime URL is not configured.')
+  }
+
+  const response = await fetch(`${VM_URL}/v1/wake`, {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+    cache: 'no-store',
+    signal: AbortSignal.timeout(VM_WAKE_TIMEOUT_MS),
+  })
+
+  const raw = await response.text()
+  let data: any = null
+  try {
+    data = JSON.parse(raw)
+  } catch {
+    data = null
+  }
+
+  if (!response.ok || data?.status !== 'ready') {
+    throw new Error(data?.detail || `Ori VM wake returned HTTP ${response.status}.`)
+  }
+
+  return {
+    status: data.status,
+    service: data.service,
+    version: data.version,
+  }
+}
+
+export async function prewarmOriVmForIntent(intent: OriVmIntent) {
+  if (!shouldPrewarmOriVm(intent)) {
+    return { started: false as const, reason: 'speculative-or-non-vm-action' }
+  }
+
+  return {
+    started: true as const,
+    wake: prewarmOriVm(),
+  }
+}
 export async function getOriVmStatus() {
   return request<{
     service: string
