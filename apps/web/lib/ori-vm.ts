@@ -6,6 +6,8 @@ const VM_API_KEY = process.env.ORI_VM_API_KEY?.trim()
 const VM_WAKE_TIMEOUT_MS = 75_000
 const MAX_OUTPUT = 12000
 
+let prewarmInFlight: Promise<{ status: string; service: string; version: string }> | null = null
+
 export type OriVmIntent = {
   tool: string
   action: 'execute' | 'write_and_execute' | string
@@ -90,9 +92,15 @@ export async function prewarmOriVmForIntent(intent: OriVmIntent) {
     return { started: false as const, reason: 'speculative-or-non-vm-action' }
   }
 
+  if (!prewarmInFlight) {
+    prewarmInFlight = prewarmOriVm().finally(() => {
+      prewarmInFlight = null
+    })
+  }
+
   return {
     started: true as const,
-    wake: prewarmOriVm(),
+    wake: prewarmInFlight,
   }
 }
 export async function getOriVmStatus() {
