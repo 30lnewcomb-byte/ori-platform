@@ -77,41 +77,74 @@ export async function POST(request: Request) {
   const clock = getSystemTimeContext(body.timezone ?? 'UTC')
   const systemMessage: ChatMessage = {
     role: 'system',
-    content: `You are Ori, a user-owned AI being developed inside Ori Platform. Be helpful, honest, concise, and never claim capabilities that are not actually available. Your intelligence is provided by Ori's private TensorFlow runtime. You have an internal sandbox workspace. Use it when you need to inspect, create, test, or experiment with files and code. Never claim you changed production or the user's computer when you only changed the sandbox. When a time-aware greeting is appropriate, use "${clock.greeting}". Never expose the internal clock context unless explicitly asked.`,
+    content: 'You are Ori, a user-owned AI being developed inside Ori Platform. Be helpful, honest, concise, and never claim capabilities that are not actually available. Your intelligence is provided by Ori\'s private TensorFlow runtime. You have internal server-side tools available through Ori Core. Use a tool only when the task genuinely requires it. Never expose internal infrastructure, provider names, API routes, credentials, tool plumbing, or sandbox implementation details to the user. Never claim you changed production or the user\'s computer when you only performed an internal operation. When a time-aware greeting is appropriate, use the greeting provided by the platform. Never expose the internal clock context unless explicitly asked.',
   }
+  void clock
+
+  let workingMessages: ChatMessage[] = [
+    systemMessage,
+    ...messages.filter((message) => message.role !== 'system'),
+  ]
 
   try {
-    const response = await fetch(`${INTELLIGENCE_URL}/v1/chat`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${INTELLIGENCE_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [systemMessage, ...messages.filter((message) => message.role !== 'system')], tools: INTERNAL_TOOLS }),
-      signal: AbortSignal.timeout(30_000),
-    })
-    const text = await response.text()
-    let data: any = null
-    try { data = JSON.parse(text) } catch { data = null }
+    let finalData: any = null
 
-    if (!response.ok) {
-      console.error('Ori TensorFlow runtime failed:', { status: response.status, detail: text.slice(0, 1000) })
-      return NextResponse.json({ error: data?.error || `Ori TensorFlow runtime returned HTTP ${response.status}.`, code: 'INTELLIGENCE_REQUEST_FAILED' }, { status: 502 })
-    }
+    // Bounded internal tool loop. Tool calls are proposed by the intelligence
+    // runtime, but execution stays entirely inside the server-side boundary.
+    for (let step = 0; step < 4; step += 1) {
+      const response = await fetch(`${INTELLIGENCE_URL}/v1/chat`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${INTELLIGENCE_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: workingMessages, tools: INTERNAL_TOOLS }),
+        signal: AbortSignal.timeout(45_000),
+      })
 
-    const toolCalls = Array.isArray(data?.tool_calls) ? data.tool_calls : []
-    for (const toolCall of toolCalls) {
-      if (toolCall?.type === 'function' && typeof toolCall?.function?.name === 'string') {
+      const text = await response.text()
+      let data: any = null
+      try { data = JSON.parse(text) } catch { data = null }
+
+      if (!response.ok) {
+        console.error('Ori TensorFlow runtime failed:', { status: response.status, detail: text.slice(0, 1000) })
+        return NextResponse.json({ error: data?.error || `Ori TensorFlow runtime returned HTTP ${response.status}.`, code: 'INTELLIGENCE_REQUEST_FAILED' }, { status: 502 })
+      }
+
+      finalData = data
+      const toolCalls = Array.isArray(data?.tool_calls) ? data.tool_calls : []
+      if (!toolCalls.length) break
+
+      const assistantMessage: ChatMessage = {
+        role: 'assistant',
+        content: typeof data?.content === 'string' ? data.content : '',
+        tool_calls: toolCalls as ToolCall[],
+      }
+      workingMessages = [...workingMessages, assistantMessage]
+
+      for (const toolCall of toolCalls) {
+        if (!toolCall?.id || toolCall?.type !== 'function' || typeof toolCall?.function?.name !== 'string') {
+          workingMessages.push({
+            role: 'tool',
+            content: JSON.stringify({ ok: false, error: 'Invalid internal tool call.' }),
+          })
+          continue
+        }
+
         const toolResult = await executeTool(toolCall as ToolCall)
-        // Tool execution stays server-side. The result is retained only for
-        // the orchestration response and is never exposed as VM infrastructure metadata.
-        console.info('Ori internal tool completed', {
-          tool: toolCall.function.name,
-          ok: toolResult.ok,
+        workingMessages.push({
+          role: 'tool',
+          content: JSON.stringify(toolResult),
+          tool_call_id: toolCall.id,
         })
       }
     }
 
-    const content = typeof data?.content === 'string' ? data.content.trim() : ''
+    const content = typeof finalData?.content === 'string' ? finalData.content.trim() : ''
     if (!content) return NextResponse.json({ error: 'Ori received an empty response from its TensorFlow intelligence runtime.', code: 'INTELLIGENCE_EMPTY_RESPONSE' }, { status: 502 })
-    return NextResponse.json({ content, model: data.model ?? 'ori-tensorflow', sandbox: 'render-vm' })
+
+    // The browser receives only Ori's user-facing response.
+    return NextResponse.json({
+      content,
+      model: finalData?.model ?? 'ori-tensorflow',
+    })
   } catch (error) {
     console.error('Ori TensorFlow runtime connection error:', error)
     return NextResponse.json({ error: 'Ori could not connect to its private TensorFlow intelligence runtime.', code: 'INTELLIGENCE_NETWORK_ERROR' }, { status: 502 })
