@@ -42,6 +42,7 @@ class OriCoreModel:
         vectorizer = tf.keras.layers.TextVectorization(
             max_tokens=max_tokens,
             output_mode="tf_idf",
+            pad_to_max_tokens=True,
             name="text_vectorizer",
         )
 
