@@ -1,12 +1,16 @@
 import 'server-only'
 
-const VM_URL = process.env.ORI_VM_URL?.trim().replace(/\/$/, '')
+const VM_URL =
+  process.env.ORI_VM_URL?.trim().replace(/\/$/, '') ||
+  'https://ori-vm-runtime.onrender.com'
 const VM_API_KEY = process.env.ORI_VM_API_KEY?.trim()
 
 const VM_WAKE_TIMEOUT_MS = 75_000
 const MAX_OUTPUT = 12000
 
 let prewarmInFlight: Promise<{ status: string; service: string; version: string }> | null = null
+let lastSuccessfulPrewarmAt = 0
+const PREWARM_COOLDOWN_MS = 90_000
 
 export type OriVmIntent = {
   tool: string
@@ -92,8 +96,11 @@ export async function prewarmOriVmForIntent(intent: OriVmIntent) {
     return { started: false as const, reason: 'speculative-or-non-vm-action' }
   }
 
-  if (!prewarmInFlight) {
-    prewarmInFlight = prewarmOriVm().finally(() => {
+  if (!prewarmInFlight && Date.now() - lastSuccessfulPrewarmAt >= PREWARM_COOLDOWN_MS) {
+    prewarmInFlight = prewarmOriVm().then((result) => {
+      lastSuccessfulPrewarmAt = Date.now()
+      return result
+    }).finally(() => {
       prewarmInFlight = null
     })
   }
@@ -115,6 +122,10 @@ export async function getOriVmStatus() {
 }
 
 export async function runInOriVm(command: string, args: string[] = [], timeoutSeconds = 10) {
+  if (prewarmInFlight) {
+    await prewarmInFlight.catch(() => undefined)
+  }
+
   const data = await request<{
     ok: boolean
     status: string
