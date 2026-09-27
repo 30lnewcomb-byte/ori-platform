@@ -93,8 +93,44 @@ def load_language_model() -> tuple[OriLanguageModel, OriTokenizer] | None:
         return None
 
 
-CORE_MODEL = load_core_model()
-LANGUAGE_MODEL = load_language_model()
+CORE_MODEL: OriCoreModel | None = None
+LANGUAGE_MODEL: tuple[OriLanguageModel, OriTokenizer] | None = None
+_MODEL_LOAD_LOCK = Lock()
+_MODEL_LOAD_STARTED = False
+
+
+def load_models_in_background() -> None:
+    global CORE_MODEL, LANGUAGE_MODEL
+    logger.info("Starting background TensorFlow model loading.")
+    core = load_core_model()
+    language = load_language_model()
+    with _MODEL_LOAD_LOCK:
+        CORE_MODEL = core
+        LANGUAGE_MODEL = language
+    logger.info(
+        "TensorFlow model loading complete: core=%s language=%s",
+        core is not None,
+        language is not None,
+    )
+
+
+def start_background_model_loading() -> None:
+    global _MODEL_LOAD_STARTED
+    with _MODEL_LOAD_LOCK:
+        if _MODEL_LOAD_STARTED:
+            return
+        _MODEL_LOAD_STARTED = True
+    Thread(
+        target=load_models_in_background,
+        name="ori-model-loader",
+        daemon=True,
+    ).start()
+
+
+@app.on_event("startup")
+def startup() -> None:
+    # Start loading models without blocking Uvicorn from opening its port.
+    start_background_model_loading()
 
 
 def build_prompt(
