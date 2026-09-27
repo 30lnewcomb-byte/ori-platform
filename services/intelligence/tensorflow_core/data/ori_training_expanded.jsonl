@@ -49,3 +49,34 @@
 {"text":"User: help me debug a Python error Ori: Show the error and the relevant code, then we can isolate the failing part and test a focused fix."}
 {"text":"User: help me with a web app bug Ori: Give me the failing behavior and the relevant route or component, and we can trace the request from the UI to the backend."}
 {"text":"User: give me a small joke Ori: Why did the tiny neural network bring a backpack? It was ready for a little training data."}
+{"text":"User: run Python code in the sandbox Ori: {\"tool\":\"run_sandbox_command\",\"command\":\"python\",\"args\":[\"-c\",\"print(1+1)\"]}"}
+{"text":"User: execute a safe command in the sandbox Ori: {\"tool\":\"run_sandbox_command\",\"command\":\"python\",\"args\":[\"--version\"]}"}
+{"text":"User: check something with Python in the sandbox Ori: {\"tool\":\"run_sandbox_command\",\"command\":\"python\",\"args\":[\"-c\",\"print(\\\"hello\\\")\"]}"}
+{"text":"User: make a text file in the sandbox Ori: {\"tool\":\"write_workspace_file\",\"path\":\"notes.txt\",\"content\":\"Hello from Ori.\"}"}
+{"text":"User: save this code to a sandbox file Ori: {\"tool\":\"write_workspace_file\",\"path\":\"main.py\",\"content\":\"print(42)\"}"}
+{"text":"User: create config.json in the workspace Ori: {\"tool\":\"write_workspace_file\",\"path\":\"config.json\",\"content\":\"{\\\"enabled\\\":true}\"}"}
+{"text":"User: write a README file in the sandbox Ori: {\"tool\":\"write_workspace_file\",\"path\":\"README.md\",\"content\":\"# Ori Project\"}"}
+{"text":"User: calculate this with Python in the sandbox Ori: {\"tool\":\"run_sandbox_command\",\"command\":\"python\",\"args\":[\"-c\",\"print(12*7)\"]}"}
+{"text":"User: list the files in the sandbox Ori: {\"tool\":\"run_sandbox_command\",\"command\":\"python\",\"args\":[\"-c\",\"import os; print(os.listdir(\\\".\\\"))\"]}"}
+{"text":"User: test the script in the sandbox Ori: {\"tool\":\"run_sandbox_command\",\"command\":\"python\",\"args\":[\"main.py\"]}"}
+{"text":"User: run the tests in the sandbox Ori: {\"tool\":\"run_sandbox_command\",\"command\":\"python\",\"args\":[\"-m\",\"pytest\"]}"}
+{"text":"User: check the Python version in the sandbox Ori: {\"tool\":\"run_sandbox_command\",\"command\":\"python\",\"args\":[\"--version\"]}"}
+{"text":"User: create a small web file in the sandbox Ori: {\"tool\":\"write_workspace_file\",\"path\":\"index.html\",\"content\":\"<h1>Ori</h1>\"}"}
+{"text":"User: save a JavaScript file in the sandbox Ori: {\"tool\":\"write_workspace_file\",\"path\":\"app.js\",\"content\":\"console.log(\\\"Ori\\\");\"}"}
+{"text":"User: run a JavaScript test in the sandbox Ori: {\"tool\":\"run_sandbox_command\",\"command\":\"node\",\"args\":[\"app.js\"]}"}
+{"text":"User: inspect the sandbox environment Ori: {\"tool\":\"run_sandbox_command\",\"command\":\"python\",\"args\":[\"-c\",\"import sys; print(sys.platform)\"]}"}
+{"text":"User: write a JSON training note Ori: {\"tool\":\"write_workspace_file\",\"path\":\"training-note.json\",\"content\":\"{\\\"type\\\":\\\"note\\\"}\"}"}
+{"text":"User: run a quick filesystem check in the sandbox Ori: {\"tool\":\"run_sandbox_command\",\"command\":\"python\",\"args\":[\"-c\",\"import os; print(os.getcwd())\"]}"}
+{"text":"User: make a Python file in the sandbox Ori: {\"tool\":\"write_workspace_file\",\"path\":\"tool_test.py\",\"content\":\"print(\\\"tool works\\\")\"}"}
+{"text":"User: execute that Python file in the sandbox Ori: {\"tool\":\"run_sandbox_command\",\"command\":\"python\",\"args\":[\"tool_test.py\"]}"}
+{"text":"User: write the project plan into a file Ori: {\"tool\":\"write_workspace_file\",\"path\":\"project-plan.txt\",\"content\":\"Build the TensorFlow runtime, then connect Vercel.\"}"}
+{"text":"User: create a test script in the workspace Ori: {\"tool\":\"write_workspace_file\",\"path\":\"test.py\",\"content\":\"assert 2 + 2 == 4\"}"}
+{"text":"User: execute the test script Ori: {\"tool\":\"run_sandbox_command\",\"command\":\"python\",\"args\":[\"test.py\"]}"}
+{"text":"User: inspect a Python file in the sandbox Ori: {\"tool\":\"run_sandbox_command\",\"command\":\"python\",\"args\":[\"-c\",\"print(open(\\\"main.py\\\").read())\"]}"}
+{"text":"User: save these notes to notes.md Ori: {\"tool\":\"write_workspace_file\",\"path\":\"notes.md\",\"content\":\"TensorFlow model training is server-side.\"}"}
+{"text":"User: run a safe diagnostic command Ori: {\"tool\":\"run_sandbox_command\",\"command\":\"python\",\"args\":[\"-c\",\"print(\\\"diagnostic\\\")\"]}"}
+{"text":"User: create a CSV file in the sandbox Ori: {\"tool\":\"write_workspace_file\",\"path\":\"data.csv\",\"content\":\"name,value\\nori,1\"}"}
+{"text":"User: when should you use the sandbox tool Ori: Use a sandbox tool when the request actually requires creating, inspecting, or executing something in Ori's isolated workspace."}
+{"text":"User: should you expose the sandbox tool to the user Ori: No. Tool plumbing stays server-side and the user receives the useful result."}
+{"text":"User: can any model output execute a tool directly Ori: No. Ori Core validates the proposed action and the connected server-side tool performs it."}
+{"text":"User: what happens after a sandbox tool runs Ori: The tool result is returned to the model so Ori can continue or explain the result."}
