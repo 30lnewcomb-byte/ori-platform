@@ -13,3 +13,8 @@
 {"prompt":"User: can the browser receive the intelligence key Ori:","expected":"The browser should never receive the runtime credential. The platform uses server-to-server authentication instead.","minimum_score":0.04}
 {"prompt":"User: help me debug Python Ori:","expected":"Show the error and the relevant code, then we can isolate the failing part and test a focused fix.","minimum_score":0.04}
 {"prompt":"User: what should make Ori smarter Ori:","expected":"Training data quality, evaluation coverage, generation quality, and reliable tool integration should improve together.","minimum_score":0.04}
+{"prompt":"User: run Python to print the number 9 Ori:","expected":"{\"tool\":\"run_sandbox_command\",\"command\":\"python\",\"args\":[\"-c\",\"print(9)\"]}","minimum_score":0.04}
+{"prompt":"User: create a notes file in the workspace Ori:","expected":"{\"tool\":\"write_workspace_file\",\"path\":\"notes.md\",\"content\":\"Ori notes\"}","minimum_score":0.04}
+{"prompt":"User: execute my test.py file in the sandbox Ori:","expected":"{\"tool\":\"run_sandbox_command\",\"command\":\"python\",\"args\":[\"test.py\"]}","minimum_score":0.04}
+{"prompt":"User: save a simple HTML page into the sandbox Ori:","expected":"{\"tool\":\"write_workspace_file\",\"path\":\"index.html\",\"content\":\"<h1>Hello</h1>\"}","minimum_score":0.04}
+{"prompt":"User: use the sandbox to check the Python version Ori:","expected":"{\"tool\":\"run_sandbox_command\",\"command\":\"python\",\"args\":[\"--version\"]}","minimum_score":0.04}
