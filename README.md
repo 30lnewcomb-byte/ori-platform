@@ -48,7 +48,7 @@ docs/
 
 Ori World is a small, purpose-built working environment for Ori. It is designed around code, files, tests, experiments, and other controlled work that Ori actually needs. It is not intended to be a generic hosted sandbox product or a required paid service.
 
-The current web route remains `/sandbox` because the route predates the product name; the user-facing navigation label is **Ori World everywhere**. The execution environment is not connected yet.
+The current web route remains `/sandbox` because the route predates the product name; the user-facing navigation label is **Ori World everywhere**. The server-side VM connection layer is now prepared through `apps/web/lib/ori-vm.ts`; full chat/tool orchestration remains a separate integration step.
 
 ## Developer Platform
 
@@ -100,3 +100,15 @@ Use `.env.example` as the reference for server-side configuration. Real credenti
 ## Status
 
 The web platform and Developer Platform are being stabilized while the native TensorFlow runtime is being connected. The runtime boundary, model registry contract, and first TensorFlow core are now in place.
+
+
+## Ori VM connection
+
+The platform owns a server-side wrapper for the Render-hosted Ori VM at `apps/web/lib/ori-vm.ts`. The browser never receives the VM credential.
+
+The wrapper supports:
+- authenticated VM status, execution, and workspace operations
+- an unauthenticated wake request at the VM's `/v1/wake` endpoint
+- a committed-intent prewarm gate via `prewarmOriVmForIntent()`
+
+Prewarm must not be driven by raw model thoughts, keywords, or speculative tool candidates. Ori should only mark an `OriVmIntent` as committed after orchestration has selected the VM as the concrete execution mechanism. This lets Render startup overlap with the remainder of planning without waking the service for every speculative thought.
