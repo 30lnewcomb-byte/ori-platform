@@ -29,7 +29,7 @@ function requireConfigured() {
   }
 }
 
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+async function request<T>(path: string, init: RequestInit = {}, timeoutMs = 30_000): Promise<T> {
   requireConfigured()
   const response = await fetch(`${VM_URL}${path}`, {
     ...init,
@@ -38,7 +38,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
       'Content-Type': 'application/json',
       ...(init.headers ?? {}),
     },
-    signal: init.signal ?? AbortSignal.timeout(30_000),
+    signal: init.signal ?? AbortSignal.timeout(timeoutMs),
   })
 
   const raw = await response.text()
@@ -128,7 +128,7 @@ export async function runInOriVm(command: string, args: string[] = [], timeoutSe
       args: args.slice(0, 32),
       timeout_seconds: Math.min(Math.max(timeoutSeconds, 1), 30),
     }),
-  })
+  }, 90_000)
 
   return {
     exitCode: data.exit_code,
