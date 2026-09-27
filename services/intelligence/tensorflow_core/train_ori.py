@@ -66,9 +66,9 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", default="data/ori_training_expanded.jsonl")
     parser.add_argument("--output", default="artifacts/ori-small")
-    parser.add_argument("--epochs", type=int, default=20)
+    parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument("--batch-size", type=int, default=8)
-    parser.add_argument("--validation-split", type=float, default=0.2)
+    parser.add_argument("--validation-split", type=float, default=0.0)
     parser.add_argument("--vocab-size", type=int, default=2048)
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
@@ -100,6 +100,7 @@ def main() -> None:
         optimizer=tf.keras.optimizers.AdamW(
             learning_rate=3e-4,
             weight_decay=1e-4,
+            clipnorm=1.0,
         ),
         loss=MaskedCausalLoss(config.pad_id),
     )
@@ -116,6 +117,13 @@ def main() -> None:
             str(output / "training.csv"),
             append=False,
         ),
+        tf.keras.callbacks.ReduceLROnPlateau(
+            monitor="loss",
+            factor=0.5,
+            patience=5,
+            min_lr=1e-5,
+            verbose=1,
+        ),
     ]
 
     fit_kwargs = {
@@ -124,13 +132,14 @@ def main() -> None:
         "shuffle": True,
         "callbacks": callbacks,
     }
+
     has_validation = len(x) >= 5 and args.validation_split > 0
     if has_validation:
         fit_kwargs["validation_split"] = args.validation_split
         callbacks.append(
             tf.keras.callbacks.EarlyStopping(
                 monitor="val_loss",
-                patience=3,
+                patience=6,
                 restore_best_weights=True,
             )
         )
@@ -144,11 +153,14 @@ def main() -> None:
     (output / "training_summary.json").write_text(
         json.dumps(
             {
+                "model": "ori-small",
                 "examples": len(texts),
                 "vocabulary_size": len(tokenizer.vocab),
+                "epochs_requested": args.epochs,
                 "epochs_completed": len(history.history["loss"]),
                 "final_loss": history.history["loss"][-1],
                 "final_val_loss": history.history.get("val_loss", [None])[-1],
+                "validation_enabled": has_validation,
             },
             indent=2,
         ),
