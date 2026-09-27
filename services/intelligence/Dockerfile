@@ -26,9 +26,9 @@ RUN python tensorflow_core/train_core.py \
 RUN python tensorflow_core/train_ori.py \
     --data tensorflow_core/data/ori_training_expanded.jsonl \
     --output artifacts/ori-small \
-    --epochs 20 \
+    --epochs 50 \
     --batch-size 8 \
-    --validation-split 0.2
+    --validation-split 0
 
 EXPOSE 8000
 CMD ["sh", "start.sh"]
