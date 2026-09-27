@@ -36,18 +36,19 @@ class OriCoreModel:
 
     @staticmethod
     def build(max_tokens: int = 4096, sequence_length: int = 96) -> "OriCoreModel":
+        # TF-IDF is deliberately used for the tiny bootstrap classifier.
+        # It gives the learned classifier useful word-level signal without
+        # requiring a large corpus or a large embedding space.
         vectorizer = tf.keras.layers.TextVectorization(
             max_tokens=max_tokens,
-            output_mode="int",
-            output_sequence_length=sequence_length,
+            output_mode="tf_idf",
             name="text_vectorizer",
         )
 
         inputs = tf.keras.Input(shape=(), dtype=tf.string, name="text")
-        tokens = vectorizer(inputs)
-        x = tf.keras.layers.Embedding(max_tokens, 64, name="embedding")(tokens)
-        x = tf.keras.layers.GlobalAveragePooling1D(name="pool")(x)
-        x = tf.keras.layers.Dense(64, activation="relu", name="hidden")(x)
+        features = vectorizer(inputs)
+        x = tf.keras.layers.Dense(64, activation="relu", name="hidden")(features)
+        x = tf.keras.layers.Dropout(0.1)(x)
         outputs = tf.keras.layers.Dense(len(LABELS), activation="softmax", name="intent")(x)
         model = tf.keras.Model(inputs=inputs, outputs=outputs, name="ori_core")
         model.compile(
