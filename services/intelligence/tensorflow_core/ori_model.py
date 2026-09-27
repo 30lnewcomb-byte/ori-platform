@@ -198,6 +198,8 @@ class OriLanguageModel(tf.keras.Model):
                     [tokenizer.vocab["<pad>"], tokenizer.vocab["<bos>"], tokenizer.vocab["<unk>"]],
                     depth=self.config.vocab_size,
                     dtype=tf.bool,
+                    on_value=True,
+                    off_value=False,
                 ),
                 axis=0,
             )
