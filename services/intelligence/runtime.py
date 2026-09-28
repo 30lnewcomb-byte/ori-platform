@@ -361,6 +361,7 @@ def status(_: None = Depends(require_api_key)) -> dict[str, Any]:
         "core_model_loaded": CORE_MODEL is not None,
         "language_model_loaded": LANGUAGE_MODEL is not None,
         "language_model_id": "ori-small" if LANGUAGE_MODEL is not None else None,
+        "workers_loaded": sorted(SPECIALIZED_WORKERS),
     }
 
 
@@ -382,6 +383,22 @@ def models(_: None = Depends(require_api_key)) -> dict[str, Any]:
             "task": "causal-language-model",
             "status": "ready" if LANGUAGE_MODEL is not None else "registered",
             "parameters": "compact",
+        },
+        {
+            "id": "ori-coder",
+            "version": APP_VERSION,
+            "framework": "tensorflow",
+            "task": "code-generation",
+            "status": "ready" if "coding" in SPECIALIZED_WORKERS else "registered",
+            "manager_routed": True,
+        },
+        {
+            "id": "ori-3d",
+            "version": APP_VERSION,
+            "framework": "tensorflow",
+            "task": "parametric-cad-generation",
+            "status": "ready" if "3d" in SPECIALIZED_WORKERS else "registered",
+            "manager_routed": True,
         },
     ]
     return {"models": entries}
