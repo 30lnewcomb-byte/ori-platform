@@ -130,17 +130,40 @@ def make_finetune_arrays(
     tokenizer: OriTokenizer,
     context: int,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Keep each Ori conversation example as a single supervised sequence."""
+    """Create response-focused causal-LM examples for Ori fine-tuning.
 
+    The user prompt supplies context, but only Ori's response tokens (plus
+    EOS) contribute to the fine-tuning loss. This keeps the pretrained English
+    model from spending its limited fine-tuning capacity memorizing prompts.
+    """
     xs: list[list[int]] = []
     ys: list[list[int]] = []
     pad = tokenizer.vocab["<pad>"]
 
     for text in texts:
-        ids = tokenizer.encode(text)[: context + 1]
+        marker = " Ori:"
+        split_at = text.find(marker)
+        if split_at < 0:
+            continue
+        prefix = text[: split_at + len(marker)]
+        response = text[split_at + len(marker) :].strip()
+        if not response:
+            continue
+
+        prefix_ids = tokenizer.encode(prefix, add_bos=True, add_eos=False)
+        response_ids = tokenizer.encode(response, add_bos=False, add_eos=True)
+        ids = (prefix_ids + response_ids)[: context + 1]
         if len(ids) < 3:
             continue
-        x, y = ids[:-1], ids[1:]
+
+        x = ids[:-1]
+        y = ids[1:]
+        response_start = len(prefix_ids)
+        for index in range(len(y)):
+            # y[index] corresponds to ids[index + 1].
+            if index + 1 < response_start:
+                y[index] = pad
+
         x += [pad] * (context - len(x))
         y += [pad] * (context - len(y))
         xs.append(x[:context])
@@ -149,8 +172,6 @@ def make_finetune_arrays(
     if not xs:
         raise ValueError("No usable Ori fine-tuning sequences were produced")
     return np.asarray(xs, dtype=np.int32), np.asarray(ys, dtype=np.int32)
-
-
 def compile_for_learning(
     model: OriLanguageModel,
     pad_id: int,
@@ -231,8 +252,8 @@ def main() -> None:
     parser.add_argument("--english-epochs", type=int, default=8)
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--validation-split", type=float, default=0.0)
-    parser.add_argument("--vocab-size", type=int, default=512)
-    parser.add_argument("--english-max-chars", type=int, default=360_000)
+    parser.add_argument("--vocab-size", type=int, default=1024)
+    parser.add_argument("--english-max-chars", type=int, default=500_000)
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
@@ -309,7 +330,7 @@ def main() -> None:
 
     # Keep a small English replay set during fine-tuning so Ori-specific data
     # does not immediately erase the language foundation.
-    replay_count = min(max(32, len(ori_x)), len(english_x))
+    replay_count = min(max(64, len(ori_x) * 3), len(english_x))
     replay_x = english_x[:replay_count]
     replay_y = english_y[:replay_count]
     finetune_x = np.concatenate([ori_x, replay_x], axis=0)
@@ -319,7 +340,7 @@ def main() -> None:
         f"Stage 2/2: fine-tuning on {len(ori_x)} Ori examples "
         f"+ {replay_count} English replay windows for {args.epochs} epochs."
     )
-    compile_for_learning(model, config.pad_id, learning_rate=8e-5)
+    compile_for_learning(model, config.pad_id, learning_rate=5e-5)
     finetuning = fit_stage(
         model,
         finetune_x,
@@ -369,9 +390,9 @@ def main() -> None:
     sample, _ = model.generate(
         tokenizer,
         "User: Hello Ori! Good afternoon. Ori:",
-        max_new_tokens=20,
-        temperature=0.35,
-        top_k=12,
+        max_new_tokens=24,
+        temperature=0.20,
+        top_k=8,
     )
     print(f"Final English/Ori smoke sample: {sample!r}")
     print(f"Ori model saved to {output}")
