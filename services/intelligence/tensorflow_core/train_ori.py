@@ -20,6 +20,7 @@ import tensorflow as tf
 
 from english_corpus import download_public_domain_english
 from ori_model import OriLMConfig, OriLanguageModel, OriTokenizer
+from train_specialists import coding_examples, cad_examples, train_worker
 
 
 class MaskedCausalLoss(tf.keras.losses.Loss):
@@ -251,7 +252,7 @@ def main() -> None:
     parser.add_argument("--data", default="data/ori_training_expanded.jsonl")
     parser.add_argument("--output", default="artifacts/ori-small")
     parser.add_argument("--epochs", type=int, default=20)
-    parser.add_argument("--english-epochs", type=int, default=8)
+    parser.add_argument("--english-epochs", type=int, default=16)
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--validation-split", type=float, default=0.0)
     parser.add_argument("--vocab-size", type=int, default=1024)
@@ -397,6 +398,33 @@ def main() -> None:
         top_k=8,
     )
     print(f"Final English/Ori smoke sample: {sample!r}")
+
+    # The existing Render service invokes this script directly. Train the
+    # internal coding and 3D specialists here so no dashboard build-command
+    # change is required.
+    print("Training internal specialist workers...")
+    train_worker(
+        "ori-coder",
+        coding_examples(),
+        tokenizer,
+        Path("artifacts") / "ori-coder",
+        epochs=10,
+        d_model=128,
+        num_layers=3,
+        d_ff=512,
+        learning_rate=8e-5,
+    )
+    train_worker(
+        "ori-3d",
+        cad_examples(),
+        tokenizer,
+        Path("artifacts") / "ori-3d",
+        epochs=10,
+        d_model=128,
+        num_layers=3,
+        d_ff=512,
+        learning_rate=8e-5,
+    )
     print(f"Ori model saved to {output}")
 
 
