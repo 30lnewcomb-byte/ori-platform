@@ -76,14 +76,14 @@ def load_core_model() -> OriCoreModel | None:
 
 def load_language_model() -> tuple[OriLanguageModel, OriTokenizer] | None:
     config_path = LM_DIR / "config.json"
-    vocab_path = LM_DIR / "vocab.json"
+    tokenizer_path = LM_DIR / "ori_tokenizer.model"
     weights_path = LM_DIR / "model.weights.h5"
-    if not (config_path.exists() and vocab_path.exists() and weights_path.exists()):
+    if not (config_path.exists() and tokenizer_path.exists() and weights_path.exists()):
         return None
 
     try:
         config = OriLMConfig(**json.loads(config_path.read_text(encoding="utf-8")))
-        tokenizer = OriTokenizer.load(vocab_path)
+        tokenizer = OriTokenizer.load(tokenizer_path)
         model = OriLanguageModel(config, name="ori_language_model")
         model(tf.zeros((1, min(2, config.context_length)), dtype=tf.int32))
         model.load_weights(weights_path)
