@@ -1,20 +1,22 @@
 @font-face { font-family:'Ori Text'; src:url('/fonts/OriText-Regular.woff2') format('woff2'); font-style:normal; font-weight:400; font-display:swap; }
-@font-face { font-family:'Ori Display'; src:url('/fonts/OriText-Regular.woff2') format('woff2'); font-style:normal; font-weight:400; font-display:swap; }
-@font-face { font-family:'Ori Mono'; src:url('/fonts/OriText-Regular.woff2') format('woff2'); font-style:normal; font-weight:400; font-display:swap; }
-:root { --surface-base:#f7f7f5; --surface-raised:#fff; --surface-strong:#111210; --text-primary:#171815; --text-secondary:#686b64; --text-muted:#92958d; --border-subtle:#e4e5df; --accent-primary:#3f6df6; --accent-soft:#edf2ff; --accent-strong:#2f5bd3; --accent-blue:#3f6df6; --accent-blue-soft:#e8f0ff; --accent-blue-strong:#2f5bd3; --status-success:#2f7d4a; --focus-ring:#3f6df6; --radius-sm:8px; --radius-md:12px; --radius-lg:18px; }
+@font-face { font-family:'Ori Display'; src:url('/fonts/OriDisplay-Regular.woff2') format('woff2'); font-style:normal; font-weight:400; font-display:swap; }
+@font-face { font-family:'Ori Mono'; src:url('/fonts/OriMono-Regular.woff2') format('woff2'); font-style:normal; font-weight:400; font-display:swap; }
+:root { --font-text:'Ori Text',Arial,Helvetica,sans-serif; --font-display:'Ori Display','Ori Text',Arial,Helvetica,sans-serif; --font-mono:'Ori Mono','SFMono-Regular',Consolas,'Liberation Mono',monospace; --surface-base:#f7f7f5; --surface-raised:#fff; --surface-strong:#111210; --text-primary:#171815; --text-secondary:#686b64; --text-muted:#92958d; --border-subtle:#e4e5df; --accent-primary:#3f6df6; --accent-soft:#edf2ff; --accent-strong:#2f5bd3; --accent-blue:#3f6df6; --accent-blue-soft:#e8f0ff; --accent-blue-strong:#2f5bd3; --status-success:#2f7d4a; --focus-ring:#3f6df6; --radius-sm:8px; --radius-md:12px; --radius-lg:18px; }
 * { box-sizing:border-box; }
 html, body { margin:0; min-height:100%; }
-body { background:var(--surface-base); color:var(--text-primary); font-family:'Ori Text',Arial,Helvetica,sans-serif; }
+body { background:var(--surface-base); color:var(--text-primary); font-family:var(--font-text); font-kerning:normal; }
 button, textarea, input, a { font:inherit; } a { color:inherit; text-decoration:none; } button { cursor:pointer; }
 button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible { outline:3px solid var(--focus-ring); outline-offset:3px; }
 .content { width:min(1180px,100%); margin:0 auto; padding:34px 44px 64px; }
 .topbar { display:flex; align-items:flex-start; justify-content:space-between; gap:24px; }
 .eyebrow { margin:0 0 8px; color:var(--text-muted); font-size:11px; font-weight:750; letter-spacing:.14em; }
+h1,h2 { font-family:var(--font-display); }
 h1 { margin:0; font-size:clamp(28px,4vw,42px); letter-spacing:-.035em; }
 .avatar { width:38px; height:38px; border:1px solid var(--border-subtle); border-radius:50%; background:var(--surface-raised); font-weight:700; }
+pre,code,kbd,samp { font-family:var(--font-mono); }
 .homeWorkspace { display:grid; gap:18px; margin-top:34px; }
 .quickStart { display:flex; align-items:flex-end; justify-content:space-between; gap:28px; padding:26px 0 24px; border-bottom:1px solid var(--border-subtle); }
-.quickStart h2 { margin:0; font-family:'Ori Display','Ori Text',Arial,sans-serif; font-size:clamp(24px,3vw,34px); line-height:1.05; letter-spacing:-.04em; }
+.quickStart h2 { margin:0; font-size:clamp(24px,3vw,34px); line-height:1.05; letter-spacing:-.04em; }
 .quickActions { display:flex; gap:9px; flex-wrap:wrap; justify-content:flex-end; }
 .primary,.secondary { display:inline-flex; align-items:center; justify-content:center; border:0; border-radius:10px; padding:10px 14px; font-weight:700; }
 .primary { background:var(--accent-primary); color:#fff; } .primary:hover { background:var(--accent-strong); }
