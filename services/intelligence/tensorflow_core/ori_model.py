@@ -188,14 +188,24 @@ class OriLanguageModel(tf.keras.Model):
         context = context[-self.config.context_length :]
         generated: list[int] = []
 
-        for _ in range(max_new_tokens):
+        min_generated_tokens = min(4, max_new_tokens)
+
+        for step in range(max_new_tokens):
             logits = self.next_logits(
                 tf.constant([context], dtype=tf.int32)
             )[0]
 
+            blocked_ids = [
+                tokenizer.vocab["<pad>"],
+                tokenizer.vocab["<bos>"],
+                tokenizer.vocab["<unk>"],
+            ]
+            if step < min_generated_tokens:
+                blocked_ids.append(tokenizer.vocab["<eos>"])
+
             blocked = tf.reduce_any(
                 tf.one_hot(
-                    [tokenizer.vocab["<pad>"], tokenizer.vocab["<bos>"], tokenizer.vocab["<unk>"]],
+                    blocked_ids,
                     depth=self.config.vocab_size,
                     dtype=tf.bool,
                     on_value=True,
