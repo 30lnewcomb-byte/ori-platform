@@ -68,7 +68,7 @@ def load_core_model() -> OriCoreModel | None:
     if not model_path.exists():
         return None
     try:
-        return OriCoreModel(tf.keras.models.load_model(model_path))
+        return OriCoreModel(tf.keras.models.load_model(model_path, compile=False))
     except Exception:
         logger.exception("Failed to load Ori Core classifier from %s", model_path)
         return None
