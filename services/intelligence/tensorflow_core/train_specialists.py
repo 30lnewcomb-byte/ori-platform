@@ -67,6 +67,7 @@ def coding_examples() -> list[tuple[str, str]]:
 
 def cad_examples() -> list[tuple[str, str]]:
     examples: list[tuple[str, str]] = []
+
     sizes = [(10, 10, 10), (20, 20, 5), (30, 20, 10), (40, 30, 4), (50, 20, 8)]
     for x, y, z in sizes:
         plan = json.dumps({
@@ -77,7 +78,7 @@ def cad_examples() -> list[tuple[str, str]]:
         examples.extend([
             (f"Create a {x} by {y} by {z} mm box.", plan),
             (f"Make a rectangular block measuring {x}x{y}x{z} millimeters.", plan),
-            (f"Generate a simple {x}mm x {y}mm x {z}mm cube-like box.", plan),
+            (f"Generate a simple {x}mm x {y}mm x {z}mm box.", plan),
         ])
 
     radii = [(5, 10), (8, 20), (10, 25), (12, 30), (15, 40)]
@@ -96,12 +97,93 @@ def cad_examples() -> list[tuple[str, str]]:
         plan = json.dumps({
             "operations": [
                 {"kind": "cube", "size": [size, size, size], "center": True}
-            ],
+            ]
         }, separators=(",", ":"))
         examples.extend([
             (f"Make a centered {size} mm cube.", plan),
             (f"Generate a simple {size} millimeter cube for 3D printing.", plan),
         ])
+
+    # Triangle fundamentals: three vertices define one triangular face.
+    triangle_plans = [
+        (
+            "a triangle in the XY plane",
+            {
+                "operations": [{
+                    "kind": "mesh",
+                    "vertices": [[0, 0, 0], [20, 0, 0], [0, 20, 0]],
+                    "triangles": [[0, 1, 2]],
+                }],
+            },
+        ),
+        (
+            "a pyramid made from triangular faces",
+            {
+                "operations": [{
+                    "kind": "mesh",
+                    "vertices": [
+                        [-10, -10, 0], [10, -10, 0],
+                        [10, 10, 0], [-10, 10, 0], [0, 0, 15],
+                    ],
+                    "triangles": [
+                        [0, 1, 4], [1, 2, 4], [2, 3, 4], [3, 0, 4],
+                    ],
+                }],
+            },
+        ),
+        (
+            "a tetrahedron",
+            {
+                "operations": [{
+                    "kind": "mesh",
+                    "vertices": [
+                        [0, 0, 12], [-10, -8, 0],
+                        [10, -8, 0], [0, 12, 0],
+                    ],
+                    "triangles": [
+                        [0, 1, 2], [0, 2, 3],
+                        [0, 3, 1], [1, 3, 2],
+                    ],
+                }],
+            },
+        ),
+        (
+            "a triangular prism",
+            {
+                "operations": [{
+                    "kind": "mesh",
+                    "vertices": [
+                        [0, 0, 0], [20, 0, 0], [0, 20, 0],
+                        [0, 0, 10], [20, 0, 10], [0, 20, 10],
+                    ],
+                    "triangles": [
+                        [0, 1, 2], [3, 5, 4],
+                        [0, 3, 4], [0, 4, 1],
+                        [1, 4, 5], [1, 5, 2],
+                        [2, 5, 3], [2, 3, 0],
+                    ],
+                }],
+            },
+        ),
+    ]
+
+    for description, plan_data in triangle_plans:
+        plan = json.dumps(plan_data, separators=(",", ":"))
+        examples.extend([
+            (f"Create {description}.", plan),
+            (f"Model {description} using triangular mesh faces.", plan),
+            (f"Build {description} from vertices and triangles.", plan),
+        ])
+
+    # Teach the vocabulary explicitly as geometry concepts.
+    triangle_terms = [
+        ("A mesh is made from vertices and faces.", triangle_plans[0][1]),
+        ("A triangle face has exactly three vertex indices.", triangle_plans[0][1]),
+        ("Three 3D points define a triangular surface.", triangle_plans[0][1]),
+        ("Use triangular faces to represent a 3D surface.", triangle_plans[1][1]),
+    ]
+    for prompt, plan_data in triangle_terms:
+        examples.append((prompt, json.dumps(plan_data, separators=(",", ":"))))
 
     return examples
 
