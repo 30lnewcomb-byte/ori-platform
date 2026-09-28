@@ -9,7 +9,7 @@ const services = [
 
 export default function DeveloperStatusPage() {
   return (
-    <DeveloperShell active="Dashboard">
+    <DeveloperShell active="Status">
       <div className={styles.page}>
         <div className={styles.inner}>
           <a className={styles.breadcrumb} href="/developer/dashboard">Developer Console <span>→</span> Status</a>
@@ -30,7 +30,7 @@ export default function DeveloperStatusPage() {
                     <span className={styles.icon}>●</span>
                     <div><strong>{name}</strong><small>{role}</small></div>
                     <span className={styles.badge}>{provider}</span>
-                    <span className={styles.badge}>{{state}}</span>
+                    <span className={styles.badge}>{state}</span>
                   </div>
                 ))}
               </div>
