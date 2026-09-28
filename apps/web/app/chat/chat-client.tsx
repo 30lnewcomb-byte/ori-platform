@@ -91,9 +91,10 @@ export default function ChatClient() {
 
     const params = new URLSearchParams(window.location.search)
     const requestedId = params.get('chat')
+    const forceNew = params.get('new') === '1'
     const requestedChat = loaded.find((chat) => chat.id === requestedId)
 
-    if (requestedChat) {
+    if (requestedChat && !forceNew) {
       setCurrentChatId(requestedChat.id)
       setMessages(requestedChat.messages)
     } else {
