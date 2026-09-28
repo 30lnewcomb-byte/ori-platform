@@ -5,7 +5,7 @@ type NavItem = { label: string; href: string }
 
 const navItems: NavItem[] = [
   { label: 'Home', href: '/' },
-  { label: 'Chat', href: '/chat' },
+  { label: 'Chat', href: '/chat?new=1' },
 ]
 
 export type AppSection = 'Home' | 'Chat'
