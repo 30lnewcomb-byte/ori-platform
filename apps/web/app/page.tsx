@@ -7,7 +7,7 @@ export default function HomePage() {
         <div>
           <p className="eyebrow">ORI</p>
           <h1>Chat with Ori.</h1>
-          <p className="appIntro">Start a conversation or reopen one you already have.</p>
+          <p className="appIntro">Start a new conversation with Ori.</p>
         </div>
       </header>
 
@@ -19,7 +19,6 @@ export default function HomePage() {
           </div>
           <div className="quickActions">
             <a className="primary" href="/chat?new=1">New chat</a>
-            <a className="secondary" href="/chat">Open chat</a>
           </div>
         </section>
 
@@ -41,7 +40,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <p className="homeFootnote">Other product surfaces stay out of the interface until they do something useful.</p>
+        <p className="homeFootnote">Existing conversations are available from chat history when you need them.</p>
       </div>
     </AppShell>
   )
