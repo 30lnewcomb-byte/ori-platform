@@ -38,7 +38,7 @@ export default function HomePage() {
             <h2 id="quick-start-heading">What do you want to work on?</h2>
           </div>
           <div className="quickActions">
-            <a className="primary" href="/chat">Start a chat</a>
+            <a className="primary" href="/chat?new=1">Start a chat</a>
             <a className="secondary" href="/projects">Open a project</a>
             <a className="secondary" href="/tasks">View tasks</a>
           </div>
