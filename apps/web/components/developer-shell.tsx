@@ -4,7 +4,7 @@ import styles from './developer-shell.module.css'
 type DeveloperNavItem = { label: string; href: string }
 
 const developerNav: DeveloperNavItem[] = [
-  { label: 'Overview', href: '/developer' },
+  { label: 'Dashboard', href: '/developer/dashboard' },
   { label: 'Docs', href: '/developer/docs' },
 ]
 
