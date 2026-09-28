@@ -98,35 +98,33 @@ Do not give the language model direct device authority.
 
 Do not claim live intelligence until the configured runtime has been health-checked and its model readiness verified.
 
-## Manager and specialist workers
+## Ori specialist workers
 
-Ori uses a manager-first hierarchy:
+Ori stays as one user-facing intelligence. Ori Small handles the conversation
+and task recognition, then can silently dispatch a matching internal worker.
 
 ```
 User
   ↓
-Ori Manager / orchestration
-  ├── ori-small       ← general language
-  ├── ori-coder       ← coding worker
-  └── ori-3d          ← parametric CAD worker
-          ↓
-      validated result
+Ori Small
+  ├── normal request → Ori Small response
+  ├── coding request → ori-coder → result
+  └── 3D/CAD request → ori-3d → validated geometry → result
 ```
 
-The manager chooses a worker from the request and Ori Core signals. Workers
-cannot select other workers, grant permissions, or execute tools. The manager
-owns routing and the platform owns tool permissions.
+The workers are implementation details. They cannot select other workers,
+grant permissions, or execute platform tools directly. Tool permissions and
+execution remain in the server-side platform.
 
 The coding worker is a task-focused TensorFlow Transformer trained on coding
 examples. The 3D worker is a task-focused TensorFlow Transformer trained to
 produce constrained parametric CAD plans. A server-side CAD compiler converts
-valid plans into OpenSCAD source. This keeps geometry generation learned while
-keeping the final geometry representation deterministic and inspectable.
+valid plans into OpenSCAD source, keeping the learned geometry proposal
+inspectable and the final representation deterministic.
 
 Worker artifacts live under:
 
 - `artifacts/ori-coder`
 - `artifacts/ori-3d`
 
-The user-facing chat remains unified as Ori; worker identities are internal
-routing metadata.
+The user-facing chat remains simply Ori. No worker selection UI is required.
