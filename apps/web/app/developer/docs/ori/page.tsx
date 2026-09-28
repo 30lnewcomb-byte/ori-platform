@@ -1,5 +1,5 @@
 import DeveloperShell from '../../../../components/developer-shell'
-import styles from '../ori.module.css'
+import styles from './ori.module.css'
 
 export default function OriReferencePage() {
   return (
