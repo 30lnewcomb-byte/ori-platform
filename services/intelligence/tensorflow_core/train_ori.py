@@ -1,14 +1,24 @@
-"""Train Ori's compact native TensorFlow language model."""
+"""Train Ori's native TensorFlow language model in two learned stages.
+
+Stage 1: pretrain on a bounded public-domain English corpus.
+Stage 2: fine-tune those same weights on Ori-specific conversation/tool data.
+
+This keeps the model's language ability broader than a tiny set of canned Ori
+responses while still giving it an Ori-specific behavior layer.
+"""
 
 from __future__ import annotations
 
 import argparse
 import json
 from pathlib import Path
+import tempfile
 
 import numpy as np
+import sentencepiece as spm
 import tensorflow as tf
 
+from english_corpus import download_public_domain_english
 from ori_model import OriLMConfig, OriLanguageModel, OriTokenizer
 
 
@@ -45,9 +55,87 @@ def load_records(path: Path) -> list[str]:
     return texts
 
 
-def make_arrays(texts: list[str], tokenizer: OriTokenizer, context: int):
-    xs, ys = [], []
+def train_tokenizer(
+    texts: list[str],
+    output: Path,
+    vocab_size: int,
+) -> OriTokenizer:
+    corpus_path = output / "tokenizer-training.txt"
+    corpus_path.write_text("\n".join(texts), encoding="utf-8")
+
+    prefix = output / "ori_tokenizer"
+    spm.SentencePieceTrainer.train(
+        input=str(corpus_path),
+        model_prefix=str(prefix),
+        vocab_size=vocab_size,
+        model_type="bpe",
+        character_coverage=1.0,
+        pad_id=0,
+        bos_id=1,
+        eos_id=2,
+        unk_id=3,
+        pad_piece="<pad>",
+        bos_piece="<bos>",
+        eos_piece="<eos>",
+        unk_piece="<unk>",
+        normalization_rule_name="nmt_nfkc",
+        add_dummy_prefix=True,
+        remove_extra_whitespaces=True,
+        max_sentence_length=12000,
+        shuffle_input_sentence=True,
+        hard_vocab_limit=False,
+        minloglevel=1,
+    )
+
+    model_path = output / "ori_tokenizer.model"
+    if not model_path.exists():
+        raise RuntimeError("SentencePiece tokenizer training did not produce a model.")
+
+    return OriTokenizer.load(model_path)
+
+
+def make_document_arrays(
+    texts: list[str],
+    tokenizer: OriTokenizer,
+    context: int,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Pack normal English documents into contiguous causal-LM windows."""
+
+    stream: list[int] = []
+    for text in texts:
+        stream.extend(tokenizer.encode(text, add_bos=False, add_eos=True))
+
+    xs: list[list[int]] = []
+    ys: list[list[int]] = []
+    for start in range(0, max(0, len(stream) - 1), context):
+        chunk = stream[start : start + context + 1]
+        if len(chunk) < 3:
+            continue
+        x = chunk[:-1]
+        y = chunk[1:]
+        if len(x) < context:
+            pad = tokenizer.vocab["<pad>"]
+            x = x + [pad] * (context - len(x))
+            y = y + [pad] * (context - len(y))
+        xs.append(x[:context])
+        ys.append(y[:context])
+
+    if not xs:
+        raise ValueError("No usable English sequences were produced")
+    return np.asarray(xs, dtype=np.int32), np.asarray(ys, dtype=np.int32)
+
+
+def make_finetune_arrays(
+    texts: list[str],
+    tokenizer: OriTokenizer,
+    context: int,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Keep each Ori conversation example as a single supervised sequence."""
+
+    xs: list[list[int]] = []
+    ys: list[list[int]] = []
     pad = tokenizer.vocab["<pad>"]
+
     for text in texts:
         ids = tokenizer.encode(text)[: context + 1]
         if len(ids) < 3:
@@ -57,36 +145,127 @@ def make_arrays(texts: list[str], tokenizer: OriTokenizer, context: int):
         y += [pad] * (context - len(y))
         xs.append(x[:context])
         ys.append(y[:context])
+
     if not xs:
-        raise ValueError("No usable sequences were produced")
+        raise ValueError("No usable Ori fine-tuning sequences were produced")
     return np.asarray(xs, dtype=np.int32), np.asarray(ys, dtype=np.int32)
+
+
+def compile_for_learning(
+    model: OriLanguageModel,
+    pad_id: int,
+    learning_rate: float,
+) -> None:
+    model.compile(
+        optimizer=tf.keras.optimizers.AdamW(
+            learning_rate=learning_rate,
+            weight_decay=1e-4,
+            clipnorm=1.0,
+        ),
+        loss=MaskedCausalLoss(pad_id),
+    )
+
+
+def fit_stage(
+    model: OriLanguageModel,
+    x: np.ndarray,
+    y: np.ndarray,
+    *,
+    epochs: int,
+    batch_size: int,
+    validation_split: float,
+    checkpoint_dir: Path,
+    prefix: str,
+) -> dict[str, object]:
+    callbacks: list[tf.keras.callbacks.Callback] = [
+        tf.keras.callbacks.ModelCheckpoint(
+            filepath=str(checkpoint_dir / f"{prefix}-epoch-{{epoch:02d}}.weights.h5"),
+            save_weights_only=True,
+            save_best_only=False,
+        ),
+        tf.keras.callbacks.ReduceLROnPlateau(
+            monitor="loss",
+            factor=0.5,
+            patience=3,
+            min_lr=1e-5,
+            verbose=1,
+        ),
+    ]
+
+    fit_kwargs: dict[str, object] = {
+        "batch_size": batch_size,
+        "epochs": epochs,
+        "shuffle": True,
+        "callbacks": callbacks,
+    }
+
+    has_validation = len(x) >= 10 and validation_split > 0
+    if has_validation:
+        fit_kwargs["validation_split"] = validation_split
+        callbacks.append(
+            tf.keras.callbacks.EarlyStopping(
+                monitor="val_loss",
+                patience=5,
+                restore_best_weights=True,
+            )
+        )
+
+    history = model.fit(x, y, **fit_kwargs)
+    return {
+        "epochs_completed": len(history.history["loss"]),
+        "final_loss": float(history.history["loss"][-1]),
+        "final_val_loss": (
+            float(history.history["val_loss"][-1])
+            if "val_loss" in history.history
+            else None
+        ),
+        "validation_enabled": has_validation,
+    }
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", default="data/ori_training_expanded.jsonl")
     parser.add_argument("--output", default="artifacts/ori-small")
-    parser.add_argument("--epochs", type=int, default=50)
+    parser.add_argument("--epochs", type=int, default=20)
+    parser.add_argument("--english-epochs", type=int, default=8)
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--validation-split", type=float, default=0.0)
-    parser.add_argument("--vocab-size", type=int, default=2048)
+    parser.add_argument("--vocab-size", type=int, default=512)
+    parser.add_argument("--english-max-chars", type=int, default=360_000)
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
+    if args.epochs < 1 or args.english_epochs < 1:
+        raise ValueError("Both --epochs and --english-epochs must be at least 1")
     if not 0 <= args.validation_split < 1:
         raise ValueError("--validation-split must be between 0 and 1")
 
     tf.keras.utils.set_random_seed(args.seed)
+
     output = Path(args.output)
     output.mkdir(parents=True, exist_ok=True)
-    (output / "checkpoint").mkdir(parents=True, exist_ok=True)
+    checkpoint_dir = output / "checkpoint"
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
-    texts = load_records(Path(args.data))
-    tokenizer = OriTokenizer.build(texts, vocab_size=args.vocab_size)
-    tokenizer.save(output / "vocab.json")
+    ori_texts = load_records(Path(args.data))
+    english_texts = download_public_domain_english(
+        max_chars=args.english_max_chars
+    )
+
+    # The tokenizer sees both distributions, so English pretraining and Ori
+    # fine-tuning use exactly the same token IDs.
+    tokenizer = train_tokenizer(
+        english_texts + ori_texts,
+        output,
+        vocab_size=args.vocab_size,
+    )
+    tokenizer_path = output / "ori_tokenizer.model"
+    if not tokenizer_path.exists():
+        raise RuntimeError("Final tokenizer artifact is missing.")
 
     config = OriLMConfig(
-        vocab_size=len(tokenizer.vocab),
+        vocab_size=tokenizer.vocab_size,
         context_length=256,
         d_model=192,
         num_heads=4,
@@ -96,55 +275,62 @@ def main() -> None:
     )
     model = OriLanguageModel(config, name="ori_language_model")
     model(tf.zeros((1, config.context_length), dtype=tf.int32))
-    model.compile(
-        optimizer=tf.keras.optimizers.AdamW(
-            learning_rate=3e-4,
-            weight_decay=1e-4,
-            clipnorm=1.0,
-        ),
-        loss=MaskedCausalLoss(config.pad_id),
+
+    english_x, english_y = make_document_arrays(
+        english_texts,
+        tokenizer,
+        config.context_length,
+    )
+    ori_x, ori_y = make_finetune_arrays(
+        ori_texts,
+        tokenizer,
+        config.context_length,
     )
 
-    x, y = make_arrays(texts, tokenizer, config.context_length)
+    # Stage 1: teach the network general English syntax, spelling, punctuation,
+    # and local language patterns before adding Ori-specific behavior.
+    print(
+        f"Stage 1/2: pretraining on {len(english_x)} English windows "
+        f"for {args.english_epochs} epochs."
+    )
+    compile_for_learning(model, config.pad_id, learning_rate=3e-4)
+    pretraining = fit_stage(
+        model,
+        english_x,
+        english_y,
+        epochs=args.english_epochs,
+        batch_size=args.batch_size,
+        validation_split=0.0,
+        checkpoint_dir=checkpoint_dir,
+        prefix="english",
+    )
 
-    callbacks = [
-        tf.keras.callbacks.ModelCheckpoint(
-            filepath=str(output / "checkpoint" / "epoch-{epoch:02d}.weights.h5"),
-            save_weights_only=True,
-            save_best_only=False,
-        ),
-        tf.keras.callbacks.CSVLogger(
-            str(output / "training.csv"),
-            append=False,
-        ),
-        tf.keras.callbacks.ReduceLROnPlateau(
-            monitor="loss",
-            factor=0.5,
-            patience=5,
-            min_lr=1e-5,
-            verbose=1,
-        ),
-    ]
+    model.save_weights(output / "english-pretrained.weights.h5")
 
-    fit_kwargs = {
-        "batch_size": args.batch_size,
-        "epochs": args.epochs,
-        "shuffle": True,
-        "callbacks": callbacks,
-    }
+    # Keep a small English replay set during fine-tuning so Ori-specific data
+    # does not immediately erase the language foundation.
+    replay_count = min(max(32, len(ori_x)), len(english_x))
+    replay_x = english_x[:replay_count]
+    replay_y = english_y[:replay_count]
+    finetune_x = np.concatenate([ori_x, replay_x], axis=0)
+    finetune_y = np.concatenate([ori_y, replay_y], axis=0)
 
-    has_validation = len(x) >= 5 and args.validation_split > 0
-    if has_validation:
-        fit_kwargs["validation_split"] = args.validation_split
-        callbacks.append(
-            tf.keras.callbacks.EarlyStopping(
-                monitor="val_loss",
-                patience=6,
-                restore_best_weights=True,
-            )
-        )
+    print(
+        f"Stage 2/2: fine-tuning on {len(ori_x)} Ori examples "
+        f"+ {replay_count} English replay windows for {args.epochs} epochs."
+    )
+    compile_for_learning(model, config.pad_id, learning_rate=8e-5)
+    finetuning = fit_stage(
+        model,
+        finetune_x,
+        finetune_y,
+        epochs=args.epochs,
+        batch_size=args.batch_size,
+        validation_split=args.validation_split,
+        checkpoint_dir=checkpoint_dir,
+        prefix="ori",
+    )
 
-    history = model.fit(x, y, **fit_kwargs)
     model.save_weights(output / "model.weights.h5")
     (output / "config.json").write_text(
         json.dumps(config.__dict__, indent=2),
@@ -154,18 +340,40 @@ def main() -> None:
         json.dumps(
             {
                 "model": "ori-small",
-                "examples": len(texts),
-                "vocabulary_size": len(tokenizer.vocab),
-                "epochs_requested": args.epochs,
-                "epochs_completed": len(history.history["loss"]),
-                "final_loss": history.history["loss"][-1],
-                "final_val_loss": history.history.get("val_loss", [None])[-1],
-                "validation_enabled": has_validation,
+                "training_strategy": "english-pretraining-then-ori-finetuning",
+                "english_sources": "Project Gutenberg public-domain texts",
+                "english_windows": len(english_x),
+                "ori_examples": len(ori_texts),
+                "vocabulary_size": tokenizer.vocab_size,
+                "english_epochs_requested": args.english_epochs,
+                "ori_epochs_requested": args.epochs,
+                "pretraining": pretraining,
+                "finetuning": finetuning,
+                "replay_windows": replay_count,
             },
             indent=2,
         ),
         encoding="utf-8",
     )
+
+    # Remove the temporary SentencePiece training input from the deployable
+    # artifact directory; only the tokenizer model is needed at runtime.
+    try:
+        (output / "tokenizer-training.txt").unlink()
+        (output / "ori_tokenizer.vocab").unlink()
+    except FileNotFoundError:
+        pass
+
+    # Emit a tiny build-time smoke sample. This is diagnostic only; inference
+    # still happens through the runtime after the service starts.
+    sample, _ = model.generate(
+        tokenizer,
+        "User: Hello Ori! Good afternoon. Ori:",
+        max_new_tokens=20,
+        temperature=0.35,
+        top_k=12,
+    )
+    print(f"Final English/Ori smoke sample: {sample!r}")
     print(f"Ori model saved to {output}")
 
 
