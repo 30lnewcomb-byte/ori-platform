@@ -183,12 +183,12 @@ def detect_specialized_task(text: str) -> str | None:
 
 
 def run_specialized_task(text: str) -> tuple[str, str] | None:
-    worker_id = select_specialized_worker(text)
+    worker_id = detect_specialized_task(text)
     if worker_id is None:
         return None
     worker = SPECIALIZED_WORKERS.get(worker_id)
     if worker is None:
-        logger.warning("Manager selected worker %s but it is not loaded", worker_id)
+        logger.warning("Ori selected worker %s but it is not loaded", worker_id)
         return None
 
     result = generate_worker(worker, text)
