@@ -121,7 +121,7 @@ export default function ChatClient() {
   const [error, setError] = useState('')
   const [historyReady, setHistoryReady] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
-  const [emptyPrompt, setEmptyPrompt] = useState(() => pickEmptyPrompt())
+  const [emptyPrompt, setEmptyPrompt] = useState('What’s on your mind today?')
   const conversationRef = useRef<HTMLElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -146,6 +146,7 @@ export default function ChatClient() {
       window.history.replaceState(null, '', '/chat?chat=' + encodeURIComponent(freshId))
     }
 
+    setEmptyPrompt(pickEmptyPrompt())
     setHistoryReady(true)
   }, [])
 
