@@ -62,13 +62,13 @@ The platform and its documentation must clearly distinguish implemented capabili
 
 ## UI direction
 
-Ori's primary navigation is:
+Ori's current primary navigation is intentionally small:
 
-**Home → Chat → Search → Projects → Tasks → Activity → Ori World → Settings**
+**Home → Chat**
 
-The Developer Platform is intentionally accessed outside that primary list through the overflow menu. Desktop uses a persistent sidebar. Mobile/compact navigation is a later polish pass and should not change the canonical destination set.
+The overflow menu provides access to the **About Ori** reference and **Developer Platform**. This keeps the everyday assistant experience focused on capabilities that have real behavior behind them.
 
-Home is the app workspace for starting and resuming work, not a marketing landing page. Chat is where the user works with Ori. Projects organize work. Tasks track substantial work. Activity shows system events. Search finds work. Ori World represents where Ori will perform controlled work. Developer is a separate in-app workspace for developer work. Settings contains configuration.
+Home is the app workspace for starting work and understanding the current product. Chat is where the user works with Ori and manages conversations. Search, Projects, Tasks, Activity, and broad Settings controls remain longer-term product surfaces and are deliberately not exposed as primary navigation until their underlying functionality is real. Ori World is a planned controlled work environment and is documented separately.
 
 ## Typography
 
@@ -99,7 +99,9 @@ Use `.env.example` as the reference for server-side configuration. Real credenti
 
 ## Status
 
-The web platform and Developer Platform are being stabilized while the native TensorFlow runtime is being connected. The runtime boundary, model registry contract, and first TensorFlow core are now in place.
+The live product is deliberately focused on Home and Chat. Chat now has local browser history, New Chat, automatic titles, reopening, and deletion.
+
+The Developer Platform and its documentation are active product surfaces. The native TensorFlow runtime boundary and first learned models are in place. Public developer authentication, public API credentials, durable developer projects, public SDKs, and complete Ori World orchestration remain in development.
 
 
 ## Ori VM connection
