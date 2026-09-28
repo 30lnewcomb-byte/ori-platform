@@ -76,21 +76,14 @@ def generate_worker(
 
 
 def compile_cad_plan(plan: dict[str, Any]) -> str:
-    """Compile a constrained learned CAD plan into valid OpenSCAD source.
-
-    The worker predicts the plan. This compiler performs no design reasoning;
-    it only turns approved primitives/transforms into deterministic geometry.
-    """
-
+    """Compile a learned parametric CAD plan into OpenSCAD source."""
     operations = plan.get("operations")
     if not isinstance(operations, list) or not operations:
         raise ValueError("CAD plan must contain a non-empty operations list.")
 
-    lines = ["$fn = 48;", ""]
-    for op in operations:
-        if not isinstance(op, dict):
-            raise ValueError("Each CAD operation must be an object.")
+    def render_shape(op: dict[str, Any], indent: str = "") -> list[str]:
         kind = op.get("kind")
+
         if kind == "cube":
             size = op.get("size")
             center = bool(op.get("center", True))
@@ -100,10 +93,11 @@ def compile_cad_plan(plan: dict[str, Any]) -> str:
                 and all(isinstance(v, (int, float)) and v > 0 for v in size)
             ):
                 raise ValueError("cube.size must contain three positive numbers.")
-            lines.append(
-                f"cube([{size[0]}, {size[1]}, {size[2]}], center={str(center).lower()});"
-            )
-        elif kind == "cylinder":
+            return [
+                f"{indent}cube([{size[0]}, {size[1]}, {size[2]}], center={str(center).lower()});"
+            ]
+
+        if kind == "cylinder":
             radius = op.get("radius")
             height = op.get("height")
             center = bool(op.get("center", True))
@@ -114,33 +108,47 @@ def compile_cad_plan(plan: dict[str, Any]) -> str:
                 and height > 0
             ):
                 raise ValueError("cylinder requires positive radius and height.")
-            lines.append(
-                f"cylinder(r={radius}, h={height}, center={str(center).lower()});"
-            )
-        elif kind == "translate":
-            value = op.get("value")
-            if not (
-                isinstance(value, list)
-                and len(value) == 3
-                and all(isinstance(v, (int, float)) for v in value)
-            ):
-                raise ValueError("translate.value must contain three numbers.")
-            lines.append(
-                f"translate([{value[0]}, {value[1]}, {value[2]}]) {{"
-            )
-            lines.extend(["  // nested geometry", "  cube([1,1,1], center=true);", "};"])
-        elif kind == "rotate":
-            value = op.get("value")
-            if not (
-                isinstance(value, list)
-                and len(value) == 3
-                and all(isinstance(v, (int, float)) for v in value)
-            ):
-                raise ValueError("rotate.value must contain three numbers.")
-            lines.append(
-                f"rotate([{value[0]}, {value[1]}, {value[2]}]) cube([1,1,1], center=true);"
-            )
-        else:
-            raise ValueError(f"Unsupported CAD operation: {kind!r}")
+            return [
+                f"{indent}cylinder(r={radius}, h={height}, center={str(center).lower()});"
+            ]
 
-    return "\n".join(lines)
+        if kind in {"translate", "rotate"}:
+            value = op.get("value")
+            child = op.get("shape")
+            if not (
+                isinstance(value, list)
+                and len(value) == 3
+                and all(isinstance(v, (int, float)) for v in value)
+                and isinstance(child, dict)
+            ):
+                raise ValueError(f"{kind} requires a three-number value and shape.")
+            wrapper = "translate" if kind == "translate" else "rotate"
+            body = render_shape(child, indent + "  ")
+            return [
+                f"{indent}{wrapper}([{value[0]}, {value[1]}, {value[2]}]) {{",
+                *body,
+                f"{indent}}}",
+            ]
+
+        if kind in {"union", "difference"}:
+            children = op.get("shapes")
+            if not (
+                isinstance(children, list)
+                and children
+                and all(isinstance(child, dict) for child in children)
+            ):
+                raise ValueError(f"{kind} requires a non-empty shapes array.")
+            body: list[str] = []
+            for child in children:
+                body.extend(render_shape(child, indent + "  "))
+            return [f"{indent}{kind}() {{", *body, f"{indent}}}"]
+
+        raise ValueError(f"Unsupported CAD operation: {kind!r}")
+
+    lines = ["$fn = 48;", ""]
+    for operation in operations:
+        if not isinstance(operation, dict):
+            raise ValueError("Each CAD operation must be an object.")
+        lines.extend(render_shape(operation))
+        lines.append("")
+    return "\n".join(lines).rstrip()
