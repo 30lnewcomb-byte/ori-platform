@@ -304,8 +304,8 @@ export default function ChatClient() {
         <section ref={conversationRef} className="conversation" aria-label="Conversation" aria-live="polite">
           {messages.length === 0 ? (
             <div className="emptyState chatEmptyState">
-              <strong>Start a conversation.</strong>
-              <span>Ask Ori a question or describe what you are working on.</span>
+              <strong>What’s on your mind today?</strong>
+              <span>Ask Ori a question or tell it what you are working on.</span>
             </div>
           ) : (
             messages.map((message, index) => (
