@@ -5,37 +5,43 @@ export default function HomePage() {
     <AppShell active="Home">
       <header className="topbar">
         <div>
-          <p className="eyebrow">ORI PLATFORM</p>
-          <h1>Work with Ori.</h1>
-          <p className="appIntro">A focused workspace for talking with Ori and continuing conversations without extra product surfaces getting in the way.</p>
+          <p className="eyebrow">ORI</p>
+          <h1>Chat with Ori.</h1>
+          <p className="appIntro">Start a conversation or reopen one you already have.</p>
         </div>
       </header>
 
       <div className="homeWorkspace">
         <section className="quickStart" aria-labelledby="quick-start-heading">
           <div>
-            <p className="eyebrow">START</p>
-            <h2 id="quick-start-heading">What would you like to work on?</h2>
+            <p className="eyebrow">CHAT</p>
+            <h2 id="quick-start-heading">Start here.</h2>
           </div>
           <div className="quickActions">
-            <a className="primary" href="/chat?new=1">Start a new chat</a>
-            <a className="secondary" href="/chat">Open Chat</a>
+            <a className="primary" href="/chat?new=1">New chat</a>
+            <a className="secondary" href="/chat">Open chat</a>
           </div>
         </section>
 
-        <section className="sectionBlock" aria-labelledby="about-heading">
-          <div className="sectionHeader"><h3 id="about-heading">About Ori</h3><a href="/developer/docs/ori">Read the full reference</a></div>
+        <section className="sectionBlock" aria-labelledby="available-heading">
+          <div className="sectionHeader">
+            <h3 id="available-heading">Available</h3>
+            <a href="/developer/docs/ori">About Ori</a>
+          </div>
           <div className="dataList">
-            <div className="dataRow"><div><strong>Conversation</strong><span>Chat with Ori through the platform&apos;s server-side intelligence boundary.</span></div><span>LIVE</span></div>
-            <div className="dataRow"><div><strong>Chat history</strong><span>Your browser keeps recent conversations so New Chat and reopening previous chats work immediately.</span></div><span>LOCAL</span></div>
-            <div className="dataRow"><div><strong>Native intelligence</strong><span>Ori uses its private TensorFlow runtime rather than exposing the model service directly to the browser.</span></div><span>PRIVATE</span></div>
+            <div className="dataRow">
+              <div><strong>Conversation</strong><span>Multi-turn chat with Ori.</span></div>
+            </div>
+            <div className="dataRow">
+              <div><strong>History</strong><span>Saved in this browser. Use <code>/history</code> to open it.</span></div>
+            </div>
+            <div className="dataRow">
+              <div><strong>Commands</strong><span><code>/newchat</code> starts fresh. <code>/history</code> opens or closes history.</span></div>
+            </div>
           </div>
         </section>
 
-        <section className="sectionBlock" aria-labelledby="status-heading">
-          <div className="sectionHeader"><h3 id="status-heading">What is available</h3></div>
-          <div className="statusRow"><span className="statusDot" aria-hidden="true" /><div><strong>Ori is focused on the conversation experience right now.</strong><span>Projects, task tracking, indexing, and other larger workspace surfaces are being kept out of the primary navigation until they have real functionality behind them.</span></div></div>
-        </section>
+        <p className="homeFootnote">Other product surfaces stay out of the interface until they do something useful.</p>
       </div>
     </AppShell>
   )
