@@ -4,8 +4,11 @@ import styles from './dashboard.module.css'
 const resources = [
   { name: 'Projects', detail: 'Durable developer workspaces', status: 'Foundation ready', href: '/developer/projects' },
   { name: 'API', detail: 'Stable public interface', status: 'In development', href: '/developer/api' },
-  { name: 'Tools', detail: 'Explicit capability connections', status: 'Internal tools ready', href: '/developer/tools' },
+  { name: 'Authentication', detail: 'Identity and project access', status: 'Designing', href: '/developer/authentication' },
   { name: 'Models', detail: 'Ori intelligence access', status: '2 internal models', href: '/developer/models' },
+  { name: 'Tools', detail: 'Explicit capability connections', status: '2 internal tools', href: '/developer/tools' },
+  { name: 'Activity', detail: 'Events and observability', status: 'Foundation ready', href: '/developer/activity' },
+  { name: 'SDKs', detail: 'First-party integration clients', status: 'Planned', href: '/developer/sdk' },
 ]
 
 const services = [
@@ -80,7 +83,7 @@ export default function DeveloperDashboardPage() {
                 <p className={styles.eyebrow}>RESOURCES</p>
                 <h2>Developer resources</h2>
               </div>
-              <span className={styles.muted}>4 surfaces</span>
+              <span className={styles.muted}>7 surfaces</span>
             </div>
             <div className={styles.resourceList}>
               {resources.map((resource) => (
@@ -142,7 +145,7 @@ export default function DeveloperDashboardPage() {
                 <p className={styles.eyebrow}>DOCUMENTATION</p>
                 <h2>Developer Docs</h2>
               </div>
-              <a className={styles.panelLink} href="/developer/docs">View all →</a>
+              <a className={styles.panelLink} href="/developer/status">View status →</a>
             </div>
             <div className={styles.docsList}>
               {docs.map((doc) => (
@@ -157,7 +160,7 @@ export default function DeveloperDashboardPage() {
 
         <footer className={styles.footer}>
           <span>Ori Developer Platform</span>
-          <span>Public API: in development</span>
+          <span>Public API: in development · <a href="/developer/status">System status</a></span>
         </footer>
       </div>
     </DeveloperShell>
