@@ -12,6 +12,7 @@ const sections = [
   { title: 'Activity & events', text: 'Understand the event model and future observability surface.', href: '/developer/activity' },
   { title: 'SDKs', text: 'See the first-party SDK direction and contract-first rule.', href: '/developer/sdk' },
   { title: 'Platform status', text: 'Inspect the documented service boundary and current topology.', href: '/developer/status' },
+  { title: 'Guides', text: 'Practical architecture guidance for building on Ori without coupling to internal infrastructure.', href: '/developer/guides' },
 ]
 
 export default function DeveloperDocsPage() {
