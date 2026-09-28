@@ -87,9 +87,8 @@
   justify-content: space-between;
   gap: 16px;
   padding: 16px 18px;
-  border: 1px solid rgba(79,124,255,.23);
-  border-radius: 14px;
-  background: linear-gradient(90deg, rgba(79,124,255,.09), rgba(255,255,255,.025));
+  border-top: 1px solid rgba(255,255,255,.09);
+  border-bottom: 1px solid rgba(255,255,255,.09);
 }
 
 .statusLead {
@@ -117,13 +116,12 @@
 .statusLead span { margin-top: 2px; color: #8e96a2; font-size: 11px; }
 
 .statusTag {
-  padding: 6px 9px;
-  border: 1px solid rgba(79,124,255,.27);
-  border-radius: 999px;
-  color: #aebdff;
+  padding: 0;
+  color: #9eacff;
+  font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 800;
-  letter-spacing: .08em;
+  font-weight: 700;
+  letter-spacing: .04em;
 }
 
 .metrics {
@@ -220,7 +218,7 @@
 }
 
 .resourceRow {
-  grid-template-columns: 28px minmax(0,1fr) auto auto;
+  grid-template-columns: minmax(0,1fr) auto auto;
   text-decoration: none;
 }
 
@@ -228,18 +226,6 @@
 .docRow:hover {
   border-color: rgba(255,255,255,.08);
   background: rgba(255,255,255,.025);
-}
-
-.resourceIcon {
-  display: grid;
-  width: 28px;
-  height: 28px;
-  place-items: center;
-  border: 1px solid rgba(255,255,255,.11);
-  border-radius: 8px;
-  color: #9badff;
-  font-size: 11px;
-  font-weight: 800;
 }
 
 .resourceCopy strong,
@@ -380,7 +366,7 @@
   .metric strong { margin-top: 9px; }
 
   .resourceRow {
-    grid-template-columns: 28px minmax(0,1fr) auto;
+    grid-template-columns: minmax(0,1fr) auto;
   }
 
   .resourceStatus { display: none; }
