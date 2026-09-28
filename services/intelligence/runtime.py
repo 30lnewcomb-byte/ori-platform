@@ -18,11 +18,19 @@ from pydantic import BaseModel, Field
 
 from tensorflow_core.model import LABELS, OriCoreModel
 from tensorflow_core.ori_model import OriLMConfig, OriLanguageModel, OriTokenizer
+from tensorflow_core.specialized_workers import (
+    WORKERS,
+    LoadedWorker,
+    compile_cad_plan,
+    generate_worker,
+    load_worker,
+)
 
 
 APP_VERSION = "0.2.0"
 MODEL_DIR = Path(os.getenv("ORI_MODEL_DIR", "models"))
 LM_DIR = Path(os.getenv("ORI_LM_DIR", "artifacts/ori-small"))
+WORKER_ROOT = Path(os.getenv("ORI_WORKER_ROOT", "artifacts"))
 API_KEY = os.getenv("ORI_INTELLIGENCE_API_KEY", "").strip()
 
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
@@ -95,22 +103,36 @@ def load_language_model() -> tuple[OriLanguageModel, OriTokenizer] | None:
 
 CORE_MODEL: OriCoreModel | None = None
 LANGUAGE_MODEL: tuple[OriLanguageModel, OriTokenizer] | None = None
+SPECIALIZED_WORKERS: dict[str, LoadedWorker] = {}
 _MODEL_LOAD_LOCK = Lock()
 _MODEL_LOAD_STARTED = False
 
 
 def load_models_in_background() -> None:
-    global CORE_MODEL, LANGUAGE_MODEL
+    global CORE_MODEL, LANGUAGE_MODEL, SPECIALIZED_WORKERS
     logger.info("Starting background TensorFlow model loading.")
     core = load_core_model()
     language = load_language_model()
+    workers: dict[str, LoadedWorker] = {}
+    for worker_id, spec in WORKERS.items():
+        worker = load_worker(
+            type(spec)(
+                worker_id=spec.worker_id,
+                task=spec.task,
+                model_dir=str(WORKER_ROOT / Path(spec.model_dir).name),
+            )
+        )
+        if worker is not None:
+            workers[worker_id] = worker
     with _MODEL_LOAD_LOCK:
         CORE_MODEL = core
         LANGUAGE_MODEL = language
+        SPECIALIZED_WORKERS = workers
     logger.info(
-        "TensorFlow model loading complete: core=%s language=%s",
+        "TensorFlow model loading complete: core=%s language=%s workers=%s",
         core is not None,
         language is not None,
+        ",".join(sorted(workers)) or "none",
     )
 
 
@@ -131,6 +153,65 @@ def start_background_model_loading() -> None:
 def startup() -> None:
     # Start loading models without blocking Uvicorn from opening its port.
     start_background_model_loading()
+
+
+
+def select_specialized_worker(text: str) -> str | None:
+    """Manager routing: choose a specialist before general generation."""
+    normalized = text.lower()
+    cad_terms = (
+        "3d model", "3d print", "stl", "step file", "openscad", "cad", "mesh",
+        "part design", "geometry", "printable model", "design a bracket", "design a case",
+    )
+    code_terms = (
+        "write code", "write a program", "write a script", "debug code", "fix my code",
+        "python", "javascript", "typescript", "html", "css", "sql", "function", "class ",
+        "api endpoint", "program", "coding",
+    )
+    if any(term in normalized for term in cad_terms):
+        return "3d"
+    if CORE_MODEL is not None:
+        try:
+            prediction = CORE_MODEL.predict(text)
+            if prediction.label == "coding":
+                return "coding"
+        except Exception:
+            logger.exception("Ori Core specialist routing failed")
+    if any(term in normalized for term in code_terms):
+        return "coding"
+    return None
+
+
+def run_specialized_worker(text: str) -> tuple[str, str] | None:
+    worker_id = select_specialized_worker(text)
+    if worker_id is None:
+        return None
+    worker = SPECIALIZED_WORKERS.get(worker_id)
+    if worker is None:
+        logger.warning("Manager selected worker %s but it is not loaded", worker_id)
+        return None
+
+    result = generate_worker(worker, text)
+    if not response_looks_usable(result):
+        logger.warning("Worker %s produced unusable output: %r", worker_id, result[:160])
+        return None
+
+    if worker_id == "3d":
+        plan = extract_json_object(result)
+        if plan is None:
+            logger.warning("3D worker did not return a JSON CAD plan: %r", result[:240])
+            return None
+        try:
+            cad_source = compile_cad_plan(plan)
+        except ValueError as exc:
+            logger.warning("3D worker CAD plan rejected: %s", exc)
+            return None
+        return (
+            "Generated parametric 3D model source:\n\n" + cad_source,
+            "ori-3d",
+        )
+
+    return result, "ori-coder"
 
 
 def response_looks_usable(text: str) -> bool:
@@ -321,6 +402,27 @@ def predict(payload: PredictRequest, _: None = Depends(require_api_key)) -> Pred
 
 @app.post("/v1/chat")
 def chat(payload: ChatRequest, _: None = Depends(require_api_key)) -> dict[str, Any]:
+    latest_user = next(
+        (
+            message.content
+            for message in reversed(payload.messages)
+            if message.role == "user"
+        ),
+        "",
+    )
+    specialized = run_specialized_worker(latest_user)
+    if specialized is not None:
+        content, worker_id = specialized
+        return {
+            "content": content,
+            "model": "ori-managed",
+            "version": APP_VERSION,
+            "worker": worker_id,
+            "manager": "ori-manager",
+            "finish_reason": "worker",
+            "tool_calls": [],
+        }
+
     if LANGUAGE_MODEL is None:
         raise HTTPException(status_code=503, detail="No trained Ori TensorFlow language model is loaded.")
 
@@ -352,9 +454,12 @@ def chat(payload: ChatRequest, _: None = Depends(require_api_key)) -> dict[str, 
     if not content and not tool_calls:
         raise HTTPException(status_code=502, detail="Ori's TensorFlow language model produced no usable text.")
 
+
     return {
         "content": content,
-        "model": "ori-small",
+        "model": "ori-managed",
+        "worker": None,
+        "manager": "ori-manager",
         "version": APP_VERSION,
         "finish_reason": finish_reason,
         "tool_calls": tool_calls,
