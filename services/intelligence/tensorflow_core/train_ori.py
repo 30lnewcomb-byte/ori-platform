@@ -107,7 +107,9 @@ def make_document_arrays(
 
     xs: list[list[int]] = []
     ys: list[list[int]] = []
-    for start in range(0, max(0, len(stream) - 1), context):
+    # Overlapping windows give each token multiple neighboring contexts.
+    stride = max(64, context // 2)
+    for start in range(0, max(0, len(stream) - 1), stride):
         chunk = stream[start : start + context + 1]
         if len(chunk) < 3:
             continue
@@ -253,7 +255,7 @@ def main() -> None:
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--validation-split", type=float, default=0.0)
     parser.add_argument("--vocab-size", type=int, default=1024)
-    parser.add_argument("--english-max-chars", type=int, default=500_000)
+    parser.add_argument("--english-max-chars", type=int, default=1_000_000)
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
