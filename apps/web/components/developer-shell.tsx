@@ -10,6 +10,7 @@ const developerNav: DeveloperNavItem[] = [
   { label: 'Models', href: '/developer/models' },
   { label: 'Tools', href: '/developer/tools' },
   { label: 'Activity', href: '/developer/activity' },
+  { label: 'Status', href: '/developer/status' },
   { label: 'Docs', href: '/developer/docs' },
   { label: 'Settings', href: '/developer/settings' },
 ]
