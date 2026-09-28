@@ -5,7 +5,13 @@ type DeveloperNavItem = { label: string; href: string }
 
 const developerNav: DeveloperNavItem[] = [
   { label: 'Dashboard', href: '/developer/dashboard' },
+  { label: 'Projects', href: '/developer/projects' },
+  { label: 'API', href: '/developer/api' },
+  { label: 'Models', href: '/developer/models' },
+  { label: 'Tools', href: '/developer/tools' },
+  { label: 'Activity', href: '/developer/activity' },
   { label: 'Docs', href: '/developer/docs' },
+  { label: 'Settings', href: '/developer/settings' },
 ]
 
 export default function DeveloperShell({
