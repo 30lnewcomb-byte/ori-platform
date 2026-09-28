@@ -130,6 +130,58 @@ def compile_cad_plan(plan: dict[str, Any]) -> str:
                 f"{indent}}}",
             ]
 
+        if kind == "mesh":
+            vertices = op.get("vertices")
+            triangles = op.get("triangles")
+            if not (
+                isinstance(vertices, list)
+                and len(vertices) >= 3
+                and all(
+                    isinstance(vertex, list)
+                    and len(vertex) == 3
+                    and all(isinstance(value, (int, float)) for value in vertex)
+                    for vertex in vertices
+                )
+            ):
+                raise ValueError("mesh.vertices must contain 3D numeric points.")
+            if not (
+                isinstance(triangles, list)
+                and triangles
+                and all(
+                    isinstance(face, list)
+                    and len(face) == 3
+                    and all(isinstance(index, int) for index in face)
+                    for face in triangles
+                )
+            ):
+                raise ValueError("mesh.triangles must contain 3-index triangular faces.")
+
+            vertex_count = len(vertices)
+            for face in triangles:
+                if any(index < 0 or index >= vertex_count for index in face):
+                    raise ValueError("mesh triangle index is outside the vertex list.")
+                if len(set(face)) != 3:
+                    raise ValueError("mesh triangles cannot repeat a vertex.")
+
+            points = ",\n".join(
+                f"{indent}  [{vertex[0]}, {vertex[1]}, {vertex[2]}]"
+                for vertex in vertices
+            )
+            faces = ",\n".join(
+                f"{indent}  [{face[0]}, {face[1]}, {face[2]}]"
+                for face in triangles
+            )
+            return [
+                f"{indent}polyhedron(",
+                f"{indent}  points = [",
+                points,
+                f"{indent}  ],",
+                f"{indent}  faces = [",
+                faces,
+                f"{indent}  ]",
+                f"{indent});",
+            ]
+
         if kind in {"union", "difference"}:
             children = op.get("shapes")
             if not (
