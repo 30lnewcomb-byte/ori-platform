@@ -28,8 +28,8 @@ RUN python tensorflow_core/train_ori.py \
     --output artifacts/ori-small \
     --epochs 8 \
     --english-epochs 12 \
-    --english-max-chars 500000 \
-    --batch-size 8 \
+    --english-max-chars 1000000 \
+    --batch-size 16 \
     --validation-split 0
 
 # Train task-specialized workers from the shared English/Ori tokenizer.
