@@ -34,9 +34,6 @@ export default function HomePage() {
             <div className="dataRow">
               <div><strong>History</strong><span>Saved in this browser. Use <code>/history</code> to open it.</span></div>
             </div>
-            <div className="dataRow">
-              <div><strong>Commands</strong><span><code>/newchat</code> starts fresh. <code>/history</code> opens or closes history.</span></div>
-            </div>
           </div>
         </section>
 
