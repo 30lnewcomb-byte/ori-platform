@@ -158,50 +158,27 @@ def build_prompt(
     messages: list[ChatMessage],
     tools: list[dict[str, Any]] | None = None,
 ) -> str:
-    """Build an inference prompt that keeps the current conversation near the end.
+    """Build the compact conversation format used during Ori fine-tuning.
 
-    The language model has a 256-token context window, so infrastructure/tool
-    descriptions must not appear after the user's latest message.
+    Platform policy and tool permissions are enforced outside the language
+    model. Keeping infrastructure text out of the model prompt preserves the
+    same ``User: ... Ori:`` format used by the training corpus.
     """
-    prefix: list[str] = []
-
-    if tools:
-        tool_names: list[str] = []
-        for tool in tools:
-            if tool.get("type") != "function":
-                continue
-            function = tool.get("function") or {}
-            name = function.get("name")
-            if isinstance(name, str) and name:
-                tool_names.append(name)
-        if tool_names:
-            prefix.append(
-                "Tools available when required: "
-                + ", ".join(tool_names)
-                + ". For a tool action, output only a JSON object with "
-                + "the tool name and its arguments."
-            )
+    del tools
 
     turns: list[str] = []
     for message in messages:
         content = message.content.strip()
         if not content:
             continue
-        if message.role == "system":
-            # Keep system guidance compact; platform policy is enforced outside
-            # the model, so the model only needs a short behavioral cue.
-            prefix.append("Be helpful, honest, concise, and do not claim actions you did not perform.")
-        elif message.role == "user":
+        if message.role == "user":
             turns.append(f"User: {content}")
         elif message.role == "assistant":
             turns.append(f"Ori: {content}")
         elif message.role == "tool":
             turns.append(f"Tool: {content}")
 
-    # Keep the most recent turns because the model context is intentionally small.
-    conversation = turns[-8:]
-    return " ".join(prefix + conversation) + " Ori:"
-
+    return " ".join(turns[-8:]) + " Ori:"
 def extract_json_object(text: str) -> dict[str, Any] | None:
     decoder = json.JSONDecoder()
     for match in re.finditer(r"\{", text):
