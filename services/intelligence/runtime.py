@@ -137,39 +137,49 @@ def build_prompt(
     messages: list[ChatMessage],
     tools: list[dict[str, Any]] | None = None,
 ) -> str:
-    turns: list[str] = []
-    for message in messages:
-        if message.role == "system":
-            turns.append(f"System: {message.content.strip()}")
-        elif message.role == "user":
-            turns.append(f"User: {message.content.strip()}")
-        elif message.role == "assistant":
-            turns.append(f"Ori: {message.content.strip()}")
-        elif message.role == "tool":
-            turns.append(f"Tool: {message.content.strip()}")
+    """Build an inference prompt that keeps the current conversation near the end.
+
+    The language model has a 256-token context window, so infrastructure/tool
+    descriptions must not appear after the user's latest message.
+    """
+    prefix: list[str] = []
 
     if tools:
-        tool_descriptions: list[str] = []
+        tool_names: list[str] = []
         for tool in tools:
             if tool.get("type") != "function":
                 continue
             function = tool.get("function") or {}
             name = function.get("name")
-            parameters = function.get("parameters") or {}
-            properties = parameters.get("properties") or {}
             if isinstance(name, str) and name:
-                args = ", ".join(str(key) for key in properties.keys())
-                tool_descriptions.append(f"{name}({args})")
-        if tool_descriptions:
-            turns.append(
-                "Available internal tools: "
-                + "; ".join(tool_descriptions)
-                + ". When a tool is required, output only a JSON object with "
-                + "'tool' and the tool arguments."
+                tool_names.append(name)
+        if tool_names:
+            prefix.append(
+                "Tools available when required: "
+                + ", ".join(tool_names)
+                + ". For a tool action, output only a JSON object with "
+                + "the tool name and its arguments."
             )
 
-    return " ".join(turns) + " Ori:"
+    turns: list[str] = []
+    for message in messages:
+        content = message.content.strip()
+        if not content:
+            continue
+        if message.role == "system":
+            # Keep system guidance compact; platform policy is enforced outside
+            # the model, so the model only needs a short behavioral cue.
+            prefix.append("Be helpful, honest, concise, and do not claim actions you did not perform.")
+        elif message.role == "user":
+            turns.append(f"User: {content}")
+        elif message.role == "assistant":
+            turns.append(f"Ori: {content}")
+        elif message.role == "tool":
+            turns.append(f"Tool: {content}")
 
+    # Keep the most recent turns because the model context is intentionally small.
+    conversation = turns[-8:]
+    return " ".join(prefix + conversation) + " Ori:"
 
 def extract_json_object(text: str) -> dict[str, Any] | None:
     decoder = json.JSONDecoder()
