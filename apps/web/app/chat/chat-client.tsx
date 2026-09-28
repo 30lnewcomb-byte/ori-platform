@@ -338,71 +338,109 @@ export default function ChatClient() {
   return (
     <div className="chatWorkspace">
       <div className={messages.length === 0 ? 'chatMain empty' : 'chatMain'}>
-        {currentTitle && (
-          <div className="chatSessionBar">
-            <span className="chatSessionTitle">{currentTitle}</span>
-          </div>
-        )}
-
-        <section ref={conversationRef} className="conversation" aria-label="Conversation" aria-live="polite">
-          {messages.length === 0 ? (
+        {messages.length === 0 ? (
+          <div className="emptyChatStage">
             <div className="emptyState chatEmptyState">
               <strong>{emptyPrompt}</strong>
             </div>
-          ) : (
-            messages.map((message, index) => (
-              <div className={'messageRow ' + message.role} key={message.role + '-' + index}>
-                {message.role === 'user' ? (
-                  <div className="userMessage">{message.content}</div>
-                ) : (
-                  <div className="oriMessage"><span className="messageLabel">ORI</span>{message.content}</div>
-                )}
+
+            <form className="composer" onSubmit={sendMessage} aria-label="Message Ori">
+              {value.startsWith('/') && !busy && (
+                <div className="commandMenu" role="listbox" aria-label="Slash commands">
+                  <button type="button" className="commandItem" onClick={openNewChat}>
+                    <code>/newchat</code>
+                    <span>Start a new chat</span>
+                  </button>
+                  <button type="button" className="commandItem" onClick={runHistoryCommand}>
+                    <code>/history</code>
+                    <span>Open or close chat history</span>
+                  </button>
+                </div>
+              )}
+              <textarea
+                ref={textareaRef}
+                id="prompt"
+                rows={1}
+                placeholder="Message Ori..."
+                aria-label="Message Ori"
+                value={value}
+                onChange={(event) => setValue(event.target.value)}
+                disabled={busy}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault()
+                    event.currentTarget.form?.requestSubmit()
+                  }
+                }}
+              />
+              <button type="submit" className="sendButton" aria-label="Send message" disabled={busy || !value.trim()}>
+                ↑
+              </button>
+            </form>
+          </div>
+        ) : (
+          <>
+            {currentTitle && (
+              <div className="chatSessionBar">
+                <span className="chatSessionTitle">{currentTitle}</span>
               </div>
-            ))
-          )}
+            )}
 
-          {busy && (
-            <div className="messageRow assistant" aria-live="polite">
-              <div className="oriMessage"><span className="messageLabel">ORI</span><span className="thinkingDots" aria-label="Ori is thinking"><i /><i /><i /></span></div>
-            </div>
-          )}
+            <section ref={conversationRef} className="conversation" aria-label="Conversation" aria-live="polite">
+              {messages.map((message, index) => (
+                <div className={'messageRow ' + message.role} key={message.role + '-' + index}>
+                  {message.role === 'user' ? (
+                    <div className="userMessage">{message.content}</div>
+                  ) : (
+                    <div className="oriMessage"><span className="messageLabel">ORI</span>{message.content}</div>
+                  )}
+                </div>
+              ))}
 
-          {error && <div className="chatError" role="alert">{error}</div>}
-        </section>
+              {busy && (
+                <div className="messageRow assistant" aria-live="polite">
+                  <div className="oriMessage"><span className="messageLabel">ORI</span><span className="thinkingDots" aria-label="Ori is thinking"><i /><i /><i /></span></div>
+                </div>
+              )}
 
-        <form className="composer" onSubmit={sendMessage} aria-label="Message Ori">
-          {value.startsWith('/') && !busy && (
-            <div className="commandMenu" role="listbox" aria-label="Slash commands">
-              <button type="button" className="commandItem" onClick={openNewChat}>
-                <code>/newchat</code>
-                <span>Start a new chat</span>
+              {error && <div className="chatError" role="alert">{error}</div>}
+            </section>
+
+            <form className="composer" onSubmit={sendMessage} aria-label="Message Ori">
+              {value.startsWith('/') && !busy && (
+                <div className="commandMenu" role="listbox" aria-label="Slash commands">
+                  <button type="button" className="commandItem" onClick={openNewChat}>
+                    <code>/newchat</code>
+                    <span>Start a new chat</span>
+                  </button>
+                  <button type="button" className="commandItem" onClick={runHistoryCommand}>
+                    <code>/history</code>
+                    <span>Open or close chat history</span>
+                  </button>
+                </div>
+              )}
+              <textarea
+                ref={textareaRef}
+                id="prompt"
+                rows={1}
+                placeholder="Message Ori..."
+                aria-label="Message Ori"
+                value={value}
+                onChange={(event) => setValue(event.target.value)}
+                disabled={busy}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault()
+                    event.currentTarget.form?.requestSubmit()
+                  }
+                }}
+              />
+              <button type="submit" className="sendButton" aria-label="Send message" disabled={busy || !value.trim()}>
+                ↑
               </button>
-              <button type="button" className="commandItem" onClick={runHistoryCommand}>
-                <code>/history</code>
-                <span>Open or close chat history</span>
-              </button>
-            </div>
-          )}
-          <textarea
-            ref={textareaRef}
-            id="prompt"
-            rows={1}
-            placeholder="Message Ori..."
-            aria-label="Message Ori"
-            value={value}
-            onChange={(event) => setValue(event.target.value)}
-            disabled={busy}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault()
-                event.currentTarget.form?.requestSubmit()
-              }
-            }}
-          />
-          <button type="submit" className="sendButton" aria-label="Send message" disabled={busy || !value.trim()}>
-            ↑
-          </button>
-        </form>
+            </form>
+          </>
+        )}
       </div>
 
       <aside
@@ -450,5 +488,6 @@ export default function ChatClient() {
         </div>
       </aside>
     </div>
+  )
   )
 }
