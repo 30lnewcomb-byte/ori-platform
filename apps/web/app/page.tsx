@@ -1,64 +1,40 @@
-'use client'
-
-import { useEffect, useState } from 'react'
 import AppShell from '../components/app-shell'
 
-function getGreeting(date = new Date()) {
-  const hour = date.getHours()
-  if (hour < 12) return 'Good morning.'
-  if (hour < 18) return 'Good afternoon.'
-  return 'Good evening.'
-}
-
 export default function HomePage() {
-  const [greeting, setGreeting] = useState('Hello.')
-
-  useEffect(() => {
-    const updateGreeting = () => setGreeting(getGreeting())
-    updateGreeting()
-    const interval = window.setInterval(updateGreeting, 60_000)
-    return () => window.clearInterval(interval)
-  }, [])
-
   return (
     <AppShell active="Home">
       <header className="topbar">
         <div>
           <p className="eyebrow">ORI PLATFORM</p>
-          <h1>{greeting}</h1>
-          <p className="appIntro">Start something new or pick up where you left off.</p>
+          <h1>Work with Ori.</h1>
+          <p className="appIntro">A focused workspace for talking with Ori and continuing conversations without extra product surfaces getting in the way.</p>
         </div>
-        <button className="avatar" aria-label="Open profile">L</button>
       </header>
 
       <div className="homeWorkspace">
         <section className="quickStart" aria-labelledby="quick-start-heading">
           <div>
-            <p className="eyebrow">QUICK START</p>
-            <h2 id="quick-start-heading">What do you want to work on?</h2>
+            <p className="eyebrow">START</p>
+            <h2 id="quick-start-heading">What would you like to work on?</h2>
           </div>
           <div className="quickActions">
-            <a className="primary" href="/chat?new=1">Start a chat</a>
-            <a className="secondary" href="/projects">Open a project</a>
-            <a className="secondary" href="/tasks">View tasks</a>
+            <a className="primary" href="/chat?new=1">Start a new chat</a>
+            <a className="secondary" href="/chat">Open Chat</a>
           </div>
         </section>
 
-        <div className="homeColumns">
-          <section className="sectionBlock" aria-labelledby="recent-heading">
-            <div className="sectionHeader"><h3 id="recent-heading">Recent work</h3><a href="/projects">View all</a></div>
-            <div className="emptyState"><strong>Nothing here yet</strong><span>Your recent conversations and projects will appear here once you start working.</span></div>
-          </section>
+        <section className="sectionBlock" aria-labelledby="about-heading">
+          <div className="sectionHeader"><h3 id="about-heading">About Ori</h3><a href="/developer/docs/ori">Read the full reference</a></div>
+          <div className="dataList">
+            <div className="dataRow"><div><strong>Conversation</strong><span>Chat with Ori through the platform&apos;s server-side intelligence boundary.</span></div><span>LIVE</span></div>
+            <div className="dataRow"><div><strong>Chat history</strong><span>Your browser keeps recent conversations so New Chat and reopening previous chats work immediately.</span></div><span>LOCAL</span></div>
+            <div className="dataRow"><div><strong>Native intelligence</strong><span>Ori uses its private TensorFlow runtime rather than exposing the model service directly to the browser.</span></div><span>PRIVATE</span></div>
+          </div>
+        </section>
 
-          <section className="sectionBlock" aria-labelledby="tasks-heading">
-            <div className="sectionHeader"><h3 id="tasks-heading">Tasks</h3><a href="/tasks">View all</a></div>
-            <div className="emptyState"><strong>No active tasks</strong><span>When Ori has work in progress, active tasks will appear here.</span></div>
-          </section>
-        </div>
-
-        <section className="sectionBlock" aria-labelledby="activity-heading">
-          <div className="sectionHeader"><h3 id="activity-heading">Activity</h3><a href="/notifications">View activity</a></div>
-          <div className="statusRow"><span className="statusDot" aria-hidden="true" /><div><strong>Platform online</strong><span>Your Ori workspace is online. Intelligence services run behind the platform&apos;s server-side boundary.</span></div></div>
+        <section className="sectionBlock" aria-labelledby="status-heading">
+          <div className="sectionHeader"><h3 id="status-heading">What is available</h3></div>
+          <div className="statusRow"><span className="statusDot" aria-hidden="true" /><div><strong>Ori is focused on the conversation experience right now.</strong><span>Projects, task tracking, indexing, and other larger workspace surfaces are being kept out of the primary navigation until they have real functionality behind them.</span></div></div>
         </section>
       </div>
     </AppShell>
