@@ -22,7 +22,7 @@ The production intelligence path no longer depends on a hosted external language
 - a stable tokenizer interface that can later be backed by a subword tokenizer
 - JSONL training and held-out evaluation
 
-The bootstrap training corpus is `tensorflow_core/data/ori_training_expanded.jsonl`.
+The language model is trained in two stages: it first learns general English from a bounded public-domain Project Gutenberg corpus, then fine-tunes on `tensorflow_core/data/ori_training_expanded.jsonl` for Ori-specific behavior.
 
 From `services/intelligence/tensorflow_core`:
 
@@ -32,7 +32,7 @@ python train_ori.py --data data/ori_training_expanded.jsonl --output artifacts/o
 
 For the deployed intelligence image, the Docker build trains this bootstrap model and packages its weights with the runtime.
 
-The corpus is intentionally small. It establishes the native learned path; it is not intended to be a general-purpose language model yet. The next intelligence stage is a substantially larger Ori-specific corpus, better tokenization, broader held-out evaluation, and a stronger training loop.
+The English foundation is intentionally bounded so the free Render build remains practical. The model uses a SentencePiece BPE tokenizer shared by both stages, and a small English replay set during fine-tuning helps reduce catastrophic forgetting. This is still a compact bootstrap model, not a general-purpose assistant.
 
 ## API
 
