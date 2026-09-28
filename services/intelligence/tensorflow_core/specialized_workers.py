@@ -13,7 +13,7 @@ from typing import Any
 
 import tensorflow as tf
 
-from ori_model import OriLMConfig, OriLanguageModel, OriTokenizer
+from tensorflow_core.ori_model import OriLMConfig, OriLanguageModel, OriTokenizer
 
 
 @dataclass(frozen=True)
