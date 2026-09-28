@@ -448,8 +448,8 @@ def chat(payload: ChatRequest, _: None = Depends(require_api_key)) -> dict[str, 
     finish_reason = "length"
     for attempt in range(2):
         attempt_temperature = max(
-            0.35,
-            min(1.0, payload.temperature + (0.10 * attempt)),
+            0.20,
+            min(0.70, payload.temperature + (0.05 * attempt)),
         )
         candidate, candidate_finish = model.generate(
             tokenizer,
