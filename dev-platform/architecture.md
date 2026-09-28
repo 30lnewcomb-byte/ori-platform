@@ -1,68 +1,67 @@
-# Ori Developer Platform Architecture
+# Ori Platform Architecture
 
-The Developer Platform is a first-class part of Ori Platform. It is not a separate product and it is not the same thing as OriOS Lite.
+Ori is a user-owned AI platform with a focused web experience, native learned intelligence, controlled execution infrastructure, and a separate Developer Platform experience.
 
-## Core surface
+## Product layers
 
-```text
-Ori Developer Platform
+```
+Ori user experience
+├── Home
+└── Chat
+     └── browser-local conversation history
+
+Developer Platform
+├── Dashboard
 ├── Projects
 ├── API
 ├── Authentication
+├── Models
 ├── Tools
-├── Models / intelligence access
-├── Events / logs
+├── Activity
+├── Status
+├── Docs
 ├── SDKs
-├── Developer Console
-└── Developer Docs
+└── Settings
 ```
 
-## Documentation ownership
+The Developer Platform documents both real infrastructure and future contracts. Unfinished developer capabilities are labeled instead of being presented as live.
 
-The canonical developer documentation source lives under `dev-platform/docs/`.
+## Runtime layers
 
-The Next.js route at `apps/web/app/developer/docs/` is the **web presentation layer** for those docs. It is kept with the web app because Next.js needs route components there, but the Developer Platform owns the documentation content and structure.
-
-## Relationship to the rest of Ori
-
-```text
-Ori Platform
-├── Web application
-│   └── Developer experience / Console / Docs UI
-├── Platform API
-├── Tool system
-├── Intelligence orchestration
-├── Developer Platform
-│   └── Docs
-└── OriOS Lite integration
+```
+Browser
+  ↓
+Ori Platform web/control plane
+  ↓
+Server-side orchestration
+  ├──→ Ori TensorFlow runtime
+  └──→ Ori VM runtime when concrete execution is selected
 ```
 
-The Developer Platform exposes stable interfaces around these capabilities. Infrastructure providers are implementation details and should not become part of the public developer contract.
+### Ori Platform
 
-## Projects
+The web/control plane owns the user experience and server-side gateway behavior.
 
-Projects are the primary unit of developer work. A project can eventually own configuration, API access, tools, model settings, activity, and other resources.
+### Ori TensorFlow
 
-## API
+The private learned-intelligence runtime contains Ori-native TensorFlow/Keras models such as `ori-core` and `ori-small`.
 
-The public API will be versioned independently from internal implementation details. The API should expose truthful, documented capabilities only.
+### Ori VM
 
-## Authentication
+The controlled execution runtime provides an isolated environment for approved work. It remains behind a server-side wrapper.
 
-Authentication will eventually support developer identity, project-scoped credentials, revocation, and appropriate permissions. Secrets must never be committed to the repository.
+## Contracts
 
-## Tools
+The stable contract between layers is an Ori-owned interface.
 
-Tools are capabilities exposed to Ori and/or developers through explicit interfaces. Tool registration, permissions, and execution should remain separate from the UI.
+Infrastructure providers are implementation details. A developer integration should not depend on Vercel, Render, model artifact storage, or internal runtime routes directly.
 
-## SDKs
+## Security
 
-SDKs will be generated or maintained from the stable API contract rather than becoming the source of truth themselves.
+The browser must never receive internal intelligence credentials, VM credentials, provider account credentials, or other server secrets.
 
-## Events and logs
+Tool execution also has a separate permission boundary: a model can propose an operation, but execution is validated and performed by the platform.
 
-Platform events provide a consistent way to inspect project activity, tool activity, API operations, and system events.
+## Current product rule
 
-## Sandbox relationship
-
-A sandbox may eventually provide isolated execution for developer workloads. It is **not currently a dependency** of the Developer Platform. The platform must remain useful before a production sandbox exists.
+Keep the everyday Ori experience small until additional surfaces have real behavior behind them. Put technical detail, implementation state, and future platform design in the Developer Platform and its documentation.
