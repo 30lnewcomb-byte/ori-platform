@@ -2,18 +2,18 @@ import DeveloperShell from '../../../components/developer-shell'
 import styles from './docs.module.css'
 
 const sections = [
-  { title: 'Ori — complete reference', text: 'Read the product, architecture, chat, intelligence, security, and current-status reference for Ori.', href: '/developer/docs/ori' },
-  { title: 'Getting started', text: 'Learn the platform boundary, project model, and path to a first integration.', href: '/developer/guides' },
-  { title: 'Platform overview', text: 'Understand how the Developer Platform sits around Ori capabilities.', href: '/developer/dashboard' },
-  { title: 'API reference', text: 'Review the intended versioned API and current internal runtime contract.', href: '/developer/api' },
-  { title: 'Authentication', text: 'See the planned developer identity, project credentials, and security boundary.', href: '/developer/authentication' },
-  { title: 'Projects', text: 'Understand projects as the durable unit for developer resources.', href: '/developer/projects' },
-  { title: 'Tools', text: 'Read about explicit capabilities, validation, and execution boundaries.', href: '/developer/tools' },
-  { title: 'Models & intelligence', text: 'See the current Ori-native learned model stack.', href: '/developer/models' },
-  { title: 'Activity & events', text: 'Understand the event model and future observability surface.', href: '/developer/activity' },
-  { title: 'SDKs', text: 'See the first-party SDK direction and contract-first rule.', href: '/developer/sdk' },
-  { title: 'Platform status', text: 'Inspect the documented service boundary and current topology.', href: '/developer/status' },
-  { title: 'Guides', text: 'Practical architecture guidance for building on Ori without coupling to internal infrastructure.', href: '/developer/guides' },
+  { title: 'Ori — complete reference', text: 'Product and engineering reference for Ori.', href: '/developer/docs/ori' },
+  { title: 'Getting started', text: 'Platform boundaries and current integration path.', href: '/developer/guides' },
+  { title: 'Platform overview', text: 'How the Developer Platform is organized.', href: '/developer/dashboard' },
+  { title: 'API reference', text: 'Public API direction and current internal runtime contract.', href: '/developer/api' },
+  { title: 'Authentication', text: 'Developer identity, project credentials, and security boundary.', href: '/developer/authentication' },
+  { title: 'Projects', text: 'Project model and current state.', href: '/developer/projects' },
+  { title: 'Tools', text: 'Tool registration, validation, and execution boundaries.', href: '/developer/tools' },
+  { title: 'Models & intelligence', text: 'Current Ori-native model stack.', href: '/developer/models' },
+  { title: 'Activity & events', text: 'Event model and current observability state.', href: '/developer/activity' },
+  { title: 'SDKs', text: 'First-party SDK direction.', href: '/developer/sdk' },
+  { title: 'Platform status', text: 'Documented service boundary and topology.', href: '/developer/status' },
+  { title: 'Guides', text: 'Architecture notes for working with Ori without coupling to internal infrastructure.', href: '/developer/guides' },
 ]
 
 export default function DeveloperDocsPage() {
@@ -24,8 +24,8 @@ export default function DeveloperDocsPage() {
           <div>
             <a className={styles.back} href="/developer/dashboard">← Developer Console</a>
             <p className={styles.eyebrow}>DEVELOPER DOCS</p>
-            <h1>Build with Ori.</h1>
-            <p className={styles.lede}>The canonical guide to the Ori Developer Platform: capabilities, contracts, architecture, and what is actually live.</p>
+            <h1>Developer docs</h1>
+            <p className={styles.lede}>Reference material for the Ori platform: capabilities, contracts, architecture, and implementation status.</p>
           </div>
           <div className={styles.version}>PLATFORM REFERENCE</div>
         </header>
@@ -41,7 +41,7 @@ export default function DeveloperDocsPage() {
               <span className={styles.number}>{String(index + 1).padStart(2, '0')}</span>
               <h2>{section.title}</h2>
               <p>{section.text}</p>
-              <span className={styles.link}>Open reference →</span>
+              <span className={styles.link}>Open →</span>
             </a>
           ))}
         </section>
