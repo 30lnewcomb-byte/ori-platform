@@ -26,7 +26,9 @@ RUN python tensorflow_core/train_core.py \
 RUN python tensorflow_core/train_ori.py \
     --data tensorflow_core/data/ori_training_expanded.jsonl \
     --output artifacts/ori-small \
-    --epochs 50 \
+    --epochs 20 \
+    --english-epochs 8 \
+    --english-max-chars 360000 \
     --batch-size 8 \
     --validation-split 0
 
