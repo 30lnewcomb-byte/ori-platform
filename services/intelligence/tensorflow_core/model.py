@@ -35,14 +35,20 @@ class OriCoreModel:
         self.model = model
 
     @staticmethod
-    def build(max_tokens: int = 4096, sequence_length: int = 96) -> "OriCoreModel":
-        # TF-IDF is deliberately used for the tiny bootstrap classifier.
-        # It gives the learned classifier useful word-level signal without
-        # requiring a large corpus or a large embedding space.
+    def build(
+        max_tokens: int = 4096,
+        sequence_length: int = 96,
+    ) -> "OriCoreModel":
+        """Build the classifier shell with a fixed feature width.
+
+        This method is kept for small local experiments. Production training
+        should use build_from_texts() so the vectorizer is adapted before the
+        dense layers are constructed.
+        """
         vectorizer = tf.keras.layers.TextVectorization(
             max_tokens=max_tokens,
             output_mode="tf_idf",
-            pad_to_max_tokens=False,
+            pad_to_max_tokens=True,
             name="text_vectorizer",
         )
 
@@ -50,7 +56,57 @@ class OriCoreModel:
         features = vectorizer(inputs)
         x = tf.keras.layers.Dense(64, activation="relu", name="hidden")(features)
         x = tf.keras.layers.Dropout(0.1)(x)
-        outputs = tf.keras.layers.Dense(len(LABELS), activation="softmax", name="intent")(x)
+        outputs = tf.keras.layers.Dense(
+            len(LABELS),
+            activation="softmax",
+            name="intent",
+        )(x)
+        model = tf.keras.Model(inputs=inputs, outputs=outputs, name="ori_core")
+        model.compile(
+            optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3),
+            loss="sparse_categorical_crossentropy",
+            metrics=["accuracy"],
+        )
+        return OriCoreModel(model)
+
+    @staticmethod
+    def build_from_texts(
+        texts: list[str],
+        max_tokens: int = 4096,
+    ) -> "OriCoreModel":
+        """Adapt the vectorizer before building Dense layers.
+
+        Keeping the real vocabulary width avoids the Keras serialization
+        mismatch produced by a padded TF-IDF feature vector.
+        """
+        vectorizer = tf.keras.layers.TextVectorization(
+            max_tokens=max_tokens,
+            output_mode="tf_idf",
+            pad_to_max_tokens=False,
+            name="text_vectorizer",
+        )
+        vectorizer.adapt(
+            tf.data.Dataset.from_tensor_slices(texts).batch(32)
+        )
+
+        inputs = tf.keras.Input(shape=(), dtype=tf.string, name="text")
+        features = vectorizer(inputs)
+        feature_dim = features.shape[-1]
+        if feature_dim is None:
+            raise RuntimeError("Ori Core vectorizer did not produce a fixed feature width.")
+
+        x = tf.keras.layers.Dense(
+            64,
+            activation="relu",
+            input_shape=(int(feature_dim),),
+            name="hidden",
+        )(features)
+        x = tf.keras.layers.Dropout(0.1)(x)
+        outputs = tf.keras.layers.Dense(
+            len(LABELS),
+            activation="softmax",
+            name="intent",
+        )(x)
         model = tf.keras.Model(inputs=inputs, outputs=outputs, name="ori_core")
         model.compile(
             optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3),
@@ -62,6 +118,8 @@ class OriCoreModel:
     def adapt(self, texts: list[str]) -> None:
         for layer in self.model.layers:
             if isinstance(layer, tf.keras.layers.TextVectorization):
+                if layer.get_vocabulary():
+                    return
                 layer.adapt(tf.data.Dataset.from_tensor_slices(texts).batch(32))
                 return
         raise RuntimeError("Ori Core model is missing its TextVectorization layer")
