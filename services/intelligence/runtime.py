@@ -156,8 +156,8 @@ def startup() -> None:
 
 
 
-def select_specialized_worker(text: str) -> str | None:
-    """Manager routing: choose a specialist before general generation."""
+def detect_specialized_task(text: str) -> str | None:
+    """Ori task routing: detect a specialist task before general generation."""
     normalized = text.lower()
     cad_terms = (
         "3d model", "3d print", "stl", "step file", "openscad", "cad", "mesh",
@@ -182,7 +182,7 @@ def select_specialized_worker(text: str) -> str | None:
     return None
 
 
-def run_specialized_worker(text: str) -> tuple[str, str] | None:
+def run_specialized_task(text: str) -> tuple[str, str] | None:
     worker_id = select_specialized_worker(text)
     if worker_id is None:
         return None
@@ -390,7 +390,7 @@ def models(_: None = Depends(require_api_key)) -> dict[str, Any]:
             "framework": "tensorflow",
             "task": "code-generation",
             "status": "ready" if "coding" in SPECIALIZED_WORKERS else "registered",
-            "manager_routed": True,
+            "router_routed": True,
         },
         {
             "id": "ori-3d",
@@ -398,7 +398,7 @@ def models(_: None = Depends(require_api_key)) -> dict[str, Any]:
             "framework": "tensorflow",
             "task": "parametric-cad-generation",
             "status": "ready" if "3d" in SPECIALIZED_WORKERS else "registered",
-            "manager_routed": True,
+            "router_routed": True,
         },
     ]
     return {"models": entries}
@@ -427,15 +427,14 @@ def chat(payload: ChatRequest, _: None = Depends(require_api_key)) -> dict[str, 
         ),
         "",
     )
-    specialized = run_specialized_worker(latest_user)
+    specialized = run_specialized_task(latest_user)
     if specialized is not None:
         content, worker_id = specialized
         return {
             "content": content,
-            "model": "ori-managed",
+            "model": "ori-small",
             "version": APP_VERSION,
             "worker": worker_id,
-            "manager": "ori-manager",
             "finish_reason": "worker",
             "tool_calls": [],
         }
@@ -474,9 +473,8 @@ def chat(payload: ChatRequest, _: None = Depends(require_api_key)) -> dict[str, 
 
     return {
         "content": content,
-        "model": "ori-managed",
+        "model": "ori-small",
         "worker": None,
-        "manager": "ori-manager",
         "version": APP_VERSION,
         "finish_reason": finish_reason,
         "tool_calls": tool_calls,
