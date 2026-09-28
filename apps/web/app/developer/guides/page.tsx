@@ -33,8 +33,8 @@ export default function DeveloperGuidesPage() {
           <header className={styles.header}>
             <div>
               <p className={styles.eyebrow}>GUIDES</p>
-              <h1>Build thoughtfully.</h1>
-              <p className={styles.lede}>Practical architecture guidance for building on Ori without coupling your application to internal implementation details.</p>
+              <h1>Architecture guides</h1>
+              <p className={styles.lede}>Implementation notes for working with Ori without coupling to its internal services.</p>
             </div>
             <div className={styles.state}><span className={styles.dot} />Reference</div>
           </header>
@@ -46,10 +46,10 @@ export default function DeveloperGuidesPage() {
               </section>
             ))}
             <section className={[styles.panel, styles.panelFull].join(' ')}>
-              <div className={styles.panelHeader}><h2>The rule behind every guide</h2><span>BOUNDARY FIRST</span></div>
+              <div className={styles.panelHeader}><h2>Platform rule</h2><span>BOUNDARY FIRST</span></div>
               <div className={styles.copy}>
-                <strong>Build against contracts, not providers.</strong>
-                <span>Your application should depend on Ori&apos;s documented API and resource model. Vercel, Render, model artifacts, internal routes, and execution infrastructure are implementation details behind that boundary.</span>
+                <strong>Use the Ori boundary, not the provider.</strong>
+                <span>Applications should depend on documented Ori contracts. Vercel, Render, model artifacts, internal routes, and execution infrastructure stay behind the platform boundary.</span>
               </div>
             </section>
           </div>
