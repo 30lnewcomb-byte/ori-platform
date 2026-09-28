@@ -39,15 +39,17 @@ class OriCoreModel:
         max_tokens: int = 4096,
         sequence_length: int = 96,
     ) -> "OriCoreModel":
-        """Build the classifier shell with a fixed feature width.
+        """Build the classifier shell with a fixed multi-hot feature width.
 
         This method is kept for small local experiments. Production training
         should use build_from_texts() so the vectorizer is adapted before the
         dense layers are constructed.
         """
+        del sequence_length
+
         vectorizer = tf.keras.layers.TextVectorization(
             max_tokens=max_tokens,
-            output_mode="tf_idf",
+            output_mode="multi_hot",
             pad_to_max_tokens=True,
             name="text_vectorizer",
         )
@@ -76,12 +78,12 @@ class OriCoreModel:
     ) -> "OriCoreModel":
         """Adapt the vectorizer before building Dense layers.
 
-        Keeping the real vocabulary width avoids the Keras serialization
-        mismatch produced by a padded TF-IDF feature vector.
+        Multi-hot text features keep the classifier simple and serializable
+        across the TensorFlow/Keras versions used by the Render runtime.
         """
         vectorizer = tf.keras.layers.TextVectorization(
             max_tokens=max_tokens,
-            output_mode="tf_idf",
+            output_mode="multi_hot",
             pad_to_max_tokens=False,
             name="text_vectorizer",
         )
@@ -93,12 +95,13 @@ class OriCoreModel:
         features = vectorizer(inputs)
         feature_dim = features.shape[-1]
         if feature_dim is None:
-            raise RuntimeError("Ori Core vectorizer did not produce a fixed feature width.")
+            raise RuntimeError(
+                "Ori Core vectorizer did not produce a fixed feature width."
+            )
 
         x = tf.keras.layers.Dense(
             64,
             activation="relu",
-            input_shape=(int(feature_dim),),
             name="hidden",
         )(features)
         x = tf.keras.layers.Dropout(0.1)(x)
@@ -127,7 +130,10 @@ class OriCoreModel:
     def predict(self, text: str) -> CorePrediction:
         probabilities = self.model.predict(tf.constant([text]), verbose=0)[0]
         index = int(tf.argmax(probabilities).numpy())
-        return CorePrediction(label=LABELS[index], confidence=float(probabilities[index]))
+        return CorePrediction(
+            label=LABELS[index],
+            confidence=float(probabilities[index]),
+        )
 
     def save(self, directory: str | Path) -> None:
         self.model.save(directory, include_optimizer=False)
