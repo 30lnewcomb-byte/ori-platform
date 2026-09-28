@@ -18,10 +18,10 @@ const services = [
 ]
 
 const docs = [
-  { title: 'Getting started', detail: 'Understand the current platform boundary.', href: '/developer/docs' },
-  { title: 'API reference', detail: 'Review internal runtime contracts and public API direction.', href: '/developer/docs' },
-  { title: 'Models & intelligence', detail: 'See the current ori-core and ori-small stack.', href: '/developer/docs' },
-  { title: 'Cross-cloud architecture', detail: 'See how the independently deployed services communicate.', href: '/developer/docs' },
+  { title: 'Everything about Ori', detail: 'Product, chat, intelligence, architecture, and security.', href: '/developer/docs/ori' },
+  { title: 'API reference', detail: 'Review internal runtime contracts and public API direction.', href: '/developer/api' },
+  { title: 'Models & intelligence', detail: 'See the current ori-core and ori-small stack.', href: '/developer/models' },
+  { title: 'Architecture guide', detail: 'See how the independently deployed services communicate.', href: '/developer/guides' },
 ]
 
 export default function DeveloperDashboardPage() {
