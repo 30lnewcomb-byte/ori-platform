@@ -99,21 +99,11 @@ export default function ChatClient() {
       setCurrentChatId(requestedChat.id)
       setMessages(requestedChat.messages)
     } else {
-      const latest = loaded[0]
-      if (requestedId && !latest) {
-        window.history.replaceState(null, '', '/chat')
-      }
-
-      if (latest && !requestedId) {
-        setCurrentChatId(latest.id)
-        setMessages(latest.messages)
-        window.history.replaceState(null, '', '/chat?chat=' + encodeURIComponent(latest.id))
-      } else {
-        const freshId = makeId()
-        setCurrentChatId(freshId)
-        setMessages([])
-        window.history.replaceState(null, '', '/chat?chat=' + encodeURIComponent(freshId))
-      }
+      const freshId = makeId()
+      setCurrentChatId(freshId)
+      setMessages([])
+      setError('')
+      window.history.replaceState(null, '', '/chat?chat=' + encodeURIComponent(freshId))
     }
 
     setHistoryReady(true)
@@ -246,6 +236,12 @@ export default function ChatClient() {
     })
   }
 
+  function runHistoryCommand() {
+    setValue('')
+    setHistoryOpen((open) => !open)
+    textareaRef.current?.focus()
+  }
+
   async function sendMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const content = value.trim()
@@ -259,8 +255,7 @@ export default function ChatClient() {
     }
 
     if (command === '/history') {
-      setValue('')
-      setHistoryOpen((open) => !open)
+      runHistoryCommand()
       return
     }
 
@@ -301,7 +296,7 @@ export default function ChatClient() {
 
   return (
     <div className="chatWorkspace">
-      <div className="chatMain">
+      <div className={messages.length === 0 ? 'chatMain empty' : 'chatMain'}>
         <div className="chatSessionBar">
           <span className="chatSessionTitle">{currentTitle}</span>
         </div>
@@ -309,8 +304,8 @@ export default function ChatClient() {
         <section ref={conversationRef} className="conversation" aria-label="Conversation" aria-live="polite">
           {messages.length === 0 ? (
             <div className="emptyState chatEmptyState">
-              <strong>Start a conversation with Ori.</strong>
-              <span>Type /newchat to start fresh or /history to open your previous chats.</span>
+              <strong>Start a conversation.</strong>
+              <span>Ask Ori a question or describe what you are working on.</span>
             </div>
           ) : (
             messages.map((message, index) => (
@@ -334,6 +329,18 @@ export default function ChatClient() {
         </section>
 
         <form className="composer" onSubmit={sendMessage} aria-label="Message Ori">
+          {value.startsWith('/') && !busy && (
+            <div className="commandMenu" role="listbox" aria-label="Slash commands">
+              <button type="button" className="commandItem" onClick={openNewChat}>
+                <code>/newchat</code>
+                <span>Start a new chat</span>
+              </button>
+              <button type="button" className="commandItem" onClick={runHistoryCommand}>
+                <code>/history</code>
+                <span>Open or close chat history</span>
+              </button>
+            </div>
+          )}
           <textarea
             ref={textareaRef}
             id="prompt"
