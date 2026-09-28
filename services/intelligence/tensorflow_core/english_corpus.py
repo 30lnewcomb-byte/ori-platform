@@ -122,17 +122,14 @@ def everyday_english() -> list[str]:
 
 
 def download_public_domain_english(max_chars: int = 360_000) -> list[str]:
-    """Return a bounded, mixed public-domain English corpus.
-
-    A bounded corpus keeps Render's free CPU build practical while still giving
-    the tokenizer and language model substantially more English than the Ori
-    dialogue-only bootstrap set.
-    """
+    """Return a diverse bounded English corpus with guaranteed modern-language exposure."""
 
     if max_chars < 10_000:
         raise ValueError("max_chars must be at least 10000")
 
-    per_source = max(20_000, max_chars // len(PUBLIC_DOMAIN_SOURCES))
+    book_budget = int(max_chars * 0.80)
+    modern_budget = max_chars - book_budget
+    per_source = max(20_000, book_budget // len(PUBLIC_DOMAIN_SOURCES))
     collected: list[str] = []
     total = 0
 
@@ -145,9 +142,9 @@ def download_public_domain_english(max_chars: int = 360_000) -> list[str]:
 
         source_chars = 0
         for paragraph in paragraphs:
-            if source_chars >= per_source or total >= max_chars:
+            if source_chars >= per_source or total >= book_budget:
                 break
-            remaining = min(per_source - source_chars, max_chars - total)
+            remaining = min(per_source - source_chars, book_budget - total)
             if len(paragraph) > remaining:
                 paragraph = paragraph[:remaining].rsplit(" ", 1)[0]
             if len(paragraph) < 40:
@@ -156,22 +153,24 @@ def download_public_domain_english(max_chars: int = 360_000) -> list[str]:
             source_chars += len(paragraph)
             total += len(paragraph)
 
-        if total >= max_chars:
+        if total >= book_budget:
             break
 
     if not collected:
         raise RuntimeError("Could not download any English pretraining text.")
 
     modern = everyday_english()
+    modern_used = 0
     for sentence in modern:
-        if total >= max_chars:
+        if modern_used >= modern_budget:
             break
-        remaining = max_chars - total
+        remaining = modern_budget - modern_used
         text = sentence if len(sentence) <= remaining else sentence[:remaining].rsplit(" ", 1)[0]
         if len(text) < 10:
             continue
         collected.append(text)
         total += len(text)
+        modern_used += len(text)
 
     print(
         f"English pretraining corpus: {len(collected)} passages, "
