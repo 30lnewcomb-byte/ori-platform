@@ -146,7 +146,7 @@ def everyday_english() -> list[str]:
         "I am working on a project.", "We can solve this problem.",
         "Let's check the result.", "Please show me the code.",
     ]
-    sentences.extend(common * 16)
+    sentences.extend(common)
 
     return sentences
 
