@@ -88,7 +88,6 @@ export default function DeveloperDashboardPage() {
             <div className={styles.resourceList}>
               {resources.map((resource) => (
                 <a className={styles.resourceRow} href={resource.href} key={resource.name}>
-                  <span className={styles.resourceIcon}>{resource.name.slice(0, 1)}</span>
                   <span className={styles.resourceCopy}>
                     <strong>{resource.name}</strong>
                     <small>{resource.detail}</small>
