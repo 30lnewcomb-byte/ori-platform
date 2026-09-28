@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from 'react'
 
 type Message = {
   role: 'user' | 'assistant'
@@ -205,6 +205,34 @@ export default function ChatClient() {
     textareaRef.current?.focus()
   }
 
+  function deleteChat(id: string, event: MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation()
+    if (busy) return
+
+    setConversations((current) => {
+      const next = current.filter((chat) => chat.id !== id)
+      writeHistory(next)
+
+      if (id === currentChatId) {
+        const replacement = next[0]
+        if (replacement) {
+          setCurrentChatId(replacement.id)
+          setMessages(replacement.messages)
+          window.history.pushState(null, '', '/chat?chat=' + encodeURIComponent(replacement.id))
+        } else {
+          const freshId = makeId()
+          setCurrentChatId(freshId)
+          setMessages([])
+          window.history.pushState(null, '', '/chat?chat=' + encodeURIComponent(freshId))
+        }
+        setValue('')
+        setError('')
+      }
+
+      return next
+    })
+  }
+
   async function sendMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const content = value.trim()
@@ -263,16 +291,26 @@ export default function ChatClient() {
             <div className="chatHistoryEmpty">Your chats will appear here.</div>
           ) : (
             conversations.map((chat) => (
-              <button
-                type="button"
-                key={chat.id}
-                className={'chatHistoryItem' + (chat.id === currentChatId ? ' active' : '')}
-                onClick={() => openChat(chat.id)}
-                disabled={busy}
-              >
-                <span className="chatHistoryTitle">{chat.title}</span>
-                <span className="chatHistoryMeta">{formatDate(chat.updatedAt)}</span>
-              </button>
+              <div className={'chatHistoryRow' + (chat.id === currentChatId ? ' active' : '')} key={chat.id}>
+                <button
+                  type="button"
+                  className="chatHistoryItem"
+                  onClick={() => openChat(chat.id)}
+                  disabled={busy}
+                >
+                  <span className="chatHistoryTitle">{chat.title}</span>
+                  <span className="chatHistoryMeta">{formatDate(chat.updatedAt)}</span>
+                </button>
+                <button
+                  type="button"
+                  className="chatHistoryDelete"
+                  aria-label={'Delete ' + chat.title}
+                  onClick={(event) => deleteChat(chat.id, event)}
+                  disabled={busy}
+                >
+                  ×
+                </button>
+              </div>
             ))
           )}
         </div>
