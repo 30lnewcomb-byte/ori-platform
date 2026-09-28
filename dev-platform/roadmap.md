@@ -16,8 +16,8 @@ This is an implementation roadmap, not a claim that every item below exists toda
 
 ## Developer Console
 
-- [ ] Developer home
-- [ ] Projects view
+- [x] Developer home
+- [x] Projects view
 - [ ] API credentials view
 - [ ] Tool management
 - [ ] Usage/activity view
@@ -44,16 +44,16 @@ This is an implementation roadmap, not a claim that every item below exists toda
 
 ## Documentation
 
-- [ ] Dedicated Developer Docs page
-- [ ] Getting Started
-- [ ] Platform overview
-- [ ] API reference
-- [ ] Authentication guide
-- [ ] Projects guide
-- [ ] Tools guide
-- [ ] Models/intelligence guide
-- [ ] SDK guides
-- [ ] Changelog/versioning guidance
+- [x] Dedicated Developer Docs page
+- [x] Getting Started
+- [x] Platform overview
+- [x] API reference
+- [x] Authentication guide
+- [x] Projects guide
+- [x] Tools guide
+- [x] Models/intelligence guide
+- [x] SDK guides
+- [x] Changelog/versioning guidance
 
 ## Intelligence
 
