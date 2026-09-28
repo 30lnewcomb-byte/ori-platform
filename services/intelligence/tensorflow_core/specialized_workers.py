@@ -1,7 +1,7 @@
 """Specialized native TensorFlow workers for Ori.
 
-The manager/orchestrator owns routing, permissions, and tool execution.
-Workers only transform an assigned task into a learned result.
+Ori routes tasks internally. Workers only transform an assigned task into a
+learned result; platform permissions and tool execution remain server-side.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ class WorkerSpec:
 
 WORKERS = {
     "coding": WorkerSpec("ori-coder", "code-generation", "artifacts/ori-coder"),
-    "3d": WorkerSpec("ori-3d", "parametric-cad-generation", "artifacts/ori-3d"),
+    "3d": WorkerSpec("ori-3d", "parametric-cad-and-mesh-generation", "artifacts/ori-3d"),
 }
 
 
