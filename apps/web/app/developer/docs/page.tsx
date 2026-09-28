@@ -2,7 +2,8 @@ import DeveloperShell from '../../../components/developer-shell'
 import styles from './docs.module.css'
 
 const sections = [
-  { title: 'Getting started', text: 'Learn the platform boundary, project model, and path to a first integration.', href: '/developer/projects' },
+  { title: 'Ori — complete reference', text: 'Read the product, architecture, chat, intelligence, security, and current-status reference for Ori.', href: '/developer/docs/ori' },
+  { title: 'Getting started', text: 'Learn the platform boundary, project model, and path to a first integration.', href: '/developer/guides' },
   { title: 'Platform overview', text: 'Understand how the Developer Platform sits around Ori capabilities.', href: '/developer/dashboard' },
   { title: 'API reference', text: 'Review the intended versioned API and current internal runtime contract.', href: '/developer/api' },
   { title: 'Authentication', text: 'See the planned developer identity, project credentials, and security boundary.', href: '/developer/authentication' },
