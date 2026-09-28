@@ -392,12 +392,12 @@ def main() -> None:
     # still happens through the runtime after the service starts.
     sample, _ = model.generate(
         tokenizer,
-        "User: Hello Ori! Good afternoon. Ori:",
+        "User: Hi Ori! Ori:",
         max_new_tokens=24,
         temperature=0.20,
         top_k=8,
     )
-    print(f"Final English/Ori smoke sample: {sample!r}")
+    print(f"Greeting smoke sample: {sample!r}")
 
     # The existing Render service invokes this script directly. Train the
     # internal coding and 3D specialists here so no dashboard build-command
