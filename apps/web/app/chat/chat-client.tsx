@@ -18,6 +18,33 @@ type Conversation = {
 const STORAGE_KEY = 'ori.chat.history.v1'
 const MAX_CONVERSATIONS = 100
 
+const EMPTY_PROMPTS = [
+  'What’s on your mind today?',
+  'What would you like to work on?',
+  'What can we figure out together?',
+  'What are you thinking about?',
+  'Where should we start?',
+  'What would you like to explore?',
+  'What are you working on today?',
+  'Got something on your mind?',
+  'What should we tackle?',
+  'What can Ori help with?',
+  'Ready when you are.',
+  'What are we working on?',
+  'What would you like to figure out?',
+  'Need a hand with something?',
+  'What should we dive into?',
+  'What’s up?',
+  'What would you like to talk about?',
+  'Have something in mind?',
+  'What should we look at?',
+  'What do you want to build today?',
+]
+
+function pickEmptyPrompt() {
+  return EMPTY_PROMPTS[Math.floor(Math.random() * EMPTY_PROMPTS.length)]
+}
+
 function makeId() {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
     return crypto.randomUUID()
@@ -25,9 +52,20 @@ function makeId() {
   return 'chat-' + Date.now() + '-' + Math.random().toString(36).slice(2)
 }
 
-function titleFromMessage(content: string) {
-  const clean = content.replace(/\s+/g, ' ').trim()
-  if (!clean) return 'New chat'
+function titleFromConversation(messages: Message[]) {
+  const userMessages = messages
+    .filter((message) => message.role === 'user')
+    .slice(0, 3)
+    .map((message) => message.content.replace(/^\s*\/\S+\s*$/, '').replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+
+  if (!userMessages.length) return 'New chat'
+
+  const substantive = userMessages
+    .filter((message) => message.length >= 12)
+    .sort((a, b) => b.length - a.length)[0]
+
+  const clean = substantive ?? userMessages[0]
   return clean.length > 48 ? clean.slice(0, 48).trim() + '…' : clean
 }
 
@@ -83,6 +121,7 @@ export default function ChatClient() {
   const [error, setError] = useState('')
   const [historyReady, setHistoryReady] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [emptyPrompt, setEmptyPrompt] = useState(() => pickEmptyPrompt())
   const conversationRef = useRef<HTMLElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -103,6 +142,7 @@ export default function ChatClient() {
       setCurrentChatId(freshId)
       setMessages([])
       setError('')
+      setEmptyPrompt(pickEmptyPrompt())
       window.history.replaceState(null, '', '/chat?chat=' + encodeURIComponent(freshId))
     }
 
@@ -160,10 +200,9 @@ export default function ChatClient() {
     setConversations((current) => {
       const existingIndex = current.findIndex((chat) => chat.id === currentChatId)
       const existing = existingIndex >= 0 ? current[existingIndex] : undefined
-      const firstUserMessage = messages.find((message) => message.role === 'user')
       const nextConversation: Conversation = {
         id: currentChatId,
-        title: firstUserMessage ? titleFromMessage(firstUserMessage.content) : existing?.title ?? 'New chat',
+        title: titleFromConversation(messages),
         messages,
         createdAt: existing?.createdAt ?? Date.now(),
         updatedAt: Date.now(),
@@ -187,6 +226,7 @@ export default function ChatClient() {
     const freshId = makeId()
     setCurrentChatId(freshId)
     setMessages([])
+    setEmptyPrompt(pickEmptyPrompt())
     setValue('')
     setError('')
     setHistoryOpen(false)
@@ -226,6 +266,7 @@ export default function ChatClient() {
           const freshId = makeId()
           setCurrentChatId(freshId)
           setMessages([])
+          setEmptyPrompt(pickEmptyPrompt())
           window.history.pushState(null, '', '/chat?chat=' + encodeURIComponent(freshId))
         }
         setValue('')
@@ -289,23 +330,23 @@ export default function ChatClient() {
     }
   }
 
-  const firstUserMessage = messages.find((message) => message.role === 'user')
-  const currentTitle = firstUserMessage
-    ? titleFromMessage(firstUserMessage.content)
-    : conversations.find((chat) => chat.id === currentChatId)?.title ?? 'New chat'
+  const currentTitle = messages.length > 0
+    ? titleFromConversation(messages)
+    : ''
 
   return (
     <div className="chatWorkspace">
       <div className={messages.length === 0 ? 'chatMain empty' : 'chatMain'}>
-        <div className="chatSessionBar">
-          <span className="chatSessionTitle">{currentTitle}</span>
-        </div>
+        {currentTitle && (
+          <div className="chatSessionBar">
+            <span className="chatSessionTitle">{currentTitle}</span>
+          </div>
+        )}
 
         <section ref={conversationRef} className="conversation" aria-label="Conversation" aria-live="polite">
           {messages.length === 0 ? (
             <div className="emptyState chatEmptyState">
-              <strong>What’s on your mind today?</strong>
-              <span>Ask Ori a question or tell it what you are working on.</span>
+              <strong>{emptyPrompt}</strong>
             </div>
           ) : (
             messages.map((message, index) => (
