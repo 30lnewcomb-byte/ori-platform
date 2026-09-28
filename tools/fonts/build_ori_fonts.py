@@ -35,8 +35,11 @@ def build_font(source: Path, output: Path, family: str, monospace: bool = False)
 
     options = subset.Options()
     options.flavor = "woff2"
-    options.layout_features = ["kern", "liga", "calt"]
-    options.name_IDs = [0, 1, 2, 3, 4, 5, 6, 16, 17]
+    options.layout_features = []
+    options.name_IDs = [0, 1, 2, 4, 6, 16, 17]
+    options.hinting = False
+    options.desubroutinize = True
+    options.drop_tables = ["DSIG"]
 
     subsetter = subset.Subsetter(options=options)
     subsetter.populate(unicodes=ASCII_RANGE)
