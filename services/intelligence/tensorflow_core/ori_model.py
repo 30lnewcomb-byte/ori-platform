@@ -2,6 +2,12 @@
 
 The language model provides learned language generation. Identity, memory,
 tools, permissions, and orchestration stay outside the model in Ori Core.
+
+Tokenizer note:
+    Ori uses a SentencePiece BPE tokenizer trained from the same English +
+    Ori corpus used by the language model. This replaces the old word-level
+    tokenizer so unfamiliar words can be represented as subword pieces rather
+    than collapsing immediately to <unk>.
 """
 
 from __future__ import annotations
@@ -9,14 +15,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 import json
 from pathlib import Path
-import re
 
+import sentencepiece as spm
 import tensorflow as tf
 
 
 @dataclass(frozen=True)
 class OriLMConfig:
-    vocab_size: int = 2048
+    vocab_size: int = 512
     context_length: int = 256
     d_model: int = 192
     num_heads: int = 4
@@ -30,68 +36,46 @@ class OriLMConfig:
 
 
 class OriTokenizer:
-    """Small transparent tokenizer for the bootstrap Ori corpus.
+    """SentencePiece BPE tokenizer used by Ori's language model."""
 
-    The tokenizer deliberately stays inspectable. Its API is stable so it can
-    later be backed by a subword tokenizer without changing the model runtime.
-    """
+    def __init__(self, processor: spm.SentencePieceProcessor):
+        self.processor = processor
 
-    SPECIAL = ("<pad>", "<bos>", "<eos>", "<unk>")
+    @property
+    def vocab_size(self) -> int:
+        return int(self.processor.get_piece_size())
 
-    def __init__(self, vocab: dict[str, int]):
-        self.vocab = vocab
-        self.inverse = {v: k for k, v in vocab.items()}
+    @property
+    def vocab(self) -> dict[str, int]:
+        return {
+            "<pad>": 0,
+            "<bos>": 1,
+            "<eos>": 2,
+            "<unk>": 3,
+        }
 
-    @staticmethod
-    def split(text: str) -> list[str]:
-        pattern = r"[A-Za-z0-9_]+(?:['’][A-Za-z0-9_]+)?|[^\w\s]"
-        return re.findall(pattern, text, flags=re.UNICODE)
-
-    @classmethod
-    def build(cls, texts: list[str], vocab_size: int = 2048) -> "OriTokenizer":
-        counts: dict[str, int] = {}
-        for text in texts:
-            for token in cls.split(text):
-                counts[token] = counts.get(token, 0) + 1
-
-        vocab = {token: i for i, token in enumerate(cls.SPECIAL)}
-        ranked = sorted(counts.items(), key=lambda pair: (-pair[1], pair[0]))
-        for token, _ in ranked:
-            if token not in vocab:
-                vocab[token] = len(vocab)
-            if len(vocab) >= vocab_size:
-                break
-        return cls(vocab)
-
-    def encode(self, text: str, add_bos: bool = True, add_eos: bool = True) -> list[int]:
-        ids = [self.vocab["<bos>"]] if add_bos else []
-        ids.extend(self.vocab.get(t, self.vocab["<unk>"]) for t in self.split(text))
+    def encode(
+        self,
+        text: str,
+        add_bos: bool = True,
+        add_eos: bool = True,
+    ) -> list[int]:
+        ids = list(self.processor.encode(text, out_type=int))
+        if add_bos:
+            ids.insert(0, self.processor.bos_id())
         if add_eos:
-            ids.append(self.vocab["<eos>"])
+            ids.append(self.processor.eos_id())
         return ids
 
     def decode(self, ids: list[int]) -> str:
-        output: list[str] = []
-        for token_id in ids:
-            token = self.inverse.get(token_id, "<unk>")
-            if token == "<eos>":
-                break
-            if token in self.SPECIAL:
-                continue
-            output.append(token)
-
-        text = " ".join(output)
-        text = re.sub(r"\s+([,.!?;:%\)\]\}])", r"\1", text)
-        text = re.sub(r"([\(\[\{])\s+", r"\1", text)
-        text = re.sub(r"\s+([/])\s+", r"\1", text)
-        return text.strip()
-
-    def save(self, path: str | Path) -> None:
-        Path(path).write_text(json.dumps(self.vocab, indent=2), encoding="utf-8")
+        return self.processor.decode(ids).strip()
 
     @classmethod
     def load(cls, path: str | Path) -> "OriTokenizer":
-        return cls(json.loads(Path(path).read_text(encoding="utf-8")))
+        processor = spm.SentencePieceProcessor(model_file=str(path))
+        if processor.pad_id() != 0 or processor.bos_id() != 1 or processor.eos_id() != 2:
+            raise ValueError("Ori tokenizer special-token IDs are incompatible with the model.")
+        return cls(processor)
 
 
 class TransformerBlock(tf.keras.layers.Layer):
@@ -213,7 +197,11 @@ class OriLanguageModel(tf.keras.Model):
                 ),
                 axis=0,
             )
-            logits = tf.where(blocked, tf.fill(tf.shape(logits), tf.constant(-1e9)), logits)
+            logits = tf.where(
+                blocked,
+                tf.fill(tf.shape(logits), tf.constant(-1e9)),
+                logits,
+            )
 
             if temperature <= 1e-6:
                 next_id = int(tf.argmax(logits).numpy())
@@ -222,10 +210,14 @@ class OriLanguageModel(tf.keras.Model):
                 if top_k > 0:
                     k = min(top_k, self.config.vocab_size)
                     values, indices = tf.math.top_k(scaled, k=k)
-                    sampled = tf.random.categorical(values[tf.newaxis, :], 1)[0, 0]
+                    sampled = tf.random.categorical(
+                        values[tf.newaxis, :], 1
+                    )[0, 0]
                     next_id = int(indices[sampled].numpy())
                 else:
-                    sampled = tf.random.categorical(scaled[tf.newaxis, :], 1)[0, 0]
+                    sampled = tf.random.categorical(
+                        scaled[tf.newaxis, :], 1
+                    )[0, 0]
                     next_id = int(sampled.numpy())
 
             if next_id == tokenizer.vocab["<eos>"]:
