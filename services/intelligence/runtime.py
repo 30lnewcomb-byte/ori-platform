@@ -275,6 +275,19 @@ def normalize_tool_call(
 
 
 
+@app.get("/")
+def root() -> dict[str, Any]:
+    return {
+        "service": "ori-tensorflow-runtime",
+        "status": "online",
+        "version": APP_VERSION,
+        "backend": "tensorflow",
+        "health": "/health",
+        "status_endpoint": "/v1/status",
+        "models_endpoint": "/v1/models",
+    }
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "ori-tensorflow-runtime"}
