@@ -74,15 +74,16 @@ def everyday_english() -> list[str]:
         for action in actions:
             for obj in objects:
                 sentences.append(f"{subject} {action} {obj}.")
-                sentences.append(f"Can {subject.lower()} {action} {obj}?")
-                if subject in {"I", "we"}:
-                    sentences.append(f"{subject} will {action} {obj}.")
-                if len(sentences) >= 3000:
+                sentences.append(f"Do {subject.lower()} {action} {obj}?")
+                sentences.append(f"{subject} can {action} {obj}.")
+                sentences.append(f"{subject} will {action} {obj}.")
+                if len(sentences) >= 3200:
                     break
-            if len(sentences) >= 3000:
+            if len(sentences) >= 3200:
                 break
-        if len(sentences) >= 3000:
+        if len(sentences) >= 3200:
             break
+
 
     singular_subjects = [
         "the user", "the program", "the model", "the server",
