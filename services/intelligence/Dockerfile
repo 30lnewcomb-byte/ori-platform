@@ -32,5 +32,11 @@ RUN python tensorflow_core/train_ori.py \
     --batch-size 8 \
     --validation-split 0
 
+# Train task-specialized workers from the shared English/Ori tokenizer.
+RUN python tensorflow_core/train_specialists.py \
+    --tokenizer artifacts/ori-small/ori_tokenizer.model \
+    --output-root artifacts \
+    --code-epochs 10 \
+    --cad-epochs 10
 EXPOSE 8000
 CMD ["sh", "start.sh"]
