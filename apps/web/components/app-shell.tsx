@@ -6,13 +6,9 @@ type NavItem = { label: string; href: string }
 const navItems: NavItem[] = [
   { label: 'Home', href: '/' },
   { label: 'Chat', href: '/chat' },
-  { label: 'Search', href: '/search' },
-  { label: 'Projects', href: '/projects' },
-  { label: 'Tasks', href: '/tasks' },
-  { label: 'Activity', href: '/notifications' },
 ]
 
-export type AppSection = 'Home' | 'Chat' | 'Search' | 'Projects' | 'Tasks' | 'Activity'
+export type AppSection = 'Home' | 'Chat'
 
 export default function AppShell({
   active,
@@ -48,9 +44,9 @@ export default function AppShell({
           <details className={styles.moreMenu}>
             <summary className={styles.moreButton} aria-label="More options">•••</summary>
             <div className={styles.morePanel}>
-              <a href="/settings" className={styles.moreItem}>
-                <strong>Settings</strong>
-                <span>Configure Ori</span>
+              <a href="/developer/docs/ori" className={styles.moreItem}>
+                <strong>About Ori</strong>
+                <span>Read the full system reference</span>
               </a>
               <a href="/developer" className={styles.moreItem}>
                 <strong>Developer Platform</strong>
