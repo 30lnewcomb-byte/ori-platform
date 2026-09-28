@@ -15,6 +15,10 @@ PUBLIC_DOMAIN_SOURCES = (
     ("oz", "https://www.gutenberg.org/files/55/55-0.txt"),
     ("sherlock", "https://www.gutenberg.org/files/1661/1661-0.txt"),
     ("tom_sawyer", "https://www.gutenberg.org/files/74/74-0.txt"),
+    ("pride_prejudice", "https://www.gutenberg.org/files/1342/1342-0.txt"),
+    ("frankenstein", "https://www.gutenberg.org/files/84/84-0.txt"),
+    ("jane_eyre", "https://www.gutenberg.org/files/1260/1260-0.txt"),
+    ("little_women", "https://www.gutenberg.org/files/514/514-0.txt"),
 )
 
 
