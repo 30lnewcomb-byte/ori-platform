@@ -63,6 +63,15 @@ ori.chat.history.v1</pre>
             </section>
 
             <section className={styles.section}>
+              <h2>Typography</h2>
+              <p>Ori has three typography roles. Ori Display is used for branding and major headings, Ori Text is used for UI, chat, and documentation, and Ori Mono is used for code, logs, commands, paths, and technical data.</p>
+              <pre className={styles.code}>Ori Display → branding + major headings
+Ori Text    → UI + chat + docs
+Ori Mono    → code + logs + technical data</pre>
+              <div className={styles.note}>The current family files are starter cuts with independent font-family metadata. Their glyph designs can be refined independently without changing the product roles.</div>
+            </section>
+
+            <section className={styles.section}>
               <h2>Native intelligence</h2>
               <p>Ori&apos;s intelligence path uses a private TensorFlow runtime. The browser never receives the runtime credential.</p>
               <pre className={styles.code}>Browser
