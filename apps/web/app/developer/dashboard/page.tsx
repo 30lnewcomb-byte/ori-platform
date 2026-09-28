@@ -38,7 +38,7 @@ export default function DeveloperDashboardPage() {
           </div>
           <div className={styles.headerActions}>
             <a className={styles.primary} href="/developer/docs">Read docs</a>
-            <a className={styles.secondary} href="/developer">Platform overview</a>
+            <a className={styles.secondary} href="/developer/guides">Architecture guides</a>
           </div>
         </header>
 
