@@ -97,3 +97,36 @@ Do not add a hosted external language-model dependency to the production intelli
 Do not give the language model direct device authority.
 
 Do not claim live intelligence until the configured runtime has been health-checked and its model readiness verified.
+
+## Manager and specialist workers
+
+Ori uses a manager-first hierarchy:
+
+```
+User
+  ↓
+Ori Manager / orchestration
+  ├── ori-small       ← general language
+  ├── ori-coder       ← coding worker
+  └── ori-3d          ← parametric CAD worker
+          ↓
+      validated result
+```
+
+The manager chooses a worker from the request and Ori Core signals. Workers
+cannot select other workers, grant permissions, or execute tools. The manager
+owns routing and the platform owns tool permissions.
+
+The coding worker is a task-focused TensorFlow Transformer trained on coding
+examples. The 3D worker is a task-focused TensorFlow Transformer trained to
+produce constrained parametric CAD plans. A server-side CAD compiler converts
+valid plans into OpenSCAD source. This keeps geometry generation learned while
+keeping the final geometry representation deterministic and inspectable.
+
+Worker artifacts live under:
+
+- `artifacts/ori-coder`
+- `artifacts/ori-3d`
+
+The user-facing chat remains unified as Ori; worker identities are internal
+routing metadata.
