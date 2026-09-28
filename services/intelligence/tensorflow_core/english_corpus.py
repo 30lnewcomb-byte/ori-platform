@@ -57,33 +57,59 @@ def _paragraphs(text: str) -> list[str]:
 
 
 def everyday_english() -> list[str]:
-    """Generate a compact set of clean modern English sentences."""
-    subjects = [
-        "I", "you", "we", "they", "he", "she", "the user", "the program",
-        "the model", "the server", "the computer", "the printer",
-    ]
-    verbs = [
-        "am", "are", "is", "can be", "will be", "needs", "uses", "checks",
-        "opens", "closes", "starts", "stops", "loads", "saves", "runs",
-        "learns", "builds", "tests", "explains", "creates", "changes",
-        "finds", "reads", "writes", "moves", "works", "helps",
+    """Generate clean, grammar-safe modern English and short dialogue."""
+    sentences: list[str] = []
+
+    first_plural_subjects = ["I", "you", "we", "they"]
+    actions = [
+        "need", "want", "like", "use", "check", "open", "close", "read",
+        "write", "test", "build", "learn", "understand", "remember",
     ]
     objects = [
-        "ready", "useful", "online", "available", "a file", "a project",
-        "the data", "the result", "the system", "the message", "the code",
-        "the model", "the settings", "the device", "the answer", "the task",
+        "the file", "the project", "the code", "the result", "the answer",
+        "the system", "the settings", "the device", "the program",
+        "the model", "the data", "the task",
     ]
-    sentences: list[str] = []
-    for subject in subjects:
-        for verb in verbs:
-            for obj in objects[:10]:
-                sentences.append(f"{subject} {verb} {obj}.")
-                if len(sentences) >= 2400:
+    for subject in first_plural_subjects:
+        for action in actions:
+            for obj in objects:
+                sentences.append(f"{subject} {action} {obj}.")
+                sentences.append(f"Can {subject.lower()} {action} {obj}?")
+                if subject in {"I", "we"}:
+                    sentences.append(f"{subject} will {action} {obj}.")
+                if len(sentences) >= 3000:
                     break
-            if len(sentences) >= 2400:
+            if len(sentences) >= 3000:
                 break
-        if len(sentences) >= 2400:
+        if len(sentences) >= 3000:
             break
+
+    singular_subjects = [
+        "the user", "the program", "the model", "the server",
+        "the computer", "the printer", "the browser",
+    ]
+    singular_actions = [
+        ("needs", "the file"), ("uses", "the data"), ("checks", "the result"),
+        ("opens", "the project"), ("closes", "the file"), ("reads", "the code"),
+        ("writes", "the output"), ("tests", "the program"), ("builds", "the project"),
+        ("learns", "from examples"), ("explains", "the answer"), ("creates", "a file"),
+        ("changes", "the settings"), ("finds", "the problem"), ("helps", "the user"),
+    ]
+    for subject in singular_subjects:
+        for verb, obj in singular_actions:
+            sentences.append(f"{subject} {verb} {obj}.")
+            sentences.append(f"Does {subject} {verb[:-1] if verb.endswith('s') else verb} {obj}?")
+
+    states = [
+        ("The model", "is ready"), ("The server", "is online"),
+        ("The program", "is running"), ("The file", "is available"),
+        ("The result", "is correct"), ("The printer", "is paused"),
+        ("The project", "is active"), ("The system", "is working"),
+        ("The computer", "is connected"), ("The browser", "is open"),
+    ]
+    for subject, state in states:
+        sentences.append(f"{subject} {state}.")
+        sentences.append(f"Is {subject.lower()} {state[3:]}?")
 
     topics = [
         "Python", "JavaScript", "HTML", "CSS", "JSON", "an API",
@@ -106,7 +132,7 @@ def everyday_english() -> list[str]:
         ])
 
     common = [
-        "Hello there.", "Hi Ori.", "Good morning.", "Good afternoon.",
+        "Hello there.", "Hi.", "Good morning.", "Good afternoon.",
         "Good evening.", "Thanks.", "You're welcome.", "I don't know.",
         "I can't find it.", "I can't open the file.", "Let's try again.",
         "That makes sense.", "I understand.", "I need more information.",
@@ -116,8 +142,11 @@ def everyday_english() -> list[str]:
         "The program is running.", "The model needs more training.",
         "The file was saved.", "The test passed.", "The test failed.",
         "The printer is online.", "The printer is paused.",
+        "I am working on a project.", "We can solve this problem.",
+        "Let's check the result.", "Please show me the code.",
     ]
-    sentences.extend(common * 12)
+    sentences.extend(common * 16)
+
     return sentences
 
 
