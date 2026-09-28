@@ -42,7 +42,7 @@ class OriCoreModel:
         vectorizer = tf.keras.layers.TextVectorization(
             max_tokens=max_tokens,
             output_mode="tf_idf",
-            pad_to_max_tokens=True,
+            pad_to_max_tokens=False,
             name="text_vectorizer",
         )
 
@@ -72,7 +72,7 @@ class OriCoreModel:
         return CorePrediction(label=LABELS[index], confidence=float(probabilities[index]))
 
     def save(self, directory: str | Path) -> None:
-        self.model.save(directory)
+        self.model.save(directory, include_optimizer=False)
 
 
 if __name__ == "__main__":
