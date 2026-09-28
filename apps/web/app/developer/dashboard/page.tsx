@@ -30,10 +30,10 @@ export default function DeveloperDashboardPage() {
       <div className={styles.page}>
         <header className={styles.header}>
           <div>
-            <p className={styles.eyebrow}>DEVELOPER DASHBOARD</p>
-            <h1>Everything in one place.</h1>
+            <p className={styles.eyebrow}>DEVELOPER CONSOLE</p>
+            <h1>Developer console</h1>
             <p className={styles.lede}>
-              Manage the Ori developer surface, inspect platform resources, and see what is connected without exposing infrastructure complexity to the assistant UI.
+              Current platform state, internal resources, and service topology.
             </p>
           </div>
           <div className={styles.headerActions}>
@@ -72,7 +72,7 @@ export default function DeveloperDashboardPage() {
           <article className={styles.metric}>
             <span>PUBLIC API</span>
             <strong>BUILDING</strong>
-            <p>The stable public contract is still in development.</p>
+            <p>The versioned public contract is still in development.</p>
           </article>
         </section>
 
@@ -129,13 +129,13 @@ export default function DeveloperDashboardPage() {
             <div className={styles.panelHeader}>
               <div>
                 <p className={styles.eyebrow}>QUICK START</p>
-                <h2>Build your first integration</h2>
+                <h2>Current API state</h2>
               </div>
             </div>
             <div className={styles.quickStart}>
-              <div><span>01</span><strong>Understand the platform boundary</strong><p>Start with the architecture and current implementation status.</p></div>
-              <div><span>02</span><strong>Read the API direction</strong><p>The public API is being designed independently from internal runtime routes.</p></div>
-              <div><span>03</span><strong>Connect when the contract is ready</strong><p>Use project-scoped credentials and stable versioned endpoints once released.</p></div>
+              <div><span>01</span><strong>Read the platform boundary</strong><p>Architecture and implementation status.</p></div>
+              <div><span>02</span><strong>Read the API status</strong><p>The public API is still in development.</p></div>
+              <div><span>03</span><strong>Wait for the public contract</strong><p>Project credentials and stable versioned endpoints come after the contract is released.</p></div>
             </div>
           </div>
 
