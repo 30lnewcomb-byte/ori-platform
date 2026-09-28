@@ -82,6 +82,7 @@ export default function ChatClient() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [historyReady, setHistoryReady] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
   const conversationRef = useRef<HTMLElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -142,6 +143,15 @@ export default function ChatClient() {
   }, [conversations])
 
   useEffect(() => {
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') setHistoryOpen(false)
+    }
+
+    window.addEventListener('keydown', handleEscape)
+    return () => window.removeEventListener('keydown', handleEscape)
+  }, [])
+
+  useEffect(() => {
     const conversation = conversationRef.current
     if (!conversation) return
     conversation.scrollTo({ top: conversation.scrollHeight, behavior: 'smooth' })
@@ -189,6 +199,7 @@ export default function ChatClient() {
     setMessages([])
     setValue('')
     setError('')
+    setHistoryOpen(false)
     window.history.pushState(null, '', '/chat?chat=' + encodeURIComponent(freshId))
     textareaRef.current?.focus()
   }
@@ -202,6 +213,7 @@ export default function ChatClient() {
     setMessages(chat.messages)
     setValue('')
     setError('')
+    setHistoryOpen(false)
     window.history.pushState(null, '', '/chat?chat=' + encodeURIComponent(chat.id))
     textareaRef.current?.focus()
   }
@@ -238,6 +250,19 @@ export default function ChatClient() {
     event.preventDefault()
     const content = value.trim()
     if (!content || busy) return
+
+    const command = content.toLowerCase()
+
+    if (command === '/newchat') {
+      openNewChat()
+      return
+    }
+
+    if (command === '/history') {
+      setValue('')
+      setHistoryOpen((open) => !open)
+      return
+    }
 
     const nextMessages = [...messages, { role: 'user' as const, content }]
     setMessages(nextMessages)
@@ -276,60 +301,16 @@ export default function ChatClient() {
 
   return (
     <div className="chatWorkspace">
-      <aside className="chatHistory" aria-label="Chat history">
-        <div className="chatHistoryHeader">
-          <div>
-            <p className="eyebrow">HISTORY</p>
-            <strong>Chats</strong>
-          </div>
-          <button type="button" className="newChatButton" onClick={openNewChat} disabled={busy}>
-            + New
-          </button>
-        </div>
-
-        <div className="chatHistoryList">
-          {conversations.length === 0 ? (
-            <div className="chatHistoryEmpty">Your chats will appear here.</div>
-          ) : (
-            conversations.map((chat) => (
-              <div className={'chatHistoryRow' + (chat.id === currentChatId ? ' active' : '')} key={chat.id}>
-                <button
-                  type="button"
-                  className="chatHistoryItem"
-                  onClick={() => openChat(chat.id)}
-                  disabled={busy}
-                >
-                  <span className="chatHistoryTitle">{chat.title}</span>
-                  <span className="chatHistoryMeta">{formatDate(chat.updatedAt)}</span>
-                </button>
-                <button
-                  type="button"
-                  className="chatHistoryDelete"
-                  aria-label={'Delete ' + chat.title}
-                  onClick={(event) => deleteChat(chat.id, event)}
-                  disabled={busy}
-                >
-                  ×
-                </button>
-              </div>
-            ))
-          )}
-        </div>
-      </aside>
-
       <div className="chatMain">
         <div className="chatSessionBar">
           <span className="chatSessionTitle">{currentTitle}</span>
-          <button type="button" className="chatSessionNew" onClick={openNewChat} disabled={busy}>
-            New chat
-          </button>
         </div>
 
         <section ref={conversationRef} className="conversation" aria-label="Conversation" aria-live="polite">
           {messages.length === 0 ? (
             <div className="emptyState chatEmptyState">
               <strong>Start a conversation with Ori.</strong>
-              <span>Ask anything about your projects, tasks, or what you want to build.</span>
+              <span>Type /newchat to start fresh or /history to open your previous chats.</span>
             </div>
           ) : (
             messages.map((message, index) => (
@@ -374,6 +355,51 @@ export default function ChatClient() {
           </button>
         </form>
       </div>
+
+      <aside
+        className={historyOpen ? 'chatHistory open' : 'chatHistory'}
+        aria-label="Chat history"
+        aria-hidden={!historyOpen}
+      >
+        <div className="chatHistoryHeader">
+          <div>
+            <p className="eyebrow">HISTORY</p>
+            <strong>Chats</strong>
+          </div>
+          <button type="button" className="chatHistoryClose" onClick={() => setHistoryOpen(false)} aria-label="Close chat history">
+            ×
+          </button>
+        </div>
+
+        <div className="chatHistoryList">
+          {conversations.length === 0 ? (
+            <div className="chatHistoryEmpty">Your chats will appear here after you start talking with Ori.</div>
+          ) : (
+            conversations.map((chat) => (
+              <div className={'chatHistoryRow' + (chat.id === currentChatId ? ' active' : '')} key={chat.id}>
+                <button
+                  type="button"
+                  className="chatHistoryItem"
+                  onClick={() => openChat(chat.id)}
+                  disabled={busy}
+                >
+                  <span className="chatHistoryTitle">{chat.title}</span>
+                  <span className="chatHistoryMeta">{formatDate(chat.updatedAt)}</span>
+                </button>
+                <button
+                  type="button"
+                  className="chatHistoryDelete"
+                  aria-label={'Delete ' + chat.title}
+                  onClick={(event) => deleteChat(chat.id, event)}
+                  disabled={busy}
+                >
+                  ×
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </aside>
     </div>
   )
 }
