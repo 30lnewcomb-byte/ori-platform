@@ -55,6 +55,72 @@ def _paragraphs(text: str) -> list[str]:
     return paragraphs
 
 
+
+def everyday_english() -> list[str]:
+    """Generate a compact set of clean modern English sentences."""
+    subjects = [
+        "I", "you", "we", "they", "he", "she", "the user", "the program",
+        "the model", "the server", "the computer", "the printer",
+    ]
+    verbs = [
+        "am", "are", "is", "can be", "will be", "needs", "uses", "checks",
+        "opens", "closes", "starts", "stops", "loads", "saves", "runs",
+        "learns", "builds", "tests", "explains", "creates", "changes",
+        "finds", "reads", "writes", "moves", "works", "helps",
+    ]
+    objects = [
+        "ready", "useful", "online", "available", "a file", "a project",
+        "the data", "the result", "the system", "the message", "the code",
+        "the model", "the settings", "the device", "the answer", "the task",
+    ]
+    sentences: list[str] = []
+    for subject in subjects:
+        for verb in verbs:
+            for obj in objects[:10]:
+                sentences.append(f"{subject} {verb} {obj}.")
+                if len(sentences) >= 2400:
+                    break
+            if len(sentences) >= 2400:
+                break
+        if len(sentences) >= 2400:
+            break
+
+    topics = [
+        "Python", "JavaScript", "HTML", "CSS", "JSON", "an API",
+        "a database", "a server", "a browser", "a neural network",
+        "machine learning", "a 3D printer", "a 3D model", "a file",
+        "a program", "a project", "a computer",
+    ]
+    for topic in topics:
+        sentences.extend([
+            f"What is {topic}?",
+            f"Can you explain {topic}?",
+            f"I want to learn about {topic}.",
+            f"I have a question about {topic}.",
+            f"I am working with {topic}.",
+            f"I need help with {topic}.",
+            f"How does {topic} work?",
+            f"Why is {topic} useful?",
+            f"What can {topic} do?",
+            f"Can {topic} be changed?",
+        ])
+
+    common = [
+        "Hello there.", "Hi Ori.", "Good morning.", "Good afternoon.",
+        "Good evening.", "Thanks.", "You're welcome.", "I don't know.",
+        "I can't find it.", "I can't open the file.", "Let's try again.",
+        "That makes sense.", "I understand.", "I need more information.",
+        "Please explain that.", "Can you help me?", "What should I do next?",
+        "Where do I start?", "What happened?", "Why did that happen?",
+        "Is this correct?", "That looks good.", "The result is ready.",
+        "The program is running.", "The model needs more training.",
+        "The file was saved.", "The test passed.", "The test failed.",
+        "The printer is online.", "The printer is paused.",
+    ]
+    sentences.extend(common * 12)
+    return sentences
+
+
 def download_public_domain_english(max_chars: int = 360_000) -> list[str]:
     """Return a bounded, mixed public-domain English corpus.
 
@@ -95,6 +161,17 @@ def download_public_domain_english(max_chars: int = 360_000) -> list[str]:
 
     if not collected:
         raise RuntimeError("Could not download any English pretraining text.")
+
+    modern = everyday_english()
+    for sentence in modern:
+        if total >= max_chars:
+            break
+        remaining = max_chars - total
+        text = sentence if len(sentence) <= remaining else sentence[:remaining].rsplit(" ", 1)[0]
+        if len(text) < 10:
+            continue
+        collected.append(text)
+        total += len(text)
 
     print(
         f"English pretraining corpus: {len(collected)} passages, "
