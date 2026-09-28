@@ -133,8 +133,7 @@ def main() -> None:
     train_texts, train_labels, val_texts, val_labels = build_stratified_split(
         args.validation_split
     )
-    model = OriCoreModel.build(max_tokens=4096, sequence_length=96)
-    model.adapt(train_texts)
+    model = OriCoreModel.build_from_texts(train_texts, max_tokens=4096)
 
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
