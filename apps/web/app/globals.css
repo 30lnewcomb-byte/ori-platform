@@ -72,3 +72,15 @@ h1 { margin:0; font-size:clamp(28px,4vw,42px); letter-spacing:-.035em; }
   .chatHistoryItem { flex:0 0 180px; min-width:180px; padding:8px 9px; }
   .chatSessionBar { padding:2px 0 6px; }
 }
+
+.chatHistoryRow { display:flex; align-items:stretch; gap:3px; margin-bottom:2px; }
+.chatHistoryRow .chatHistoryItem { flex:1; min-width:0; }
+.chatHistoryDelete { width:28px; flex:0 0 28px; border:0; border-radius:8px; background:transparent; color:var(--text-muted); font-size:16px; opacity:0; }
+.chatHistoryRow:hover .chatHistoryDelete,.chatHistoryDelete:focus-visible { opacity:1; }
+.chatHistoryDelete:hover:not(:disabled) { background:var(--surface-base); color:var(--text-primary); }
+.chatHistoryRow.active .chatHistoryDelete { color:var(--accent-strong); }
+@media (max-width:760px) {
+  .chatHistoryRow { flex:0 0 210px; min-width:210px; margin:0; }
+  .chatHistoryRow .chatHistoryItem { min-width:0; }
+  .chatHistoryDelete { opacity:1; }
+}
