@@ -50,7 +50,7 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     messages: list[ChatMessage] = Field(min_length=1, max_length=32)
     temperature: float = Field(default=0.2, ge=0, le=2)
-    max_tokens: int = Field(default=96, ge=1, le=256)
+    max_tokens: int = Field(default=72, ge=1, le=192)
     top_k: int = Field(default=20, ge=0, le=128)
     tools: list[dict[str, Any]] | None = None
 
@@ -338,7 +338,7 @@ def chat(payload: ChatRequest, _: None = Depends(require_api_key)) -> dict[str, 
     model, tokenizer = LANGUAGE_MODEL
     content = ""
     finish_reason = "length"
-    for attempt in range(3):
+    for attempt in range(2):
         attempt_temperature = max(
             0.35,
             min(1.0, payload.temperature + (0.10 * attempt)),
@@ -346,7 +346,7 @@ def chat(payload: ChatRequest, _: None = Depends(require_api_key)) -> dict[str, 
         candidate, candidate_finish = model.generate(
             tokenizer,
             prompt,
-            max_new_tokens=payload.max_tokens,
+            max_new_tokens=min(payload.max_tokens, 72),
             temperature=attempt_temperature,
             top_k=payload.top_k,
         )
