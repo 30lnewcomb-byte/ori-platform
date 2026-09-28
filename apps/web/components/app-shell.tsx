@@ -46,11 +46,11 @@ export default function AppShell({
             <div className={styles.morePanel}>
               <a href="/developer/docs/ori" className={styles.moreItem}>
                 <strong>About Ori</strong>
-                <span>Read the full system reference</span>
+                <span>Read the system reference</span>
               </a>
               <a href="/developer" className={styles.moreItem}>
-                <strong>Developer Platform</strong>
-                <span>Build with Ori</span>
+                <strong>Developer</strong>
+                <span>Platform tools and reference</span>
               </a>
             </div>
           </details>
