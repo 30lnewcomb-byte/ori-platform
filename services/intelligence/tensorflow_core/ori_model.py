@@ -136,9 +136,10 @@ class OriLanguageModel(tf.keras.Model):
             for i in range(config.num_layers)
         ]
         self.norm = tf.keras.layers.LayerNormalization(epsilon=1e-6)
-        self.lm_head = tf.keras.layers.Dense(
-            config.vocab_size, use_bias=False, name="lm_head"
-        )
+        # The output projection reuses the token embedding matrix. This
+        # weight tying gives a compact model more effective parameters without
+        # increasing the vocabulary projection size independently.
+        self.lm_head = None
 
     def call(self, token_ids, training=False):
         length = tf.shape(token_ids)[1]
@@ -147,7 +148,8 @@ class OriLanguageModel(tf.keras.Model):
         x = self.dropout(x, training=training)
         for block in self.blocks:
             x = block(x, training=training)
-        return self.lm_head(self.norm(x))
+        x = self.norm(x)
+        return tf.linalg.matmul(x, self.tokens.embeddings, transpose_b=True)
 
     def next_logits(self, token_ids):
         return self(token_ids, training=False)[:, -1, :]
