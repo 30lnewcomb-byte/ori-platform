@@ -133,6 +133,27 @@ def startup() -> None:
     start_background_model_loading()
 
 
+def response_looks_usable(text: str) -> bool:
+    stripped = text.strip()
+    if len(stripped) < 2:
+        return False
+    if stripped.startswith("//") or stripped.startswith("\\\\"):
+        return False
+    letters = sum(character.isalpha() for character in stripped)
+    digits = sum(character.isdigit() for character in stripped)
+    punctuation = max(len(stripped) - letters - digits, 0)
+    if letters < 2 and punctuation > letters:
+        return False
+    if len(stripped) >= 12 and letters / len(stripped) < 0.18:
+        return False
+    words = stripped.split()
+    if len(words) >= 6:
+        repeated = sum(1 for index in range(1, len(words)) if words[index].lower() == words[index - 1].lower())
+        if repeated >= 2:
+            return False
+    return True
+
+
 def build_prompt(
     messages: list[ChatMessage],
     tools: list[dict[str, Any]] | None = None,
@@ -315,14 +336,28 @@ def chat(payload: ChatRequest, _: None = Depends(require_api_key)) -> dict[str, 
 
     prompt = build_prompt(payload.messages, payload.tools)
     model, tokenizer = LANGUAGE_MODEL
-    content, finish_reason = model.generate(
-        tokenizer,
-        prompt,
-        max_new_tokens=payload.max_tokens,
-        temperature=payload.temperature,
-        top_k=payload.top_k,
-    )
-    content = content.split("User:", 1)[0].strip()
+    content = ""
+    finish_reason = "length"
+    for attempt in range(3):
+        attempt_temperature = max(
+            0.35,
+            min(1.0, payload.temperature + (0.10 * attempt)),
+        )
+        candidate, candidate_finish = model.generate(
+            tokenizer,
+            prompt,
+            max_new_tokens=payload.max_tokens,
+            temperature=attempt_temperature,
+            top_k=payload.top_k,
+        )
+        candidate = candidate.split("User:", 1)[0].strip()
+        _, candidate_tool_calls = normalize_tool_call(candidate, payload.tools)
+        if candidate_tool_calls or response_looks_usable(candidate):
+            content = candidate
+            finish_reason = candidate_finish
+            break
+        logger.warning("Rejected low-quality Ori generation attempt %s: %r", attempt + 1, candidate[:160])
+
     content, tool_calls = normalize_tool_call(content, payload.tools)
     if not content and not tool_calls:
         raise HTTPException(status_code=502, detail="Ori's TensorFlow language model produced no usable text.")
