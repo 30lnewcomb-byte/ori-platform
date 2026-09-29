@@ -53,7 +53,7 @@ def main() -> None:
     args = parser.parse_args()
 
     artifact = Path(args.artifact)
-    tokenizer = OriTokenizer.load(artifact / "vocab.json")
+    tokenizer = OriTokenizer.load(artifact / "ori_tokenizer.model")
     config = OriLMConfig(
         **json.loads((artifact / "config.json").read_text(encoding="utf-8"))
     )
@@ -70,13 +70,39 @@ def main() -> None:
             row["prompt"],
             row["expected"],
         )
+        generated, finish_reason = model.generate(
+            tokenizer,
+            row["prompt"],
+            max_new_tokens=24,
+            temperature=0.0,
+            top_k=0,
+        )
+        expected_fragments = [
+            fragment.strip().lower()
+            for fragment in row.get("expected_fragments", [])
+            if isinstance(fragment, str) and fragment.strip()
+        ]
+        generation_match = (
+            any(fragment in generated.lower() for fragment in expected_fragments)
+            if expected_fragments
+            else False
+        )
         minimum = float(row.get("minimum_score", 0.0))
+        require_generation = bool(row.get("require_generation_match", False))
+        passed = score >= minimum and (
+            generation_match if require_generation else True
+        )
         details.append(
             {
                 "prompt": row["prompt"],
+                "expected": row["expected"],
                 "score": float(score),
                 "minimum_score": minimum,
-                "passed": score >= minimum,
+                "generated": generated,
+                "finish_reason": finish_reason,
+                "generation_match": generation_match,
+                "generation_required": require_generation,
+                "passed": passed,
             }
         )
 
