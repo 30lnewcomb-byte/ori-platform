@@ -250,7 +250,7 @@ def download_public_domain_english(max_chars: int = 360_000) -> list[str]:
     if max_chars < 10_000:
         raise ValueError("max_chars must be at least 10000")
 
-    book_budget = int(max_chars * 0.80)
+    book_budget = int(max_chars * 0.70)
     modern_budget = max_chars - book_budget
     per_source = max(20_000, book_budget // len(PUBLIC_DOMAIN_SOURCES))
     collected: list[str] = []
