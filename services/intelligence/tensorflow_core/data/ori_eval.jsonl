@@ -18,3 +18,9 @@
 {"prompt":"User: execute my test.py file in the sandbox Ori:","expected":"{\"tool\":\"run_sandbox_command\",\"command\":\"python\",\"args\":[\"test.py\"]}","minimum_score":0.04}
 {"prompt":"User: save a simple HTML page into the sandbox Ori:","expected":"{\"tool\":\"write_workspace_file\",\"path\":\"index.html\",\"content\":\"<h1>Hello</h1>\"}","minimum_score":0.04}
 {"prompt":"User: use the sandbox to check the Python version Ori:","expected":"{\"tool\":\"run_sandbox_command\",\"command\":\"python\",\"args\":[\"--version\"]}","minimum_score":0.04}
+{"prompt":"User: Hi Ori! Ori:","expected":"Hey! What’s up?","expected_fragments":["hey","hello"],"minimum_score":0.02,"require_generation_match":true}
+{"prompt":"User: hi Ori Ori:","expected":"Hey! What’s up?","expected_fragments":["hey","hello"],"minimum_score":0.02,"require_generation_match":true}
+{"prompt":"User: Hello Ori! Ori:","expected":"Hey! What are you working on?","expected_fragments":["hey","hello"],"minimum_score":0.02,"require_generation_match":true}
+{"prompt":"User: hey, Ori Ori:","expected":"Hey! What are you working on?","expected_fragments":["hey","hello"],"minimum_score":0.02,"require_generation_match":true}
+{"prompt":"User: Good morning, Ori. Ori:","expected":"Good morning! What are you working on?","expected_fragments":["good morning","morning","hey"],"minimum_score":0.02,"require_generation_match":true}
+{"prompt":"User: Are you there, Ori? Ori:","expected":"Yep. I’m here.","expected_fragments":["yes","yep","yeah","here"],"minimum_score":0.02,"require_generation_match":true}
