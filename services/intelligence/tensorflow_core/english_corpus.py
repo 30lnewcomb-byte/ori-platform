@@ -243,8 +243,6 @@ def everyday_english() -> list[str]:
 
 
 def download_public_domain_english(max_chars: int = 360_000) -> list[str]:
-    """Return a diverse bounded English corpus with strong modern-language exposure."""
-def download_public_domain_english(max_chars: int = 360_000) -> list[str]:
     """Return a diverse bounded English corpus with guaranteed modern-language exposure."""
 
     if max_chars < 10_000:
