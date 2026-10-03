@@ -111,14 +111,6 @@ pre,code,kbd,samp { font-family:var(--font-mono); }
   gap:10px;
 }
 
-.chatStatusDot {
-  width:8px;
-  height:8px;
-  flex:0 0 8px;
-  border-radius:50%;
-  background:var(--status-success);
-  box-shadow:0 0 0 4px color-mix(in srgb,var(--status-success) 10%,transparent);
-}
 
 .chatToolbarCopy {
   min-width:0;
@@ -184,18 +176,20 @@ pre,code,kbd,samp { font-family:var(--font-mono); }
 }
 
 .chatHistoryScrim {
-  position:absolute;
+  position:fixed;
   inset:0;
-  z-index:19;
+  z-index:39;
+  width:100vw;
+  height:100vh;
   border:0;
-  background:rgb(17 18 16 / 10%);
-  backdrop-filter:blur(1px);
-  cursor:default;
   padding:0;
+  background:rgb(17 18 16 / 24%);
+  backdrop-filter:blur(2px);
+  cursor:default;
 }
 
 .chatHistory {
-  z-index:20;
+  z-index:40;
 }
 
 @media (max-width:760px) {
