@@ -126,6 +126,20 @@ export default function ChatClient() {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
+    // Quietly wake Ori's TensorFlow runtime when the New Chat page opens.
+    // The request is intentionally fire-and-forget so the user never has to
+    // manage Render or wait on infrastructure UI.
+    void fetch('/api/intelligence/warmup', {
+      method: 'GET',
+      cache: 'no-store',
+      keepalive: true,
+    }).catch(() => {
+      // Sending a warmup is best-effort; the chat API performs its own
+      // runtime wake-up before generating a response.
+    })
+  }, [])
+
+  useEffect(() => {
     const loaded = readHistory()
     setConversations(loaded)
 
