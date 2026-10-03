@@ -89,3 +89,130 @@ pre,code,kbd,samp { font-family:var(--font-mono); }
   .chatHistoryHeader { padding:12px; }
   .chatHistoryDelete { opacity:1; }
 }
+
+.chatWorkspace { flex-direction:column; }
+
+.chatToolbar {
+  flex:0 0 auto;
+  min-height:58px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:8px 10px 6px;
+  border-bottom:1px solid var(--border-subtle);
+}
+
+.chatToolbarIdentity {
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.chatStatusDot {
+  width:8px;
+  height:8px;
+  flex:0 0 8px;
+  border-radius:50%;
+  background:var(--status-success);
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--status-success) 10%,transparent);
+}
+
+.chatToolbarCopy {
+  min-width:0;
+  display:grid;
+  gap:2px;
+}
+
+.chatToolbarEyebrow {
+  color:var(--text-muted);
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.15em;
+}
+
+.chatToolbarCopy strong {
+  max-width:min(52vw,620px);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:var(--text-primary);
+  font-size:13px;
+  font-weight:700;
+}
+
+.chatToolbarActions {
+  display:flex;
+  align-items:center;
+  gap:7px;
+  flex:0 0 auto;
+}
+
+.chatToolbarButton {
+  height:34px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid var(--border-subtle);
+  border-radius:9px;
+  padding:0 11px;
+  background:var(--surface-raised);
+  color:var(--text-secondary);
+  font-size:12px;
+  font-weight:750;
+  transition:background .16s ease,border-color .16s ease,color .16s ease,transform .16s ease;
+}
+
+.chatToolbarButton:hover:not(:disabled) {
+  border-color:#b8c7ef;
+  background:var(--accent-blue-soft);
+  color:var(--accent-blue-strong);
+  transform:translateY(-1px);
+}
+
+.chatToolbarButtonPrimary {
+  border-color:#c8d5ff;
+  background:var(--accent-blue-soft);
+  color:var(--accent-blue-strong);
+}
+
+.chatToolbarButton:disabled {
+  cursor:default;
+  opacity:.48;
+}
+
+.chatHistoryScrim {
+  position:absolute;
+  inset:0;
+  z-index:19;
+  border:0;
+  background:rgb(17 18 16 / 10%);
+  backdrop-filter:blur(1px);
+  cursor:default;
+  padding:0;
+}
+
+.chatHistory {
+  z-index:20;
+}
+
+@media (max-width:760px) {
+  .chatToolbar {
+    min-height:54px;
+    padding:7px 0 5px;
+  }
+
+  .chatToolbarCopy strong {
+    max-width:45vw;
+  }
+
+  .chatToolbarButton {
+    padding:0 9px;
+    font-size:11px;
+  }
+
+  .chatToolbarButtonPrimary {
+    display:none;
+  }
+}
