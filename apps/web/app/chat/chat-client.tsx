@@ -348,9 +348,33 @@ export default function ChatClient() {
   const currentTitle = messages.length > 0
     ? titleFromConversation(messages)
     : ''
+  const toolbarTitle = currentTitle || 'New Chat'
 
   return (
     <div className="chatWorkspace">
+      <header className="chatToolbar">
+        <div className="chatToolbarIdentity">
+          <span className="chatStatusDot" aria-hidden="true" />
+          <div className="chatToolbarCopy">
+            <span className="chatToolbarEyebrow">ORI</span>
+            <strong>{toolbarTitle}</strong>
+          </div>
+        </div>
+        <div className="chatToolbarActions">
+          <button type="button" className="chatToolbarButton" onClick={openNewChat} disabled={busy}>
+            New chat
+          </button>
+          <button
+            type="button"
+            className="chatToolbarButton chatToolbarButtonPrimary"
+            onClick={() => setHistoryOpen(true)}
+            disabled={busy}
+          >
+            History{conversations.length ? ` · ${conversations.length}` : ''}
+          </button>
+        </div>
+      </header>
+
       <div className={messages.length === 0 ? 'chatMain empty' : 'chatMain'}>
         {messages.length === 0 ? (
           <div className="emptyChatStage">
@@ -456,6 +480,15 @@ export default function ChatClient() {
           </>
         )}
       </div>
+
+      {historyOpen && (
+        <button
+          type="button"
+          className="chatHistoryScrim"
+          aria-label="Close chat history"
+          onClick={() => setHistoryOpen(false)}
+        />
+      )}
 
       <aside
         className={historyOpen ? 'chatHistory open' : 'chatHistory'}
