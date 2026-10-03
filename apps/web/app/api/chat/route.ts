@@ -12,6 +12,23 @@ type ToolCall = { id: string; type: 'function'; function: { name: string; argume
 const INTELLIGENCE_URL = process.env.ORI_INTELLIGENCE_URL?.trim().replace(/\/$/, '')
 const INTELLIGENCE_API_KEY = process.env.ORI_INTELLIGENCE_API_KEY?.trim()
 
+async function ensureIntelligenceRuntimeAwake() {
+  if (!INTELLIGENCE_URL || !INTELLIGENCE_API_KEY) return false
+
+  try {
+    const response = await fetch(`${INTELLIGENCE_URL}/health`, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${INTELLIGENCE_API_KEY}` },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(70_000),
+    })
+    return response.ok
+  } catch (error) {
+    console.warn('Ori TensorFlow runtime wake-up failed:', error)
+    return false
+  }
+}
+
 const INTERNAL_TOOLS = [
   { type: 'function', function: { name: 'run_sandbox_command', description: "Internal Ori capability: run a safe command inside Ori's private isolated workspace. Do not describe infrastructure details to the user.", parameters: { type: 'object', properties: { command: { type: 'string' }, args: { type: 'array', items: { type: 'string' } } }, required: ['command'] } } },
   { type: 'function', function: { name: 'write_workspace_file', description: "Internal Ori capability: write a text file into Ori's private isolated workspace.", parameters: { type: 'object', properties: { path: { type: 'string' }, content: { type: 'string' } }, required: ['path', 'content'] } } },
@@ -87,6 +104,16 @@ export async function POST(request: Request) {
   ]
 
   try {
+    // Render may suspend the free TensorFlow service when idle. Wake it from
+    // the server side so the browser never needs to know about the service.
+    const runtimeAwake = await ensureIntelligenceRuntimeAwake()
+    if (!runtimeAwake) {
+      return NextResponse.json(
+        { error: 'Ori could not wake its TensorFlow intelligence runtime.', code: 'INTELLIGENCE_WAKE_FAILED' },
+        { status: 502 },
+      )
+    }
+
     let finalData: any = null
 
     // Bounded internal tool loop. Tool calls are proposed by the intelligence
