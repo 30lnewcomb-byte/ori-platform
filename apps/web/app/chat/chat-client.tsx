@@ -354,7 +354,6 @@ export default function ChatClient() {
     <div className="chatWorkspace">
       <header className="chatToolbar">
         <div className="chatToolbarIdentity">
-          <span className="chatStatusDot" aria-hidden="true" />
           <div className="chatToolbarCopy">
             <span className="chatToolbarEyebrow">ORI</span>
             <strong>{toolbarTitle}</strong>
