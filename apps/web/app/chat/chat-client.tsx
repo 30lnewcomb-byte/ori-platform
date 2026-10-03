@@ -418,12 +418,6 @@ export default function ChatClient() {
           </div>
         ) : (
           <>
-            {currentTitle && (
-              <div className="chatSessionBar">
-                <span className="chatSessionTitle">{currentTitle}</span>
-              </div>
-            )}
-
             <section ref={conversationRef} className="conversation" aria-label="Conversation" aria-live="polite">
               {messages.map((message, index) => (
                 <div className={'messageRow ' + message.role} key={message.role + '-' + index}>
