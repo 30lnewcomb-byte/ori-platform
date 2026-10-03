@@ -91,6 +91,7 @@ pre,code,kbd,samp { font-family:var(--font-mono); }
 }
 
 .chatWorkspace { flex-direction:column; }
+.chatMain { flex:1; }
 
 .chatToolbar {
   flex:0 0 auto;
