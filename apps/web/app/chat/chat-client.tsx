@@ -107,6 +107,7 @@ function readHistory(): Conversation[] {
 function writeHistory(conversations: Conversation[]) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations.slice(0, MAX_CONVERSATIONS)))
+    window.dispatchEvent(new Event('ori:history-changed'))
   } catch {
     // Chat still works when browser storage is unavailable.
   }
@@ -146,7 +147,9 @@ export default function ChatClient() {
     const params = new URLSearchParams(window.location.search)
     const requestedId = params.get('chat')
     const forceNew = params.get('new') === '1'
+    const openHistory = params.get('history') === '1'
     const requestedChat = loaded.find((chat) => chat.id === requestedId)
+    setHistoryOpen(openHistory)
 
     if (requestedChat && !forceNew) {
       setCurrentChatId(requestedChat.id)
@@ -348,32 +351,9 @@ export default function ChatClient() {
   const currentTitle = messages.length > 0
     ? titleFromConversation(messages)
     : ''
-  const toolbarTitle = currentTitle || 'New Chat'
 
   return (
     <div className="chatWorkspace">
-      <header className="chatToolbar">
-        <div className="chatToolbarIdentity">
-          <div className="chatToolbarCopy">
-            <span className="chatToolbarEyebrow">ORI</span>
-            <strong>{toolbarTitle}</strong>
-          </div>
-        </div>
-        <div className="chatToolbarActions">
-          <button type="button" className="chatToolbarButton" onClick={openNewChat} disabled={busy}>
-            New chat
-          </button>
-          <button
-            type="button"
-            className="chatToolbarButton chatToolbarButtonPrimary"
-            onClick={() => setHistoryOpen(true)}
-            disabled={busy}
-          >
-            History{conversations.length ? ` · ${conversations.length}` : ''}
-          </button>
-        </div>
-      </header>
-
       <div className={messages.length === 0 ? 'chatMain empty' : 'chatMain'}>
         {messages.length === 0 ? (
           <div className="emptyChatStage">
@@ -418,6 +398,7 @@ export default function ChatClient() {
         ) : (
           <>
             <section ref={conversationRef} className="conversation" aria-label="Conversation" aria-live="polite">
+              <div className="conversationHeading">{currentTitle}</div>
               {messages.map((message, index) => (
                 <div className={'messageRow ' + message.role} key={message.role + '-' + index}>
                   {message.role === 'user' ? (
