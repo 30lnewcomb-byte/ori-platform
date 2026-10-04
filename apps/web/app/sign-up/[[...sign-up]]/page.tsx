@@ -5,7 +5,8 @@ export default function SignUpPage() {
     <main className="authPage">
       <div className="authBrand">ORI</div>
       <SignUp
-        forceRedirectUrl="/onboarding"\n        signInForceRedirectUrl="/chat"
+        forceRedirectUrl="/onboarding"
+        signInForceRedirectUrl="/chat"
         fallbackRedirectUrl="/"
         appearance={{
           variables: {
