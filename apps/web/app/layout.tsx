@@ -4,15 +4,15 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'Ori',
-  description: 'The Ori platform.',
+  description: 'Ori is a focused AI platform for thinking, building, coding, and creating.',
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body>{children}</body>
-      </html>
-    </ClerkProvider>
+    <html lang="en">
+      <body>
+        <ClerkProvider>{children}</ClerkProvider>
+      </body>
+    </html>
   )
 }
