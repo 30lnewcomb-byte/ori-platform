@@ -16,7 +16,6 @@ type NavItem = { label: string; href: string }
 
 const toolItems: NavItem[] = [
   { label: 'Chat', href: '/chat?new=1' },
-  { label: 'Developer', href: '/developer' },
 ]
 
 function readLocalRecentChats(): SidebarChat[] {
@@ -167,15 +166,6 @@ export default function AppShell({
         </div>
 
         <div className={styles.sidebarBottom}>
-          <details className={styles.moreMenu}>
-            <summary className={styles.moreButton} aria-label="More options">•••</summary>
-            <div className={styles.morePanel}>
-              <a href="/developer/docs/ori" className={styles.moreItem}>
-                <strong>About Ori</strong>
-                <span>Read the system reference</span>
-              </a>
-            </div>
-          </details>
           <div className={styles.sidebarFooter}>Ori Platform</div>
         </div>
       </aside>
@@ -184,7 +174,6 @@ export default function AppShell({
         <a href="/" className={active === 'Home' ? styles.mobileActive : ''}>Home</a>
         <a href="/chat?new=1">New chat</a>
         <a href="/chat?history=1" className={active === 'Chat' ? styles.mobileActive : ''}>Chats</a>
-        <a href="/developer">Developer</a>
         <Show when="signed-out"><a href="/sign-in">Sign in</a></Show>
         <Show when="signed-in"><span className={styles.mobileAccount}><UserButton /></span></Show>
       </nav>
