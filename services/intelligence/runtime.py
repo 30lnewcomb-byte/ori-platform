@@ -458,7 +458,11 @@ def chat(payload: ChatRequest, _: None = Depends(require_api_key)) -> dict[str, 
             temperature=attempt_temperature,
             top_k=payload.top_k,
         )
-        candidate = candidate.split("User:", 1)[0].strip()
+        # Keep role markers and tool-channel text from leaking into the
+        # user-facing answer when the small model samples them.
+        for marker in ("User:", "Tool:"):
+            candidate = candidate.split(marker, 1)[0].strip()
+        candidate = re.sub(r"^Ori:\s*", "", candidate).strip()
         _, candidate_tool_calls = normalize_tool_call(candidate, payload.tools)
         if candidate_tool_calls or response_looks_usable(candidate):
             content = candidate
