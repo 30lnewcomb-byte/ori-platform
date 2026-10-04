@@ -1,13 +1,28 @@
 import { SignIn } from '@clerk/nextjs'
 
-export default function SignInPage() {
+function getSafeRedirect(value: string | string[] | undefined) {
+  const redirect = Array.isArray(value) ? value[0] : value
+  if (!redirect || !redirect.startsWith('/') || redirect.startsWith('//')) {
+    return '/chat'
+  }
+  return redirect
+}
+
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirect_url?: string | string[] }>
+}) {
+  const { redirect_url } = await searchParams
+  const redirectUrl = getSafeRedirect(redirect_url)
+
   return (
     <main className="authPage">
       <div className="authBrand">ORI</div>
       <SignIn
-        forceRedirectUrl="/chat"
+        forceRedirectUrl={redirectUrl}
         signUpForceRedirectUrl="/onboarding"
-        fallbackRedirectUrl="/"
+        fallbackRedirectUrl="/chat"
         appearance={{
           variables: {
             colorPrimary: '#183A73',
