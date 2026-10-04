@@ -1,6 +1,6 @@
 'use client'
 
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs'
+import { Show, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs'
 import { useEffect, useState, type ReactNode } from 'react'
 import styles from './app-shell.module.css'
 
@@ -148,7 +148,7 @@ export default function AppShell({
         </div>
 
         <div className={styles.accountArea}>
-          <SignedOut>
+          <Show when="signed-out">
             <div className={styles.authLinks}>
               <SignInButton mode="redirect" forceRedirectUrl="/chat">
                 <button type="button" className={styles.authButton}>Sign in</button>
@@ -157,13 +157,13 @@ export default function AppShell({
                 <button type="button" className={styles.authPrimary}>Create account</button>
               </SignUpButton>
             </div>
-          </SignedOut>
-          <SignedIn>
+          </Show>
+          <Show when="signed-in">
             <div className={styles.accountRow}>
               <span className={styles.accountLabel}>Account</span>
               <UserButton />
             </div>
-          </SignedIn>
+          </Show>
         </div>
 
         <div className={styles.sidebarBottom}>
