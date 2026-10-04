@@ -202,7 +202,8 @@ def everyday_english() -> list[str]:
                 sentences.append(f"{person} can {task} {context}.")
                 sentences.append(f"{person} should {task} {context}.")
                 sentences.append(f"{person} will {task} {context}.")
-                sentences.append(f"Can {person.lower()} {task} {context}?")
+                question_person = person if person == "I" else person.lower()
+                sentences.append(f"Can {question_person} {task} {context}?")
 
     common = [
         "I don't know.", "I can't find it.", "I can't open the file.",
