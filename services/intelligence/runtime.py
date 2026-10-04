@@ -515,15 +515,6 @@ def chat(payload: ChatRequest, _: None = Depends(require_api_key)) -> dict[str, 
         "finish_reason": finish_reason,
         "tool_calls": tool_calls,
     }
-, "", candidate).strip()
-    candidate = re.sub(r"[.!?,:;]+$", "", candidate).strip()
-    words = candidate.split()
-    if not words:
-        raise HTTPException(status_code=502, detail="Ori's TensorFlow language model produced no usable title.")
-    if len(words) > 7:
-        candidate = " ".join(words[:7])
-    return {"title": candidate[:56], "model": "ori-small", "version": APP_VERSION}
-
 
 @app.get("/")
 def root() -> dict[str, Any]:
