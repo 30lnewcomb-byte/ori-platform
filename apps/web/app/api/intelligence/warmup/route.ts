@@ -1,9 +1,15 @@
+import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 
 const INTELLIGENCE_URL = process.env.ORI_INTELLIGENCE_URL?.trim().replace(/\/$/, '') || 'https://ori-tensorflow-runtime.onrender.com'
 const INTELLIGENCE_API_KEY = process.env.ORI_INTELLIGENCE_API_KEY?.trim()
 
 export async function GET() {
+  const { userId } = await auth()
+  if (!userId) {
+    return NextResponse.json({ ok: false, code: 'UNAUTHORIZED' }, { status: 401 })
+  }
+
   if (!INTELLIGENCE_URL || !INTELLIGENCE_API_KEY) {
     return NextResponse.json({ ok: false, code: 'INTELLIGENCE_NOT_CONFIGURED' }, { status: 503 })
   }
