@@ -22,8 +22,10 @@ export async function GET() {
       LIMIT 100
     `
 
+    const conversationRows = rows as Array<Record<string, any>>
+
     return NextResponse.json({
-      conversations: rows.map((row: any) => ({
+      conversations: conversationRows.map((row: any) => ({
         id: row.id,
         title: row.title,
         messages: Array.isArray(row.messages) ? row.messages : [],
