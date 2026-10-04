@@ -52,21 +52,20 @@ function makeId() {
   return 'chat-' + Date.now() + '-' + Math.random().toString(36).slice(2)
 }
 
-function titleFromConversation(messages: Message[]) {
-  const userMessages = messages
-    .filter((message) => message.role === 'user')
-    .slice(0, 3)
-    .map((message) => message.content.replace(/^\s*\/\S+\s*$/, '').replace(/\s+/g, ' ').trim())
-    .filter(Boolean)
+async function requestOriTitle(messages: Message[]) {
+  const response = await fetch('/api/chat/title', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages: messages.slice(0, 6) }),
+    cache: 'no-store',
+  })
 
-  if (!userMessages.length) return 'New chat'
+  const data = await response.json()
+  if (!response.ok || typeof data?.title !== 'string' || !data.title.trim()) {
+    throw new Error(data?.error ?? 'Ori could not name this conversation.')
+  }
 
-  const substantive = userMessages
-    .filter((message) => message.length >= 12)
-    .sort((a, b) => b.length - a.length)[0]
-
-  const clean = substantive ?? userMessages[0]
-  return clean.length > 48 ? clean.slice(0, 48).trim() + '…' : clean
+  return data.title.trim()
 }
 
 function formatDate(timestamp: number) {
@@ -125,6 +124,7 @@ export default function ChatClient() {
   const [emptyPrompt, setEmptyPrompt] = useState('What’s on your mind today?')
   const conversationRef = useRef<HTMLElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const titleRequestRef = useRef(0)
 
   useEffect(() => {
     // Quietly wake Ori's TensorFlow runtime when the New Chat page opens.
@@ -220,7 +220,7 @@ export default function ChatClient() {
       const existing = existingIndex >= 0 ? current[existingIndex] : undefined
       const nextConversation: Conversation = {
         id: currentChatId,
-        title: titleFromConversation(messages),
+        title: existing?.title || 'New chat',
         messages,
         createdAt: existing?.createdAt ?? Date.now(),
         updatedAt: Date.now(),
@@ -238,6 +238,7 @@ export default function ChatClient() {
       return next.slice(0, MAX_CONVERSATIONS)
     })
   }, [messages, currentChatId, historyReady])
+
 
   function openNewChat() {
     if (busy) return
@@ -339,7 +340,34 @@ export default function ChatClient() {
         throw new Error(data?.error ?? 'Ori could not respond.')
       }
 
-      setMessages((current) => [...current, { role: 'assistant', content: data.content }])
+      const assistantMessage = { role: 'assistant' as const, content: data.content }
+      const completedMessages = [...nextMessages, assistantMessage]
+      setMessages(completedMessages)
+
+      const userTurnCount = completedMessages.filter((message) => message.role === 'user').length
+      if (userTurnCount <= 3) {
+        const requestId = ++titleRequestRef.current
+        void requestOriTitle(completedMessages)
+          .then((title) => {
+            if (requestId !== titleRequestRef.current) return
+            setConversations((current) => {
+              const index = current.findIndex((chat) => chat.id === currentChatId)
+              if (index < 0) return current
+
+              const next = [...current]
+              next[index] = {
+                ...next[index],
+                title,
+                updatedAt: Date.now(),
+              }
+              writeHistory(next)
+              return next
+            })
+          })
+          .catch(() => {
+            // Conversation remains usable with the temporary "New chat" title.
+          })
+      }
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Ori could not respond.')
     } finally {
@@ -348,9 +376,7 @@ export default function ChatClient() {
     }
   }
 
-  const currentTitle = messages.length > 0
-    ? titleFromConversation(messages)
-    : ''
+  const currentTitle = conversations.find((chat) => chat.id === currentChatId)?.title ?? (messages.length > 0 ? 'New chat' : '')
 
   return (
     <div className="chatWorkspace">
