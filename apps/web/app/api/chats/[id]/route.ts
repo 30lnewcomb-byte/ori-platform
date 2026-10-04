@@ -22,7 +22,7 @@ function cleanMessages(value: unknown): Message[] | null {
 
 function cleanTitle(value: unknown) {
   if (typeof value !== 'string') return null
-  const title = value.replace(/s+/g, ' ').trim()
+  const title = value.replace(/\s+/g, ' ').trim()
   if (!title) return null
   return title.slice(0, 56)
 }
