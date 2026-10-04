@@ -190,6 +190,7 @@ export default function ChatClient() {
       const effectiveChats = loaded ?? localChats
       if (!active) return
 
+      writeHistory(effectiveChats)
       setConversations(effectiveChats)
 
       const params = new URLSearchParams(window.location.search)
@@ -269,7 +270,7 @@ export default function ChatClient() {
   useEffect(() => {
     if (!historyReady || !currentChatId || messages.length === 0) return
 
-    const existing = conversations.find((chat) => chat.id === currentChatId)
+    const existing = readHistory().find((chat) => chat.id === currentChatId)
     const nextConversation: Conversation = {
       id: currentChatId,
       title: existing?.title || 'New chat',
@@ -294,7 +295,7 @@ export default function ChatClient() {
     })
 
     void saveServerConversation(nextConversation)
-  }, [messages, currentChatId, historyReady, conversations])
+  }, [messages, currentChatId, historyReady])
 
 
   function openNewChat() {
