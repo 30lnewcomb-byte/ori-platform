@@ -84,7 +84,6 @@ export default async function LandingPage() {
 
       <footer className={styles.footer}>
         <span>ORI PLATFORM</span>
-        <a href="/developer/docs/ori">About Ori</a>
       </footer>
     </main>
   )
