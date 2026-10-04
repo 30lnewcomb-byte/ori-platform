@@ -1,6 +1,6 @@
 # Ori Platform
 
-The open-source foundation for Ori: a user-owned AI platform with a professional web interface, Ori World, a Developer Platform, tools, and native learned intelligence.
+The open-source foundation for Ori: a user-owned AI platform with a professional web interface, Ori World, tools, and native learned intelligence.
 
 ## Design principles
 
@@ -30,11 +30,6 @@ packages/
   typography/          # Ori type family and font tooling
   shared/              # shared types and utilities
 
-dev-platform/
-  architecture.md      # Developer Platform architecture
-  roadmap.md           # implementation roadmap
-  docs/                # canonical Developer Docs source
-
 world/
   README.md            # Ori World design and implementation boundary
 
@@ -50,15 +45,11 @@ Ori World is a small, purpose-built working environment for Ori. It is designed 
 
 The current web route remains `/sandbox` because the route predates the product name; the user-facing navigation label is **Ori World everywhere**. The server-side VM connection layer is now prepared through `apps/web/lib/ori-vm.ts`; full chat/tool orchestration remains a separate integration step.
 
-## Developer Platform
+## Product boundaries
 
-The Developer Platform is a first-class part of Ori Platform, but it is its **own product experience inside the same URL**. It has a dedicated developer shell, top-level tabs, workspace, and documentation experience while sharing the underlying Ori Platform.
+The **Ori Developer Platform** now lives in its own repository and Vercel project. This repository is intentionally focused on the user-facing Ori workspace: Home, Chat, account onboarding, conversation persistence, intelligence access, and controlled runtime integrations.
 
-The entry point lives in the normal Ori sidebar's **••• menu** near the bottom-left, keeping the primary assistant navigation focused on everyday Ori work. Entering Developer changes the interface into the specialized Developer Platform rather than opening a new browser tab.
-
-The canonical Developer Docs source lives under `dev-platform/docs/`. The Next.js route under `apps/web/app/developer/docs/` is only the web presentation layer.
-
-The platform and its documentation must clearly distinguish implemented capabilities from planned work.
+Developer projects, API credentials, model/tool administration, activity, and developer documentation belong to the separate Developer Platform product.
 
 ## UI direction
 
@@ -101,7 +92,7 @@ Use `.env.example` as the reference for server-side configuration. Real credenti
 
 The live product is deliberately focused on Home and Chat. Chat now has local browser history, New Chat, automatic titles, reopening, and deletion.
 
-The Developer Platform and its documentation are active product surfaces. The native TensorFlow runtime boundary and first learned models are in place. Public developer authentication, public API credentials, durable developer projects, public SDKs, and complete Ori World orchestration remain in development.
+The native TensorFlow runtime boundary and first learned models are in place. Complete Ori World orchestration remains in development. Developer projects, API credentials, model/tool administration, and developer documentation are maintained in the separate Developer Platform repository.
 
 
 ## Ori VM connection
