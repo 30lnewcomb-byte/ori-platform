@@ -151,7 +151,7 @@ export default function AppShell({
               <SignInButton mode="redirect" forceRedirectUrl="/chat">
                 <button type="button" className={styles.authButton}>Sign in</button>
               </SignInButton>
-              <SignUpButton mode="redirect" forceRedirectUrl="/chat">
+              <SignUpButton mode="redirect" forceRedirectUrl="/onboarding">
                 <button type="button" className={styles.authPrimary}>Create account</button>
               </SignUpButton>
             </div>
