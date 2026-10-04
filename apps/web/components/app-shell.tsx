@@ -161,7 +161,7 @@ export default function AppShell({
           <SignedIn>
             <div className={styles.accountRow}>
               <span className={styles.accountLabel}>Account</span>
-              <UserButton afterSignOutUrl="/" />
+              <UserButton />
             </div>
           </SignedIn>
         </div>
@@ -186,7 +186,7 @@ export default function AppShell({
         <a href="/chat?history=1" className={active === 'Chat' ? styles.mobileActive : ''}>Chats</a>
         <a href="/developer">Developer</a>
         <SignedOut><a href="/sign-in">Sign in</a></SignedOut>
-        <SignedIn><span className={styles.mobileAccount}><UserButton afterSignOutUrl="/" /></span></SignedIn>
+        <SignedIn><span className={styles.mobileAccount}><UserButton /></span></SignedIn>
       </nav>
 
       <section className={contentClass}>{children}</section>
