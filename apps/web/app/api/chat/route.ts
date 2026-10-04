@@ -1,3 +1,4 @@
+import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import { prewarmOriVmForIntent, runInOriVm, writeToOriVm } from '../../../lib/ori-vm'
 
@@ -79,6 +80,11 @@ async function executeTool(call: ToolCall) {
 }
 
 export async function POST(request: Request) {
+  const { userId } = await auth()
+  if (!userId) {
+    return NextResponse.json({ error: 'Sign in required.', code: 'UNAUTHORIZED' }, { status: 401 })
+  }
+
   if (!INTELLIGENCE_URL || !INTELLIGENCE_API_KEY) {
     return NextResponse.json({ error: 'Ori TensorFlow intelligence runtime is not configured yet.', code: 'INTELLIGENCE_NOT_CONFIGURED' }, { status: 503 })
   }
