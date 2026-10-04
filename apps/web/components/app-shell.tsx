@@ -1,5 +1,6 @@
 'use client'
 
+import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs'
 import { useEffect, useState, type ReactNode } from 'react'
 import styles from './app-shell.module.css'
 
@@ -11,14 +12,12 @@ type SidebarChat = {
 
 type NavItem = { label: string; href: string }
 
-const STORAGE_KEY = 'ori.chat.history.v1'
-
 const toolItems: NavItem[] = [
   { label: 'Chat', href: '/chat?new=1' },
   { label: 'Developer', href: '/developer' },
 ]
 
-function readRecentChats(): SidebarChat[] {
+function readLocalRecentChats(): SidebarChat[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return []
@@ -67,11 +66,29 @@ export default function AppShell({
   const [recentChats, setRecentChats] = useState<SidebarChat[]>([])
 
   useEffect(() => {
-    const syncHistory = () => setRecentChats(readRecentChats())
-    syncHistory()
+    let active = true
+
+    const syncHistory = async () => {
+      try {
+        const response = await fetch('/api/chats', { cache: 'no-store' })
+        if (response.ok) {
+          const data = await response.json()
+          const serverChats = Array.isArray(data?.conversations) ? data.conversations : []
+          if (active) setRecentChats(serverChats.slice(0, 8))
+          return
+        }
+      } catch {
+        // Fall back to the local cache if the account database is unavailable.
+      }
+
+      if (active) setRecentChats(readLocalRecentChats())
+    }
+
+    void syncHistory()
     window.addEventListener('ori:history-changed', syncHistory)
     window.addEventListener('storage', syncHistory)
     return () => {
+      active = false
       window.removeEventListener('ori:history-changed', syncHistory)
       window.removeEventListener('storage', syncHistory)
     }
@@ -128,6 +145,25 @@ export default function AppShell({
           )}
         </div>
 
+        <div className={styles.accountArea}>
+          <SignedOut>
+            <div className={styles.authLinks}>
+              <SignInButton mode="redirect" forceRedirectUrl="/chat">
+                <button type="button" className={styles.authButton}>Sign in</button>
+              </SignInButton>
+              <SignUpButton mode="redirect" forceRedirectUrl="/onboarding">
+                <button type="button" className={styles.authPrimary}>Create account</button>
+              </SignUpButton>
+            </div>
+          </SignedOut>
+          <SignedIn>
+            <div className={styles.accountRow}>
+              <span className={styles.accountLabel}>Account</span>
+              <UserButton afterSignOutUrl="/" />
+            </div>
+          </SignedIn>
+        </div>
+
         <div className={styles.sidebarBottom}>
           <details className={styles.moreMenu}>
             <summary className={styles.moreButton} aria-label="More options">•••</summary>
@@ -147,6 +183,8 @@ export default function AppShell({
         <a href="/chat?new=1">New chat</a>
         <a href="/chat?history=1" className={active === 'Chat' ? styles.mobileActive : ''}>Chats</a>
         <a href="/developer">Developer</a>
+        <SignedOut><a href="/sign-in">Sign in</a></SignedOut>
+        <SignedIn><span className={styles.mobileAccount}><UserButton afterSignOutUrl="/" /></span></SignedIn>
       </nav>
 
       <section className={contentClass}>{children}</section>

@@ -21,7 +21,16 @@
 .emptyChats { padding:8px 10px; color:var(--text-muted); font-size:11px; line-height:1.45; border-radius:8px; }
 .emptyChats:hover { background:var(--surface-base); color:var(--text-secondary); }
 
-.sidebarBottom { position:relative; margin-top:auto; }
+.accountArea { display:grid; gap:8px; padding:0 2px 12px; }
+.authLinks { display:grid; gap:6px; }
+.authButton,.authPrimary { width:100%; min-height:36px; border-radius:9px; padding:8px 10px; font-size:12px; font-weight:750; }
+.authButton { border:1px solid var(--border-subtle); background:var(--surface-raised); color:var(--text-primary); }
+.authPrimary { border:1px solid var(--accent-blue); background:var(--accent-blue); color:#fff; }
+.authButton:hover { background:var(--surface-base); border-color:#b9c5d6; }
+.authPrimary:hover { background:var(--accent-blue-strong); }
+.accountRow { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:4px 6px 4px 10px; border:1px solid var(--border-subtle); border-radius:9px; }
+.accountLabel { color:var(--text-secondary); font-size:11px; font-weight:700; }
+.sidebarBottom { position:relative; margin-top:12px; }
 .sidebarFooter { padding:11px 10px 0; color:var(--text-muted); font-size:11px; }
 .moreMenu { position:relative; }
 .moreMenu summary { list-style:none; }
@@ -40,8 +49,12 @@
 @media (max-width:760px) {
   .shell { display:block; padding-bottom:64px; }
   .sidebar { display:none; }
-  .mobileNav { position:fixed; z-index:30; right:0; bottom:0; left:0; height:64px; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:2px; padding:6px 8px; background:var(--surface-raised); border-top:1px solid var(--border-subtle); }
+  .mobileNav { position:fixed; z-index:30; right:0; bottom:0; left:0; min-height:64px; display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:2px; padding:6px 6px; background:var(--surface-raised); border-top:1px solid var(--border-subtle); }
   .mobileNav a { display:grid; place-items:center; min-width:0; border-radius:8px; color:var(--text-secondary); font-size:10px; text-align:center; }
   .mobileNav a:hover,.mobileNav a.mobileActive { background:var(--accent-blue-soft); color:var(--accent-blue-strong); }
   .content { padding:24px 18px 34px; }
 }
+
+.mobileAccount { display:grid; place-items:center; }
+.authPage { min-height:100vh; display:grid; place-items:center; padding:28px 18px; background:var(--surface-base); color:var(--text-primary); }
+.authBrand { position:fixed; top:24px; left:28px; font-family:var(--font-display); font-size:18px; font-weight:800; letter-spacing:.18em; color:var(--text-primary); }
