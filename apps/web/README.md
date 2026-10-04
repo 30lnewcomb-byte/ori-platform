@@ -12,6 +12,6 @@ The web application for the Ori platform.
 
 ## First implementation target
 
-Build the responsive application shell and Home experience first. Chat, Projects, Sandbox, Developer, and Settings should plug into the same shell rather than creating separate navigation systems.
+Build the responsive application shell and Home experience first. Chat and the user-facing workspace should plug into the same shell. Developer controls are maintained by the separate Ori Developer Platform.
 
 This directory is intentionally a foundation until the application bootstrap is added.
