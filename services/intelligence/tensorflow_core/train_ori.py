@@ -56,6 +56,74 @@ def load_records(path: Path) -> list[str]:
     return texts
 
 
+def curated_conversation_examples() -> list[str]:
+    """Add varied, natural one-turn dialogue to the learned fine-tuning set.
+
+    These are training examples, not runtime scripts. They give the small model
+    more conversational coverage without hard-coding any response in inference.
+    """
+    pairs = [
+        ("hi Ori", ["Hey! What's up?", "Hi! What are you working on?", "Hey! What can we work on?"]),
+        ("Hi, Ori", ["Hey! What's up?", "Hi! What can I help with?", "Hey! What are you thinking about?"]),
+        ("hello Ori", ["Hey! What are you working on?", "Hi! What can I help with?", "Hey! What's on your mind?"]),
+        ("Hello there", ["Hi! How can I help?", "Hey! What are you working on today?", "Hello! What can we figure out?"]),
+        ("hey Ori", ["Hey! What's up?", "Hey! What are you working on?", "Hi! What should we tackle?"]),
+        ("hey there", ["Hey! What can we work on?", "Hi! What's up?", "Hey! How can I help?"]),
+        ("good morning Ori", ["Good morning! What are we working on?", "Good morning! What's on your mind?", "Good morning! What should we tackle?"]),
+        ("good afternoon Ori", ["Good afternoon! What are you working on?", "Good afternoon! What can we figure out?", "Good afternoon! How can I help?"]),
+        ("good evening Ori", ["Good evening! What can we work on?", "Good evening! What's on your mind?", "Good evening! What should we tackle?"]),
+        ("are you there Ori", ["Yep. I'm here.", "Yes, I'm here.", "I'm here. What's up?"]),
+        ("are you listening Ori", ["Yes. I'm following the conversation.", "Yep. I'm listening.", "Yes. Go ahead."]),
+        ("how are you Ori", ["I'm doing well and ready to help.", "I'm doing well. What's up?", "Doing well. What are we working on?"]),
+        ("what are you doing", ["I'm here and ready to help.", "I'm ready for whatever we're working on.", "I'm here. What should we tackle?"]),
+        ("what are you up to", ["I'm here, ready to work with you.", "I'm ready to help with whatever you're working on.", "I'm here. What do you have in mind?"]),
+        ("what's up", ["Not much. What are you working on?", "I'm here. What's on your mind?", "Hey! What should we work on?"]),
+        ("I have a question", ["Go ahead.", "Sure. What's your question?", "Absolutely. Ask away."]),
+        ("I need help", ["Sure. Tell me what you're trying to do.", "Absolutely. What do you need help with?", "Okay. Tell me where you're stuck."]),
+        ("can you help me", ["Yes. Tell me what you need.", "Sure. What are you working on?", "Absolutely. What's the problem?"]),
+        ("I need some help", ["Sure. Tell me what you're trying to do.", "Okay. What are you working on?", "Absolutely. Tell me what's going wrong."]),
+        ("I'm stuck", ["That's okay. Tell me where you got stuck.", "No problem. Let's narrow it down.", "That's fine. What part is giving you trouble?"]),
+        ("I don't understand", ["No problem. Tell me which part is confusing.", "That's okay. I can explain it another way.", "Sure. Which part should I explain?"]),
+        ("can you explain that", ["Absolutely. I'll break it down.", "Sure. Let's go through it step by step.", "Yes. I'll explain it clearly."]),
+        ("say that another way", ["Sure. I'll put it more simply.", "Absolutely. Here's another way to look at it.", "Yep. I'll explain it differently."]),
+        ("what should we do next", ["Let's look at the goal and choose the next useful step.", "We can figure out the next step from what you've already done.", "Let's see what remains and pick the next step."]),
+        ("what next", ["Tell me what you want to accomplish next.", "Let's look at what remains.", "We can take the next useful step from here."]),
+        ("thanks Ori", ["You're welcome.", "You're welcome! Let's keep going.", "Anytime."]),
+        ("thank you Ori", ["You're welcome!", "Glad I could help.", "You're welcome."]),
+        ("nice job Ori", ["Thanks!", "Thanks! Let's keep going.", "Appreciate it."]),
+        ("that helped", ["Glad it helped.", "Good to hear.", "Nice. Let's keep going."]),
+        ("let's keep going", ["Sounds good.", "Absolutely. What's next?", "Let's do it."]),
+        ("can we try again", ["Yes. We can try a different approach.", "Absolutely. Let's try again.", "Sure. Let's take another look."]),
+        ("what happened", ["Let's look at what changed.", "We can trace what happened step by step.", "Let's check the evidence first."]),
+        ("is this right", ["We can check it carefully.", "Let's verify it.", "I'll help you check it."]),
+        ("can we make this better", ["Yes. Let's look for the changes with the biggest impact.", "Absolutely. Show me the current version.", "Yes. We can improve it without adding unnecessary complexity."]),
+        ("can we improve the design", ["Yes. We can improve hierarchy, spacing, and consistency.", "Absolutely. Let's look at the current design.", "Yes. We can make it clearer and more polished."]),
+        ("make this more professional", ["Sure. We can improve the hierarchy, wording, and details.", "Absolutely. Let's make it cleaner and more consistent.", "Yes. Show me what you have now."]),
+        ("help me think this through", ["Sure. Tell me what you're considering.", "Absolutely. Let's break down the options.", "Okay. What's the part you're unsure about?"]),
+        ("what do you think", ["Tell me what you're considering and I'll give you a reasoned take.", "I can help compare the options.", "Give me the details and I'll think it through with you."]),
+        ("which one is better", ["Tell me the options and what matters most.", "I can compare the tradeoffs.", "Give me both choices and I'll help weigh them."]),
+        ("is there an easier way", ["Probably. Show me the current approach and we'll simplify it.", "We can look for a version with fewer moving parts.", "Let's compare the simpler options."]),
+    ]
+    examples: list[str] = []
+    for user_text, replies in pairs:
+        for reply in replies:
+            examples.append(f"User: {user_text} Ori: {reply}")
+    return examples
+
+
+def dedupe_texts(texts: list[str]) -> list[str]:
+    seen: set[str] = set()
+    unique: list[str] = []
+    for text in texts:
+        normalized = " ".join(text.split()).strip()
+        key = normalized.casefold()
+        if not normalized or key in seen:
+            continue
+        seen.add(key)
+        unique.append(normalized)
+    return unique
+
+
 def train_tokenizer(
     texts: list[str],
     output: Path,
@@ -272,7 +340,9 @@ def main() -> None:
     checkpoint_dir = output / "checkpoint"
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
-    ori_texts = load_records(Path(args.data))
+    ori_texts = dedupe_texts(
+        load_records(Path(args.data)) + curated_conversation_examples()
+    )
     english_texts = download_public_domain_english(
         max_chars=args.english_max_chars
     )
@@ -368,6 +438,7 @@ def main() -> None:
                 "english_sources": "Project Gutenberg public-domain texts",
                 "english_windows": len(english_x),
                 "ori_examples": len(ori_texts),
+                "curated_conversation_examples": len(curated_conversation_examples()),
                 "vocabulary_size": tokenizer.vocab_size,
                 "english_epochs_requested": args.english_epochs,
                 "ori_epochs_requested": args.epochs,
