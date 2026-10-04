@@ -340,8 +340,9 @@ def main() -> None:
     checkpoint_dir = output / "checkpoint"
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
+    curated_examples = curated_conversation_examples()
     ori_texts = dedupe_texts(
-        load_records(Path(args.data)) + curated_conversation_examples()
+        load_records(Path(args.data)) + curated_examples
     )
     english_texts = download_public_domain_english(
         max_chars=args.english_max_chars
@@ -438,7 +439,7 @@ def main() -> None:
                 "english_sources": "Project Gutenberg public-domain texts",
                 "english_windows": len(english_x),
                 "ori_examples": len(ori_texts),
-                "curated_conversation_examples": len(curated_conversation_examples()),
+                "curated_conversation_examples": len(curated_examples),
                 "vocabulary_size": tokenizer.vocab_size,
                 "english_epochs_requested": args.english_epochs,
                 "ori_epochs_requested": args.epochs,
