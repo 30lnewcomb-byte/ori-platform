@@ -355,8 +355,17 @@ def title(payload: TitleRequest, _: None = Depends(require_api_key)) -> dict[str
     candidate = candidate.split("\n", 1)[0]
     for marker in ("User:", "Ori:", "Tool:"):
         candidate = candidate.split(marker, 1)[0]
-    candidate = re.sub(r'^[\s“”"]+|[\s“”"]+
-def root() -> dict[str, Any]:
+    candidate = candidate.strip().strip("“”\"'")
+    candidate = re.sub(r"[.!?,:;]+$", "", candidate).strip()
+    words = candidate.split()
+    if not words:
+        raise HTTPException(status_code=502, detail="Ori's TensorFlow language model produced no usable title.")
+    if len(words) > 7:
+        candidate = " ".join(words[:7])
+    return {"title": candidate[:56], "model": "ori-small", "version": APP_VERSION}
+
+
+@app.get("/")
     return {
         "service": "ori-tensorflow-runtime",
         "status": "online",
