@@ -4,6 +4,8 @@ import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@cl
 import { useEffect, useState, type ReactNode } from 'react'
 import styles from './app-shell.module.css'
 
+const STORAGE_KEY = 'ori.chat.history.v1'
+
 type SidebarChat = {
   id: string
   title: string
