@@ -1,7 +1,7 @@
 @font-face { font-family:'Ori Text'; src:url('/fonts/OriText-Regular.woff2') format('woff2'); font-style:normal; font-weight:400; font-display:swap; }
 @font-face { font-family:'Ori Display'; src:url('/fonts/OriDisplay-Regular.woff2') format('woff2'); font-style:normal; font-weight:400; font-display:swap; }
 @font-face { font-family:'Ori Mono'; src:url('/fonts/OriMono-Regular.woff2') format('woff2'); font-style:normal; font-weight:400; font-display:swap; }
-:root { --font-text:'Ori Text',Arial,Helvetica,sans-serif; --font-display:'Ori Display','Ori Text',Arial,Helvetica,sans-serif; --font-mono:'Ori Mono','SFMono-Regular',Consolas,'Liberation Mono',monospace; --surface-base:#f7f7f5; --surface-raised:#fff; --surface-strong:#111210; --text-primary:#171815; --text-secondary:#686b64; --text-muted:#92958d; --border-subtle:#e4e5df; --accent-primary:#3f6df6; --accent-soft:#edf2ff; --accent-strong:#2f5bd3; --accent-blue:#3f6df6; --accent-blue-soft:#e8f0ff; --accent-blue-strong:#2f5bd3; --status-success:#2f7d4a; --focus-ring:#3f6df6; --radius-sm:8px; --radius-md:12px; --radius-lg:18px; }
+:root { --font-text:'Ori Text',Arial,Helvetica,sans-serif; --font-display:'Ori Display','Ori Text',Arial,Helvetica,sans-serif; --font-mono:'Ori Mono','SFMono-Regular',Consolas,'Liberation Mono',monospace; --surface-base:#f7f7f5; --surface-raised:#fff; --surface-strong:#111210; --text-primary:#171815; --text-secondary:#686b64; --text-muted:#92958d; --border-subtle:#e4e5df; --accent-primary:#183a73; --accent-soft:#eef3fa; --accent-strong:#12305f; --accent-blue:#183a73; --accent-blue-soft:#eef3fa; --accent-blue-strong:#12305f; --status-success:#2f7d4a; --focus-ring:#183a73; --radius-sm:8px; --radius-md:12px; --radius-lg:18px; }
 * { box-sizing:border-box; }
 html, body { margin:0; min-height:100%; overflow-x:hidden; }
 body { background:var(--surface-base); color:var(--text-primary); font-family:var(--font-text); font-kerning:normal; }
@@ -20,7 +20,7 @@ pre,code,kbd,samp { font-family:var(--font-mono); }
 .quickActions { display:flex; gap:9px; flex-wrap:wrap; justify-content:flex-end; }
 .primary,.secondary { display:inline-flex; align-items:center; justify-content:center; border:0; border-radius:10px; padding:10px 14px; font-weight:700; }
 .primary { background:var(--accent-primary); color:#fff; } .primary:hover { background:var(--accent-strong); }
-.secondary { background:var(--surface-raised); border:1px solid var(--border-subtle); color:var(--text-primary); } .secondary:hover { border-color:#b8c7ef; background:var(--accent-blue-soft); }
+.secondary { background:var(--surface-raised); border:1px solid var(--border-subtle); color:var(--text-primary); } .secondary:hover { border-color:#b9c5d6; background:var(--accent-blue-soft); }
 .homeColumns { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
 .sectionBlock { background:var(--surface-raised); border:1px solid var(--border-subtle); border-radius:14px; padding:20px; }
 .sectionHeader { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; } .sectionHeader h3 { margin:0; font-size:15px; } .sectionHeader a { color:var(--accent-strong); font-size:13px; }
@@ -41,7 +41,7 @@ pre,code,kbd,samp { font-family:var(--font-mono); }
 .composer { position:absolute; left:50%; bottom:14px; transform:translateX(-50%); z-index:2; width:min(1040px,calc(100% - 28px)); margin:0 auto; display:flex; align-items:flex-end; gap:8px; padding:10px; background:color-mix(in srgb,var(--surface-raised) 94%,transparent); border:1px solid var(--border-subtle); border-radius:18px; box-shadow:0 8px 30px rgb(0 0 0 / 8%); backdrop-filter:blur(10px); }
 .composer { transition:bottom .28s ease,width .2s ease; }
 .chatMain.empty .composer { position:relative; left:auto; top:auto; bottom:auto; transform:none; width:min(820px,100%); }
-.composer:focus-within { border-color:#afc2ff; box-shadow:0 10px 34px rgb(63 109 246 / 12%); }
+.composer:focus-within { border-color:#9fb2cd; box-shadow:0 10px 34px rgb(63 109 246 / 12%); }
 .commandMenu { position:absolute; left:10px; right:58px; bottom:calc(100% + 8px); display:grid; gap:2px; padding:6px; background:var(--surface-raised); border:1px solid var(--border-subtle); border-radius:10px; box-shadow:0 14px 34px rgb(0 0 0 / 12%); }
 .commandItem { display:flex; align-items:center; gap:12px; width:100%; border:0; border-radius:7px; padding:9px 10px; background:transparent; color:var(--text-primary); text-align:left; }
 .commandItem:hover { background:var(--surface-base); }
@@ -69,7 +69,7 @@ pre,code,kbd,samp { font-family:var(--font-mono); }
 .chatHistoryHeader { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:16px; border-bottom:1px solid var(--border-subtle); }
 .chatHistoryHeader strong { display:block; margin-top:1px; font-size:15px; }
 .chatHistoryClose { width:32px; height:32px; border:1px solid var(--border-subtle); border-radius:9px; background:var(--surface-raised); color:var(--text-secondary); font-size:18px; line-height:1; }
-.chatHistoryClose:hover { border-color:#b8c7ef; background:var(--accent-blue-soft); color:var(--text-primary); }
+.chatHistoryClose:hover { border-color:#b9c5d6; background:var(--accent-blue-soft); color:var(--text-primary); }
 .chatHistoryList { min-height:0; flex:1; overflow-y:auto; padding:8px; }
 .chatHistoryItem { width:100%; display:flex; flex-direction:column; align-items:flex-start; gap:3px; border:0; border-radius:10px; padding:10px; background:transparent; color:var(--text-primary); text-align:left; }
 .chatHistoryItem:hover:not(:disabled) { background:var(--surface-base); }
@@ -158,7 +158,7 @@ pre,code,kbd,samp { font-family:var(--font-mono); }
 }
 
 .chatToolbarButton:hover:not(:disabled) {
-  border-color:#b8c7ef;
+  border-color:#b9c5d6;
   background:var(--accent-blue-soft);
   color:var(--accent-blue-strong);
   transform:translateY(-1px);
@@ -192,22 +192,14 @@ pre,code,kbd,samp { font-family:var(--font-mono); }
   z-index:40;
 }
 
-@media (max-width:760px) {
-  .chatToolbar {
-    min-height:54px;
-    padding:7px 0 5px;
-  }
-
-  .chatToolbarCopy strong {
-    max-width:45vw;
-  }
-
-  .chatToolbarButton {
-    padding:0 9px;
-    font-size:11px;
-  }
-
-  .chatToolbarButtonPrimary {
-    display:none;
-  }
+.conversationHeading {
+  width:min(780px,100%);
+  margin:0 auto 4px;
+  padding:0 0 2px;
+  color:var(--text-muted);
+  font-size:12px;
+  font-weight:700;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
