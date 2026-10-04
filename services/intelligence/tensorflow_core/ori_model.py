@@ -174,12 +174,31 @@ class OriLanguageModel(tf.keras.Model):
         context = context[-self.config.context_length :]
         generated: list[int] = []
 
-        min_generated_tokens = min(4, max_new_tokens)
+        # A compact model benefits from a small repetition penalty during
+        # sampling. This changes token probabilities rather than choosing a
+        # scripted answer, helping it avoid getting trapped in short loops.
+        repetition_penalty = 1.08
+        min_generated_tokens = min(2, max_new_tokens)
 
         for step in range(max_new_tokens):
             logits = self.next_logits(
                 tf.constant([context], dtype=tf.int32)
             )[0]
+
+            recent_ids = set(generated[-24:])
+            if recent_ids:
+                recent_tensor = tf.constant(sorted(recent_ids), dtype=tf.int32)
+                recent_logits = tf.gather(logits, recent_tensor)
+                recent_logits = tf.where(
+                    recent_logits > 0,
+                    recent_logits / repetition_penalty,
+                    recent_logits * repetition_penalty,
+                )
+                logits = tf.tensor_scatter_nd_update(
+                    logits,
+                    recent_tensor[:, tf.newaxis],
+                    recent_logits,
+                )
 
             blocked_ids = [
                 tokenizer.vocab["<pad>"],
