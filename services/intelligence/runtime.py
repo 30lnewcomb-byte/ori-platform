@@ -366,6 +366,7 @@ def title(payload: TitleRequest, _: None = Depends(require_api_key)) -> dict[str
 
 
 @app.get("/")
+def root() -> dict[str, Any]:
     return {
         "service": "ori-tensorflow-runtime",
         "status": "online",
