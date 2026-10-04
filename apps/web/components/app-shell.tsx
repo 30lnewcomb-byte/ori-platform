@@ -183,6 +183,8 @@ export default function AppShell({
         <a href="/chat?new=1">New chat</a>
         <a href="/chat?history=1" className={active === 'Chat' ? styles.mobileActive : ''}>Chats</a>
         <a href="/developer">Developer</a>
+        <SignedOut><a href="/sign-in">Sign in</a></SignedOut>
+        <SignedIn><span className={styles.mobileAccount}><UserButton afterSignOutUrl="/" /></span></SignedIn>
       </nav>
 
       <section className={contentClass}>{children}</section>
