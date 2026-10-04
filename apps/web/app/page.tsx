@@ -1,10 +1,11 @@
 import { auth } from '@clerk/nextjs/server'
 import { SignInButton, SignUpButton } from '@clerk/nextjs'
+import { redirect } from 'next/navigation'
 import styles from './landing.module.css'
 
 export default async function LandingPage() {
   const { userId } = await auth()
-  if (userId) return <LandingRedirect />
+  if (userId) redirect('/chat')
 
   return (
     <main className={styles.page}>
