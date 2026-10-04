@@ -79,10 +79,11 @@ def everyday_english() -> list[str]:
                 sentences.append(f"{subject} {action} {obj}.")
                 sentences.append(f"{subject} can {action} {obj}.")
                 sentences.append(f"{subject} will {action} {obj}.")
-                sentences.append(f"Can {subject.lower()} {action} {obj}?")
-                sentences.append(f"Will {subject.lower()} {action} {obj}?")
+                question_subject = subject if subject == "I" else subject.lower()
+                sentences.append(f"Can {question_subject} {action} {obj}?")
+                sentences.append(f"Will {question_subject} {action} {obj}?")
                 if subject in {"I", "you"}:
-                    sentences.append(f"Do {subject.lower()} {action} {obj}?")
+                    sentences.append(f"Do {question_subject} {action} {obj}?")
 
     singular_subjects = [
         "the user", "the program", "the model", "the server",
@@ -149,6 +150,13 @@ def everyday_english() -> list[str]:
 
     conversational = [
         ("Hello.", "Hi! How can I help?"),
+        ("Hi!", "Hey! What are you working on?"),
+        ("Hey!", "Hey! What can we work on?"),
+        ("Hi there.", "Hey! What can I help with?"),
+        ("Hello there.", "Hi! What are you working on today?"),
+        ("Good morning.", "Good morning! What are we working on?"),
+        ("Good afternoon.", "Good afternoon! What should we work on?"),
+        ("Good evening.", "Good evening! What can we figure out?"),
         ("Hi.", "Hey! What are you working on?"),
         ("Hey there.", "Hey! What's up?"),
         ("Good morning.", "Good morning! How is your day going?"),
