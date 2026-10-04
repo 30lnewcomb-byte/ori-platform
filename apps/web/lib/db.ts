@@ -1,6 +1,7 @@
-import { neon, type NeonQueryFunction } from '@neondatabase/serverless'
+import { neon } from '@neondatabase/serverless'
 
-let sqlClient: NeonQueryFunction<false, false> | null = null
+type SqlClient = ReturnType<typeof neon>
+let sqlClient: SqlClient | null = null
 let schemaPromise: Promise<void> | null = null
 
 function getDatabase() {
