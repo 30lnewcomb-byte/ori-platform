@@ -103,6 +103,41 @@ function readHistory(): Conversation[] {
   }
 }
 
+async function readServerHistory(): Promise<Conversation[] | null> {
+  try {
+    const response = await fetch('/api/chats', { cache: 'no-store' })
+    if (!response.ok) return null
+    const data = await response.json()
+    if (!Array.isArray(data?.conversations)) return []
+    return data.conversations.slice(0, MAX_CONVERSATIONS)
+  } catch {
+    return null
+  }
+}
+
+async function saveServerConversation(conversation: Conversation) {
+  try {
+    await fetch('/api/chats/' + encodeURIComponent(conversation.id), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: conversation.title,
+        messages: conversation.messages,
+      }),
+    })
+  } catch {
+    // Local cache remains available when the database is temporarily unavailable.
+  }
+}
+
+async function deleteServerConversation(id: string) {
+  try {
+    await fetch('/api/chats/' + encodeURIComponent(id), { method: 'DELETE' })
+  } catch {
+    // Local cache is still updated immediately.
+  }
+}
+
 function writeHistory(conversations: Conversation[]) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations.slice(0, MAX_CONVERSATIONS)))
@@ -141,30 +176,49 @@ export default function ChatClient() {
   }, [])
 
   useEffect(() => {
-    const loaded = readHistory()
-    setConversations(loaded)
+    let active = true
 
-    const params = new URLSearchParams(window.location.search)
-    const requestedId = params.get('chat')
-    const forceNew = params.get('new') === '1'
-    const openHistory = params.get('history') === '1'
-    const requestedChat = loaded.find((chat) => chat.id === requestedId)
-    setHistoryOpen(openHistory)
+    async function loadConversationHistory() {
+      const localChats = readHistory()
+      let loaded = await readServerHistory()
 
-    if (requestedChat && !forceNew) {
-      setCurrentChatId(requestedChat.id)
-      setMessages(requestedChat.messages)
-    } else {
-      const freshId = makeId()
-      setCurrentChatId(freshId)
-      setMessages([])
-      setError('')
+      if (loaded && loaded.length === 0 && localChats.length > 0) {
+        await Promise.all(localChats.map((conversation) => saveServerConversation(conversation)))
+        loaded = localChats
+      }
+
+      const effectiveChats = loaded ?? localChats
+      if (!active) return
+
+      setConversations(effectiveChats)
+
+      const params = new URLSearchParams(window.location.search)
+      const requestedId = params.get('chat')
+      const forceNew = params.get('new') === '1'
+      const openHistory = params.get('history') === '1'
+      const requestedChat = effectiveChats.find((chat) => chat.id === requestedId)
+      setHistoryOpen(openHistory)
+
+      if (requestedChat && !forceNew) {
+        setCurrentChatId(requestedChat.id)
+        setMessages(requestedChat.messages)
+      } else {
+        const freshId = makeId()
+        setCurrentChatId(freshId)
+        setMessages([])
+        setError('')
+        setEmptyPrompt(pickEmptyPrompt())
+        window.history.replaceState(null, '', '/chat?chat=' + encodeURIComponent(freshId))
+      }
+
       setEmptyPrompt(pickEmptyPrompt())
-      window.history.replaceState(null, '', '/chat?chat=' + encodeURIComponent(freshId))
+      setHistoryReady(true)
     }
 
-    setEmptyPrompt(pickEmptyPrompt())
-    setHistoryReady(true)
+    void loadConversationHistory()
+    return () => {
+      active = false
+    }
   }, [])
 
   useEffect(() => {
@@ -215,18 +269,19 @@ export default function ChatClient() {
   useEffect(() => {
     if (!historyReady || !currentChatId || messages.length === 0) return
 
+    const existing = conversations.find((chat) => chat.id === currentChatId)
+    const nextConversation: Conversation = {
+      id: currentChatId,
+      title: existing?.title || 'New chat',
+      messages,
+      createdAt: existing?.createdAt ?? Date.now(),
+      updatedAt: Date.now(),
+    }
+
     setConversations((current) => {
       const existingIndex = current.findIndex((chat) => chat.id === currentChatId)
-      const existing = existingIndex >= 0 ? current[existingIndex] : undefined
-      const nextConversation: Conversation = {
-        id: currentChatId,
-        title: existing?.title || 'New chat',
-        messages,
-        createdAt: existing?.createdAt ?? Date.now(),
-        updatedAt: Date.now(),
-      }
-
       const next = [...current]
+
       if (existingIndex >= 0) {
         next[existingIndex] = nextConversation
       } else {
@@ -237,7 +292,9 @@ export default function ChatClient() {
       writeHistory(next)
       return next.slice(0, MAX_CONVERSATIONS)
     })
-  }, [messages, currentChatId, historyReady])
+
+    void saveServerConversation(nextConversation)
+  }, [messages, currentChatId, historyReady, conversations])
 
 
   function openNewChat() {
@@ -270,6 +327,7 @@ export default function ChatClient() {
   function deleteChat(id: string, event: MouseEvent<HTMLButtonElement>) {
     event.stopPropagation()
     if (busy) return
+    void deleteServerConversation(id)
 
     setConversations((current) => {
       const next = current.filter((chat) => chat.id !== id)
@@ -354,13 +412,15 @@ export default function ChatClient() {
               const index = current.findIndex((chat) => chat.id === currentChatId)
               if (index < 0) return current
 
-              const next = [...current]
-              next[index] = {
-                ...next[index],
+              const updatedConversation = {
+                ...current[index],
                 title,
                 updatedAt: Date.now(),
               }
+              const next = [...current]
+              next[index] = updatedConversation
               writeHistory(next)
+              void saveServerConversation(updatedConversation)
               return next
             })
           })
