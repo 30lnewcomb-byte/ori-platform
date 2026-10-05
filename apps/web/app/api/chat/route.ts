@@ -128,7 +128,7 @@ export async function POST(request: Request) {
       const response = await fetch(`${INTELLIGENCE_URL}/v1/chat`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${INTELLIGENCE_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: workingMessages, tools: INTERNAL_TOOLS, temperature: 0.25, top_k: 8, max_tokens: 72 }),
+        body: JSON.stringify({ messages: workingMessages, tools: INTERNAL_TOOLS, temperature: 0.15, top_k: 6, max_tokens: 72 }),
         signal: AbortSignal.timeout(45_000),
       })
 
