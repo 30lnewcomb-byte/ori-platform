@@ -225,6 +225,8 @@ def response_looks_usable(text: str) -> bool:
         return False
     if stripped.startswith("//") or stripped.startswith("\\\\"):
         return False
+    if any(ord(character) < 32 and character not in "\n\t" for character in stripped):
+        return False
     letters = sum(character.isalpha() for character in stripped)
     digits = sum(character.isdigit() for character in stripped)
     punctuation = max(len(stripped) - letters - digits, 0)
@@ -234,12 +236,40 @@ def response_looks_usable(text: str) -> bool:
         return False
     words = stripped.split()
     if len(words) >= 6:
-        repeated = sum(1 for index in range(1, len(words)) if words[index].lower() == words[index - 1].lower())
+        repeated = sum(
+            1
+            for index in range(1, len(words))
+            if words[index].lower() == words[index - 1].lower()
+        )
         if repeated >= 2:
             return False
+    code_like = (
+        "```" in stripped
+        or stripped.startswith(("{", "[", "<"))
+        or " = " in stripped
+        or "def " in stripped
+        or "const " in stripped
+        or "function " in stripped
+        or "\n" in stripped
+    )
+    if not code_like:
+        has_letter_underscore_letter = any(
+            stripped[index] == "_"
+            and stripped[index - 1].isalpha()
+            and stripped[index + 1].isalpha()
+            for index in range(1, len(stripped) - 1)
+        )
+        if has_letter_underscore_letter:
+            return False
+        punctuation_run = 0
+        for character in stripped:
+            if character in "!?.,:;":
+                punctuation_run += 1
+                if punctuation_run >= 3:
+                    return False
+            else:
+                punctuation_run = 0
     return True
-
-
 def build_prompt(
     messages: list[ChatMessage],
     tools: list[dict[str, Any]] | None = None,
