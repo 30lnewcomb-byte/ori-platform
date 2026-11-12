@@ -1,0 +1,22 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/api/chat/route": "/api/chat",
+  "/api/chat/title/route": "/api/chat/title",
+  "/api/chats/[id]/route": "/api/chats/[id]",
+  "/api/chats/route": "/api/chats",
+  "/api/intelligence/health/route": "/api/intelligence/health",
+  "/api/intelligence/warmup/route": "/api/intelligence/warmup",
+  "/api/onboarding/route": "/api/onboarding",
+  "/api/robotics/command/route": "/api/robotics/command",
+  "/api/robotics/health/route": "/api/robotics/health",
+  "/api/robotics/perception/route": "/api/robotics/perception",
+  "/api/robotics/plan/route": "/api/robotics/plan",
+  "/api/robotics/state/route": "/api/robotics/state",
+  "/api/vm/health/route": "/api/vm/health",
+  "/chat/page": "/chat",
+  "/onboarding/page": "/onboarding",
+  "/page": "/",
+  "/sign-in/[[...sign-in]]/page": "/sign-in/[[...sign-in]]",
+  "/sign-up/[[...sign-up]]/page": "/sign-up/[[...sign-up]]"
+}

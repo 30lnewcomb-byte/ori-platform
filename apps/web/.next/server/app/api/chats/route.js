@@ -1,0 +1,11 @@
+var R=require("../../../chunks/[turbopack]_runtime.js")("server/app/api/chats/route.js")
+R.c("server/chunks/node_modules_1jhl5tlkaleyh._.js")
+R.c("server/chunks/node_modules_next_dist_0uh83i21o9szg._.js")
+R.c("server/chunks/[root-of-the-server]__1igbry5j9gix2._.js")
+R.c("server/chunks/apps_web_lib_db_ts_145kvz4u0fl_v._.js")
+R.c("server/chunks/[root-of-the-server]__1r01cl_lxmyse._.js")
+R.c("server/chunks/node_modules_0psauw8skwdw6._.js")
+R.c("server/chunks/_1-t2afu-kq7x5._.js")
+R.c("server/chunks/apps_web__next-internal_server_app_api_chats_route_actions_1hibgipwotqwl.js")
+R.m(1989)
+module.exports=R.m(1989).exports
