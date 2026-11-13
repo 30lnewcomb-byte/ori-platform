@@ -1,15 +1,14 @@
 import 'server-only'
 
 const INTELLIGENCE_URL =
-  process.env.ORI_INTELLIGENCE_URL?.trim().replace(/\/$/, '') ||
-  'https://ori-tensorflow-runtime.onrender.com'
+  process.env.ORI_INTELLIGENCE_URL?.trim().replace(/\/$/, '')
 const INTELLIGENCE_API_KEY = process.env.ORI_INTELLIGENCE_API_KEY?.trim()
 
 const MAX_OUTPUT = 12000
 
 function requireConfigured() {
   if (!INTELLIGENCE_URL || !INTELLIGENCE_API_KEY) {
-    throw new Error('Ori TensorFlow intelligence runtime is not configured.')
+    throw new Error('Ori Intelligence service is not configured.')
   }
 }
 
