@@ -1,0 +1,20 @@
+# Node and Next.js generated output
+node_modules/
+.next/
+**/.next/
+out/
+dist/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Python generated files
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Logs
+*.log
