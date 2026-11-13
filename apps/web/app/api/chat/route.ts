@@ -18,7 +18,9 @@ async function ensureIntelligenceRuntimeAwake() {
 
   // A healthy HTTP process can still be loading its TensorFlow weights.
   // Wait for authenticated model readiness, not merely an open server port.
-  const deadline = Date.now() + 70_000
+  // Render Free cold starts can take about a minute before TensorFlow finishes loading.
+  // Leave room for both the service wake-up and model initialization.
+  const deadline = Date.now() + 110_000
   while (Date.now() < deadline) {
     try {
       const response = await fetch(INTELLIGENCE_URL + '/v1/status', {
