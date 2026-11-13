@@ -8,15 +8,12 @@ import logging
 import os
 import re
 import uuid
-import zipfile
-from tempfile import NamedTemporaryFile
 from pathlib import Path
 from threading import Lock, Thread
 from typing import Any
 
 import tensorflow as tf
 from fastapi import Depends, FastAPI, Header, HTTPException
-from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from tensorflow_core.model import LABELS, OriCoreModel
@@ -146,9 +143,6 @@ def load_models_in_background() -> None:
 
 def start_background_model_loading() -> None:
     global _MODEL_LOAD_STARTED
-    if os.getenv("ORI_SKIP_MODEL_LOAD", "false").strip().lower() in {"1", "true", "yes"}:
-        logger.info("ORI_SKIP_MODEL_LOAD is enabled; keeping model artifacts on disk for export-only mode.")
-        return
     with _MODEL_LOAD_LOCK:
         if _MODEL_LOAD_STARTED:
             return
@@ -400,81 +394,6 @@ def title(payload: TitleRequest, _: None = Depends(require_api_key)) -> dict[str
         candidate = " ".join(words[:7])
     return {"title": candidate[:56], "model": "ori-small", "version": APP_VERSION}
 
-
-
-@app.get("/internal/export-models")
-def export_existing_models(
-    x_ori_model_transfer: str | None = Header(default=None),
-) -> StreamingResponse:
-    """Stream the existing trained artifacts for a separate runtime build."""
-    expected_token = os.getenv("ORI_MODEL_TRANSFER_TOKEN", "").strip()
-    if not expected_token or not x_ori_model_transfer or not hmac.compare_digest(
-        x_ori_model_transfer, expected_token
-    ):
-        raise HTTPException(status_code=401, detail="Unauthorized model export.")
-
-    required = (
-        MODEL_DIR / "ori_core.keras",
-        LM_DIR / "config.json",
-        LM_DIR / "ori_tokenizer.model",
-        LM_DIR / "model.weights.h5",
-    )
-    missing = [str(path) for path in required if not path.is_file()]
-    if missing:
-        raise HTTPException(
-            status_code=503,
-            detail="Existing trained model files are missing: " + ", ".join(missing),
-        )
-
-    archive_path: Path | None = None
-    included_files = 0
-    try:
-        with NamedTemporaryFile(prefix=".ori-model-export-", suffix=".zip", delete=False) as temporary:
-            archive_path = Path(temporary.name)
-
-        # Export only the exact files required by the current Core and Ori Small loaders.
-        # This avoids bundling training checkpoints or unrelated artifacts.
-        entries = (
-            (MODEL_DIR / "ori_core.keras", "models/ori_core.keras"),
-            (LM_DIR / "config.json", "artifacts/ori-small/config.json"),
-            (LM_DIR / "ori_tokenizer.model", "artifacts/ori-small/ori_tokenizer.model"),
-            (LM_DIR / "model.weights.h5", "artifacts/ori-small/model.weights.h5"),
-        )
-        with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_STORED) as archive:
-            for source, archive_name in entries:
-                if not source.is_file():
-                    raise HTTPException(status_code=503, detail=f"Required model artifact is missing: {source}")
-                archive.write(source, archive_name)
-                included_files += 1
-
-        archive_size = archive_path.stat().st_size
-        logger.info(
-            "Prepared streamed Ori model export: bytes=%s files=%s",
-            archive_size,
-            included_files,
-        )
-
-        def stream_archive():
-            try:
-                with archive_path.open("rb") as archive_file:
-                    while chunk := archive_file.read(1024 * 1024):
-                        yield chunk
-            finally:
-                archive_path.unlink(missing_ok=True)
-
-        return StreamingResponse(
-            stream_archive(),
-            media_type="application/zip",
-            headers={
-                "Content-Length": str(archive_size),
-                "Content-Disposition": 'attachment; filename="ori-models.zip"',
-            },
-        )
-    except Exception:
-        if archive_path is not None:
-            archive_path.unlink(missing_ok=True)
-        logger.exception("Could not prepare Ori model export.")
-        raise
 
 
 @app.get("/")
