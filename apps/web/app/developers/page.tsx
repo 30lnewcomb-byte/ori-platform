@@ -1,7 +1,7 @@
 import { ActionLink, FeatureCard, PageIntro, SiteFrame } from '../../components/public-site'
 import styles from '../../components/public-site.module.css'
 
-const developerProject = process.env.NEXT_PUBLIC_DEVELOPER_PLATFORM_URL || 'https://github.com/30lnewcomb-byte/ori-developer-platform'
+const developerProject = process.env.NEXT_PUBLIC_DEVELOPER_PLATFORM_URL || 'https://ori-developer-platform.vercel.app'
 
 export default function DevelopersPage() {
   return <SiteFrame><main className={styles.pageMain}>
