@@ -4,8 +4,11 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Ori',
-  description: 'Ori is a focused AI platform for thinking, building, coding, and creating.',
+  title: {
+    default: 'Ori — Think clearly. Build boldly.',
+    template: '%s | Ori',
+  },
+  description: 'Ori brings conversation, coding, and creative work into one focused place.',
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
