@@ -1,109 +1,54 @@
-import { auth } from '@clerk/nextjs/server'
-import { SignInButton, SignUpButton } from '@clerk/nextjs'
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import styles from './landing.module.css'
+import { auth } from '@clerk/nextjs/server'
+import { ActionLink, FeatureCard, SectionHeading, SiteFrame } from '../components/public-site'
+import styles from '../components/public-site.module.css'
 
-export default async function LandingPage() {
+export default async function HomePage() {
   const { userId } = await auth()
   if (userId) redirect('/chat')
 
   return (
-    <main className={styles.page}>
-      <nav className={styles.nav} aria-label="Main navigation">
-        <a href="/" className={styles.brand} aria-label="Ori home">ORI</a>
-        <div className={styles.navActions}>
-          <SignInButton mode="redirect" forceRedirectUrl="/chat">
-            <button className={styles.signIn} type="button">Sign in</button>
-          </SignInButton>
-          <SignUpButton mode="redirect" forceRedirectUrl="/onboarding">
-            <button className={styles.signUp} type="button">Create account</button>
-          </SignUpButton>
-        </div>
-      </nav>
-
-      <section className={styles.hero} aria-labelledby="hero-title">
-        <div className={styles.heroCopy}>
-          <p className={styles.kicker}>ORI PLATFORM</p>
-          <h1 id="hero-title">A place for your ideas to become work.</h1>
-          <p className={styles.lede}>
-            Ori is a personal AI platform for thinking, building, coding, and creating —
-            designed to keep the experience focused on the work in front of you.
-          </p>
-          <div className={styles.heroActions}>
-            <SignUpButton mode="redirect" forceRedirectUrl="/onboarding">
-              <button className={styles.primaryCta} type="button">Get started</button>
-            </SignUpButton>
-            <SignInButton mode="redirect" forceRedirectUrl="/chat">
-              <button className={styles.secondaryCta} type="button">Sign in</button>
-            </SignInButton>
+    <SiteFrame>
+      <main>
+        <section className={styles.homeHero}>
+          <div className={styles.heroCopy}>
+            <p className={styles.eyebrow}>A PLATFORM FOR WHAT'S NEXT</p>
+            <h1>Think clearly.<br />Build boldly.</h1>
+            <p>Ori brings conversation, coding, and creative work into one focused place — so an idea can move from the first question to something real.</p>
+            <div className={styles.heroActions}>
+              <ActionLink href="/sign-up">Get started <span aria-hidden="true">↗</span></ActionLink>
+              <ActionLink href="/products" secondary>Explore Ori</ActionLink>
+            </div>
           </div>
-          <p className={styles.note}>Start with an account. Your conversations stay with your Ori workspace.</p>
-        </div>
-
-        <div className={styles.heroPanel} aria-label="Ori workspace preview">
-          <div className={styles.panelTop}>
-            <span className={styles.panelBrand}>ORI</span>
-            <span className={styles.liveMark}><i /> Ready</span>
+          <div className={styles.heroAside} aria-label="Abstract Ori visual">
+            <div className={styles.heroAsideTop}><span>ORI / PLATFORM</span><span>01 — 03</span></div>
+            <div className={styles.heroOrb}><span>ORI</span></div>
+            <div className={styles.heroAsideBottom}>A calm workspace for curiosity, problem-solving, and making things happen.</div>
           </div>
-          <div className={styles.panelContent}>
-            <span className={styles.panelEyebrow}>YOUR WORKSPACE</span>
-            <strong>What are you working on?</strong>
-            <span>Chat, code, explore an idea, or start something new.</span>
+        </section>
+        <section className={styles.homeBand}>
+          <div className={styles.bandInner}>
+            <div>
+              <p className={styles.eyebrow}>ONE PLACE, MANY DIRECTIONS</p>
+              <h2>Good ideas deserve room to grow.</h2>
+            </div>
+            <div><p>Some projects start with a question. Others start with a blank file, a sketch, or a problem that needs untangling. Ori is being built to support that whole journey without making the experience feel complicated.</p></div>
           </div>
-          <div className={styles.panelComposer}>
-            <span>Message Ori...</span>
-            <span className={styles.sendIcon}>↑</span>
+        </section>
+        <section className={styles.featureGrid}>
+          <SectionHeading eyebrow="EXPLORE ORI" title="A workspace that can move with your ideas." description="Start with the part of the work that matters today. Explore the wider Ori ecosystem as your project grows." />
+          <FeatureCard number="01 / PLATFORM" title="Ori Platform" description="A focused place to talk through ideas, learn, plan, and work with AI." href="/products" linkLabel="Explore the platform" />
+          <FeatureCard number="02 / BUILD" title="Developer tools" description="A separate developer workspace is taking shape for projects, models, tools, and integrations." href="/developers" linkLabel="Meet the developer platform" />
+          <FeatureCard number="03 / EXPERIMENT" title="Research & exploration" description="Follow the experiments and technical directions shaping what Ori could become." href="/research" linkLabel="Explore what we're exploring" />
+        </section>
+        <section className={styles.pageMain}>
+          <div className={styles.callout}>
+            <div><h2>Ready to get started?</h2><p>Step into the Ori workspace and see where your next idea goes.</p></div>
+            <ActionLink href="/sign-up">Create your account <span aria-hidden="true">↗</span></ActionLink>
           </div>
-        </div>
-      </section>
-
-      <section className={styles.valueSection} aria-labelledby="value-title">
-        <div className={styles.sectionIntro}>
-          <p className={styles.kicker}>BUILT AROUND THE WORK</p>
-          <h2 id="value-title">Simple on the surface. Capable underneath.</h2>
-          <p>Ori keeps the interface calm while the platform handles the complexity behind it.</p>
-        </div>
-        <div className={styles.valueGrid}>
-          <article className={styles.valueCard}>
-            <span className={styles.cardNumber}>01</span>
-            <h3>Think</h3>
-            <p>Have a conversation, work through a problem, or turn a rough idea into a clear next step.</p>
-          </article>
-          <article className={styles.valueCard}>
-            <span className={styles.cardNumber}>02</span>
-            <h3>Build</h3>
-            <p>Move from discussion into practical work, with coding and developer tools available when they are needed.</p>
-          </article>
-          <article className={styles.valueCard}>
-            <span className={styles.cardNumber}>03</span>
-            <h3>Create</h3>
-            <p>Make room for technical and creative projects without turning the main experience into a control panel.</p>
-          </article>
-        </div>
-      </section>
-
-      <footer className={styles.footer}>
-        <span>ORI PLATFORM</span>
-        <a
-          href="https://github.com/30lnewcomb-byte"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Visit Ori's GitHub creator profile"
-          title="GitHub profile"
-          style={{ display: 'inline-flex', alignItems: 'center', color: '#000000' }}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.1 2.651.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-          </svg>
-        </a>
-      </footer>
-    </main>
-  )
-}
-
-function LandingRedirect() {
-  const destination = '/chat'
-  return (
-    <meta httpEquiv="refresh" content={`0;url=${destination}`} />
+        </section>
+      </main>
+    </SiteFrame>
   )
 }
