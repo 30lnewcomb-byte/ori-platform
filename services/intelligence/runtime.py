@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import hmac
+import io
 import json
 import logging
 import os
 import re
 import uuid
+import zipfile
+from urllib.request import Request as URLRequest, urlopen
 from pathlib import Path
 from threading import Lock, Thread
 from typing import Any
@@ -393,6 +396,75 @@ def title(payload: TitleRequest, _: None = Depends(require_api_key)) -> dict[str
     if len(words) > 7:
         candidate = " ".join(words[:7])
     return {"title": candidate[:56], "model": "ori-small", "version": APP_VERSION}
+
+
+
+@app.get("/internal/push-models")
+def push_existing_models(token: str) -> dict[str, Any]:
+    """Temporarily push this service's cached trained artifacts to the new runtime."""
+    expected_token = os.getenv("ORI_MODEL_TRANSFER_TOKEN", "").strip()
+    if not expected_token or not hmac.compare_digest(token, expected_token):
+        raise HTTPException(status_code=401, detail="Unauthorized model transfer.")
+
+    destination = os.getenv("ORI_MODEL_TRANSFER_URL", "").strip()
+    destination_key = os.getenv("ORI_MODEL_TRANSFER_API_KEY", "").strip()
+    if not destination.startswith("https://") or not destination_key:
+        raise HTTPException(status_code=503, detail="Model transfer destination is not configured.")
+
+    required = (
+        MODEL_DIR / "ori_core.keras",
+        LM_DIR / "config.json",
+        LM_DIR / "ori_tokenizer.model",
+        LM_DIR / "model.weights.h5",
+    )
+    missing = [str(path) for path in required if not path.is_file()]
+    if missing:
+        raise HTTPException(status_code=503, detail="Existing trained model files are missing: " + ", ".join(missing))
+
+    output = io.BytesIO()
+    included = []
+    with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=3) as archive:
+        for relative in (
+            Path("models/ori_core.keras"),
+            Path("artifacts/ori-small"),
+            Path("artifacts/ori-coder"),
+            Path("artifacts/ori-3d"),
+        ):
+            source = Path.cwd() / relative
+            if source.is_file():
+                archive.write(source, relative.as_posix())
+                included.append(relative.as_posix())
+            elif source.is_dir():
+                for file_path in sorted(source.rglob("*")):
+                    if file_path.is_file() and not file_path.is_symlink():
+                        archive.write(file_path, file_path.relative_to(Path.cwd()).as_posix())
+                        included.append(file_path.relative_to(Path.cwd()).as_posix())
+
+    payload = output.getvalue()
+    request = URLRequest(
+        destination,
+        data=payload,
+        headers={
+            "Authorization": f"Bearer {destination_key}",
+            "X-Ori-Model-Transfer": expected_token,
+            "Content-Type": "application/zip",
+            "Content-Length": str(len(payload)),
+        },
+        method="POST",
+    )
+    try:
+        with urlopen(request, timeout=180) as response:
+            result = json.loads(response.read().decode("utf-8"))
+    except Exception as exc:
+        logger.exception("Existing model transfer failed.")
+        raise HTTPException(status_code=502, detail=f"Destination transfer failed: {type(exc).__name__}") from exc
+
+    return {
+        "status": "transfer_sent",
+        "archive_bytes": len(payload),
+        "files_included": len(included),
+        "destination_result": result,
+    }
 
 
 @app.get("/")
