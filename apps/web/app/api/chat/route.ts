@@ -25,7 +25,7 @@ async function ensureIntelligenceRuntimeAwake() {
     })
     return response.ok
   } catch (error) {
-    console.warn('Ori TensorFlow runtime wake-up failed:', error)
+    console.warn('Ori Intelligence service wake-up failed:', error)
     return false
   }
 }
@@ -86,7 +86,7 @@ export async function POST(request: Request) {
   }
 
   if (!INTELLIGENCE_URL || !INTELLIGENCE_API_KEY) {
-    return NextResponse.json({ error: 'Ori TensorFlow intelligence runtime is not configured yet.', code: 'INTELLIGENCE_NOT_CONFIGURED' }, { status: 503 })
+    return NextResponse.json({ error: 'Ori Intelligence service is not configured yet.', code: 'INTELLIGENCE_NOT_CONFIGURED' }, { status: 503 })
   }
 
   let body: { messages?: ChatMessage[]; timezone?: string }
@@ -137,8 +137,8 @@ export async function POST(request: Request) {
       try { data = JSON.parse(text) } catch { data = null }
 
       if (!response.ok) {
-        console.error('Ori TensorFlow runtime failed:', { status: response.status, detail: text.slice(0, 1000) })
-        return NextResponse.json({ error: data?.error || `Ori TensorFlow runtime returned HTTP ${response.status}.`, code: 'INTELLIGENCE_REQUEST_FAILED' }, { status: 502 })
+        console.error('Ori Intelligence service failed:', { status: response.status, detail: text.slice(0, 1000) })
+        return NextResponse.json({ error: data?.error || `Ori Intelligence service returned HTTP ${response.status}.`, code: 'INTELLIGENCE_REQUEST_FAILED' }, { status: 502 })
       }
 
       finalData = data
@@ -176,10 +176,10 @@ export async function POST(request: Request) {
     // The browser receives only Ori's user-facing response.
     return NextResponse.json({
       content,
-      model: finalData?.model ?? 'ori-tensorflow',
+      model: finalData?.model ?? 'ori-small',
     })
   } catch (error) {
-    console.error('Ori TensorFlow runtime connection error:', error)
+    console.error('Ori Intelligence service connection error:', error)
     return NextResponse.json({ error: 'Ori could not connect to its private TensorFlow intelligence runtime.', code: 'INTELLIGENCE_NETWORK_ERROR' }, { status: 502 })
   }
 }
