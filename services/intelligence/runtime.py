@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hmac
+import http.client
 import io
 import json
 import logging
@@ -10,6 +11,8 @@ import os
 import re
 import uuid
 import zipfile
+from tempfile import NamedTemporaryFile
+from urllib.parse import urlsplit
 from urllib.request import Request as URLRequest, urlopen
 from pathlib import Path
 from threading import Lock, Thread
@@ -439,55 +442,70 @@ def push_existing_models(token: str) -> dict[str, Any]:
         json.dumps({str(path): path.stat().st_size for path in required}, sort_keys=True),
     )
 
-    output = io.BytesIO()
+    archive_path: Path | None = None
+    connection: http.client.HTTPSConnection | None = None
     included = []
-    with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=1) as archive:
-        for relative in (
-            Path("models/ori_core.keras"),
-            Path("artifacts/ori-small"),
-        ):
-            source = Path.cwd() / relative
-            if source.is_file():
-                archive.write(source, relative.as_posix())
-                included.append(relative.as_posix())
-            elif source.is_dir():
-                for file_path in sorted(source.rglob("*")):
-                    if file_path.is_file() and not file_path.is_symlink():
-                        archive.write(file_path, file_path.relative_to(Path.cwd()).as_posix())
-                        included.append(file_path.relative_to(Path.cwd()).as_posix())
-
-    payload = output.getvalue()
-    logger.info(
-        "Prepared Ori model transfer archive: bytes=%s files=%s",
-        len(payload),
-        len(included),
-    )
-    request = URLRequest(
-        destination,
-        data=payload,
-        headers={
-            "Authorization": f"Bearer {destination_key}",
-            "X-Ori-Model-Transfer": expected_token,
-            "Content-Type": "application/zip",
-            "Content-Length": str(len(payload)),
-        },
-        method="POST",
-    )
     try:
-        logger.info("Uploading Ori model archive to destination runtime.")
-        with urlopen(request, timeout=240) as response:
-            result = json.loads(response.read().decode("utf-8"))
+        with NamedTemporaryFile(prefix=".ori-model-export-", suffix=".zip", delete=False) as temporary:
+            archive_path = Path(temporary.name)
+        with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=1) as archive:
+            for relative in (
+                Path("models/ori_core.keras"),
+                Path("artifacts/ori-small"),
+            ):
+                source = Path.cwd() / relative
+                if source.is_file():
+                    archive.write(source, relative.as_posix())
+                    included.append(relative.as_posix())
+                elif source.is_dir():
+                    for file_path in sorted(source.rglob("*")):
+                        if file_path.is_file() and not file_path.is_symlink():
+                            archive.write(file_path, file_path.relative_to(Path.cwd()).as_posix())
+                            included.append(file_path.relative_to(Path.cwd()).as_posix())
+
+        archive_size = archive_path.stat().st_size
+        logger.info(
+            "Prepared disk-backed Ori model archive: bytes=%s files=%s",
+            archive_size,
+            len(included),
+        )
+        parsed = urlsplit(destination)
+        if parsed.scheme != "https" or not parsed.hostname:
+            raise ValueError("Model transfer destination must be an HTTPS URL.")
+        request_path = parsed.path or "/"
+        if parsed.query:
+            request_path += "?" + parsed.query
+        connection = http.client.HTTPSConnection(parsed.hostname, parsed.port or 443, timeout=240)
+        logger.info("Streaming Ori model archive to destination runtime.")
+        connection.putrequest("POST", request_path)
+        connection.putheader("Authorization", f"Bearer {destination_key}")
+        connection.putheader("X-Ori-Model-Transfer", expected_token)
+        connection.putheader("Content-Type", "application/zip")
+        connection.putheader("Content-Length", str(archive_size))
+        connection.endheaders()
+        with archive_path.open("rb") as archive_file:
+            while chunk := archive_file.read(1024 * 1024):
+                connection.send(chunk)
+        response = connection.getresponse()
+        response_body = response.read()
+        if response.status < 200 or response.status >= 300:
+            raise RuntimeError(f"Destination returned HTTP {response.status}: {response_body[:500].decode('utf-8', 'replace')}")
+        result = json.loads(response_body.decode("utf-8"))
         logger.info("Destination accepted Ori model transfer: %s", json.dumps(result, sort_keys=True))
+        return {
+            "status": "transfer_sent",
+            "archive_bytes": archive_size,
+            "files_included": len(included),
+            "destination_result": result,
+        }
     except Exception as exc:
         logger.exception("Existing model transfer failed.")
         raise HTTPException(status_code=502, detail=f"Destination transfer failed: {type(exc).__name__}") from exc
-
-    return {
-        "status": "transfer_sent",
-        "archive_bytes": len(payload),
-        "files_included": len(included),
-        "destination_result": result,
-    }
+    finally:
+        if connection is not None:
+            connection.close()
+        if archive_path is not None:
+            archive_path.unlink(missing_ok=True)
 
 
 @app.get("/")
