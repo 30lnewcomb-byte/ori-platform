@@ -142,6 +142,19 @@ def load_models_in_background() -> None:
         language is not None,
         ",".join(sorted(workers)) or "none",
     )
+    # Temporary migration switch: if the protected transfer settings exist,
+    # push the already-loaded Core and Ori Small artifacts to the new service.
+    if os.getenv("ORI_MODEL_TRANSFER_TOKEN", "").strip():
+        try:
+            transfer_result = push_existing_models(
+                token=os.getenv("ORI_MODEL_TRANSFER_TOKEN", "")
+            )
+            logger.info(
+                "Existing Ori model migration result: %s",
+                json.dumps(transfer_result, sort_keys=True),
+            )
+        except Exception:
+            logger.exception("Automatic existing-model transfer failed.")
 
 
 def start_background_model_loading() -> None:
@@ -427,8 +440,6 @@ def push_existing_models(token: str) -> dict[str, Any]:
         for relative in (
             Path("models/ori_core.keras"),
             Path("artifacts/ori-small"),
-            Path("artifacts/ori-coder"),
-            Path("artifacts/ori-3d"),
         ):
             source = Path.cwd() / relative
             if source.is_file():
