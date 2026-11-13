@@ -424,6 +424,7 @@ def push_existing_models(token: str) -> dict[str, Any]:
     if not destination.startswith("https://") or not destination_key:
         raise HTTPException(status_code=503, detail="Model transfer destination is not configured.")
 
+    logger.info("Starting one-time Ori model transfer to %s", destination)
     required = (
         MODEL_DIR / "ori_core.keras",
         LM_DIR / "config.json",
@@ -433,10 +434,14 @@ def push_existing_models(token: str) -> dict[str, Any]:
     missing = [str(path) for path in required if not path.is_file()]
     if missing:
         raise HTTPException(status_code=503, detail="Existing trained model files are missing: " + ", ".join(missing))
+    logger.info(
+        "Verified source model files: %s",
+        json.dumps({str(path): path.stat().st_size for path in required}, sort_keys=True),
+    )
 
     output = io.BytesIO()
     included = []
-    with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=3) as archive:
+    with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=1) as archive:
         for relative in (
             Path("models/ori_core.keras"),
             Path("artifacts/ori-small"),
@@ -452,6 +457,11 @@ def push_existing_models(token: str) -> dict[str, Any]:
                         included.append(file_path.relative_to(Path.cwd()).as_posix())
 
     payload = output.getvalue()
+    logger.info(
+        "Prepared Ori model transfer archive: bytes=%s files=%s",
+        len(payload),
+        len(included),
+    )
     request = URLRequest(
         destination,
         data=payload,
@@ -464,8 +474,10 @@ def push_existing_models(token: str) -> dict[str, Any]:
         method="POST",
     )
     try:
-        with urlopen(request, timeout=180) as response:
+        logger.info("Uploading Ori model archive to destination runtime.")
+        with urlopen(request, timeout=240) as response:
             result = json.loads(response.read().decode("utf-8"))
+        logger.info("Destination accepted Ori model transfer: %s", json.dumps(result, sort_keys=True))
     except Exception as exc:
         logger.exception("Existing model transfer failed.")
         raise HTTPException(status_code=502, detail=f"Destination transfer failed: {type(exc).__name__}") from exc
