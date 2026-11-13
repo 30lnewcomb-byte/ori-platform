@@ -16,18 +16,36 @@ const INTELLIGENCE_API_KEY = process.env.ORI_INTELLIGENCE_API_KEY?.trim()
 async function ensureIntelligenceRuntimeAwake() {
   if (!INTELLIGENCE_URL || !INTELLIGENCE_API_KEY) return false
 
-  try {
-    const response = await fetch(`${INTELLIGENCE_URL}/health`, {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${INTELLIGENCE_API_KEY}` },
-      cache: 'no-store',
-      signal: AbortSignal.timeout(70_000),
-    })
-    return response.ok
-  } catch (error) {
-    console.warn('Ori Intelligence service wake-up failed:', error)
-    return false
+  // A healthy HTTP process can still be loading its TensorFlow weights.
+  // Wait for authenticated model readiness, not merely an open server port.
+  const deadline = Date.now() + 70_000
+  while (Date.now() < deadline) {
+    try {
+      const response = await fetch(INTELLIGENCE_URL + '/v1/status', {
+        method: 'GET',
+        headers: { Authorization: 'Bearer ' + INTELLIGENCE_API_KEY },
+        cache: 'no-store',
+        signal: AbortSignal.timeout(12_000),
+      })
+
+      if (response.ok) {
+        const status = await response.json() as {
+          status?: string
+          language_model_loaded?: boolean
+        }
+        if (status.status === 'online' && status.language_model_loaded === true) {
+          return true
+        }
+      }
+    } catch (error) {
+      console.warn('Ori Intelligence readiness check is still waiting:', error)
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 2_000))
   }
+
+  console.warn('Ori Intelligence did not become model-ready before the wake-up deadline.')
+  return false
 }
 
 const INTERNAL_TOOLS = [
