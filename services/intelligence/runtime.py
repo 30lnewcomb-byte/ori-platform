@@ -146,6 +146,9 @@ def load_models_in_background() -> None:
 
 def start_background_model_loading() -> None:
     global _MODEL_LOAD_STARTED
+    if os.getenv("ORI_SKIP_MODEL_LOAD", "false").strip().lower() in {"1", "true", "yes"}:
+        logger.info("ORI_SKIP_MODEL_LOAD is enabled; keeping model artifacts on disk for export-only mode.")
+        return
     with _MODEL_LOAD_LOCK:
         if _MODEL_LOAD_STARTED:
             return
