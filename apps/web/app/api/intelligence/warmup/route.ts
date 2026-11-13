@@ -15,16 +15,34 @@ export async function GET() {
   }
 
   try {
-    const response = await fetch(`${INTELLIGENCE_URL}/health`, {
+    const response = await fetch(`${INTELLIGENCE_URL}/v1/status`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${INTELLIGENCE_API_KEY}` },
       cache: 'no-store',
       signal: AbortSignal.timeout(70_000),
     })
 
+    if (!response.ok) {
+      return NextResponse.json(
+        { ok: false, ready: false, code: 'INTELLIGENCE_STATUS_FAILED', upstreamStatus: response.status },
+        { status: 502 },
+      )
+    }
+
+    const runtime = await response.json() as {
+      status?: string
+      language_model_loaded?: boolean
+    }
+    const ready = runtime.status === 'online' && runtime.language_model_loaded === true
+
     return NextResponse.json(
-      { ok: response.ok, status: response.status },
-      { status: response.ok ? 200 : 502 },
+      {
+        ok: ready,
+        ready,
+        status: runtime.status ?? 'unknown',
+        languageModelLoaded: runtime.language_model_loaded === true,
+      },
+      { status: ready ? 200 : 202 },
     )
   } catch {
     return NextResponse.json({ ok: false, code: 'INTELLIGENCE_WAKE_FAILED' }, { status: 502 })
