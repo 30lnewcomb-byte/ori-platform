@@ -432,23 +432,20 @@ def export_existing_models(
         with NamedTemporaryFile(prefix=".ori-model-export-", suffix=".zip", delete=False) as temporary:
             archive_path = Path(temporary.name)
 
+        # Export only the exact files required by the current Core and Ori Small loaders.
+        # This avoids bundling training checkpoints or unrelated artifacts.
         entries = (
             (MODEL_DIR / "ori_core.keras", "models/ori_core.keras"),
-            (LM_DIR, "artifacts/ori-small"),
-            (WORKER_ROOT / "ori-coder", "artifacts/ori-coder"),
-            (WORKER_ROOT / "ori-3d", "artifacts/ori-3d"),
+            (LM_DIR / "config.json", "artifacts/ori-small/config.json"),
+            (LM_DIR / "ori_tokenizer.model", "artifacts/ori-small/ori_tokenizer.model"),
+            (LM_DIR / "model.weights.h5", "artifacts/ori-small/model.weights.h5"),
         )
         with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_STORED) as archive:
             for source, archive_name in entries:
-                if source.is_file():
-                    archive.write(source, archive_name)
-                    included_files += 1
-                elif source.is_dir():
-                    for file_path in sorted(source.rglob("*")):
-                        if file_path.is_file() and not file_path.is_symlink():
-                            relative = file_path.relative_to(source)
-                            archive.write(file_path, (Path(archive_name) / relative).as_posix())
-                            included_files += 1
+                if not source.is_file():
+                    raise HTTPException(status_code=503, detail=f"Required model artifact is missing: {source}")
+                archive.write(source, archive_name)
+                included_files += 1
 
         archive_size = archive_path.stat().st_size
         logger.info(
