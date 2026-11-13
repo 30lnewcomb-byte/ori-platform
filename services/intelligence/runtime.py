@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import hmac
-import http.client
-import io
 import json
 import logging
 import os
@@ -12,14 +10,13 @@ import re
 import uuid
 import zipfile
 from tempfile import NamedTemporaryFile
-from urllib.parse import urlsplit
-from urllib.request import Request as URLRequest, urlopen
 from pathlib import Path
 from threading import Lock, Thread
 from typing import Any
 
 import tensorflow as tf
 from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from tensorflow_core.model import LABELS, OriCoreModel
@@ -145,19 +142,6 @@ def load_models_in_background() -> None:
         language is not None,
         ",".join(sorted(workers)) or "none",
     )
-    # Temporary migration switch: if the protected transfer settings exist,
-    # push the already-loaded Core and Ori Small artifacts to the new service.
-    if os.getenv("ORI_MODEL_TRANSFER_TOKEN", "").strip():
-        try:
-            transfer_result = push_existing_models(
-                token=os.getenv("ORI_MODEL_TRANSFER_TOKEN", "")
-            )
-            logger.info(
-                "Existing Ori model migration result: %s",
-                json.dumps(transfer_result, sort_keys=True),
-            )
-        except Exception:
-            logger.exception("Automatic existing-model transfer failed.")
 
 
 def start_background_model_loading() -> None:
@@ -415,19 +399,17 @@ def title(payload: TitleRequest, _: None = Depends(require_api_key)) -> dict[str
 
 
 
-@app.get("/internal/push-models")
-def push_existing_models(token: str) -> dict[str, Any]:
-    """Temporarily push this service's cached trained artifacts to the new runtime."""
+@app.get("/internal/export-models")
+def export_existing_models(
+    x_ori_model_transfer: str | None = Header(default=None),
+) -> StreamingResponse:
+    """Stream the existing trained artifacts for a separate runtime build."""
     expected_token = os.getenv("ORI_MODEL_TRANSFER_TOKEN", "").strip()
-    if not expected_token or not hmac.compare_digest(token, expected_token):
-        raise HTTPException(status_code=401, detail="Unauthorized model transfer.")
+    if not expected_token or not x_ori_model_transfer or not hmac.compare_digest(
+        x_ori_model_transfer, expected_token
+    ):
+        raise HTTPException(status_code=401, detail="Unauthorized model export.")
 
-    destination = os.getenv("ORI_MODEL_TRANSFER_URL", "").strip()
-    destination_key = os.getenv("ORI_MODEL_TRANSFER_API_KEY", "").strip()
-    if not destination.startswith("https://") or not destination_key:
-        raise HTTPException(status_code=503, detail="Model transfer destination is not configured.")
-
-    logger.info("Starting one-time Ori model transfer to %s", destination)
     required = (
         MODEL_DIR / "ori_core.keras",
         LM_DIR / "config.json",
@@ -436,76 +418,63 @@ def push_existing_models(token: str) -> dict[str, Any]:
     )
     missing = [str(path) for path in required if not path.is_file()]
     if missing:
-        raise HTTPException(status_code=503, detail="Existing trained model files are missing: " + ", ".join(missing))
-    logger.info(
-        "Verified source model files: %s",
-        json.dumps({str(path): path.stat().st_size for path in required}, sort_keys=True),
-    )
+        raise HTTPException(
+            status_code=503,
+            detail="Existing trained model files are missing: " + ", ".join(missing),
+        )
 
     archive_path: Path | None = None
-    connection: http.client.HTTPSConnection | None = None
-    included = []
+    included_files = 0
     try:
         with NamedTemporaryFile(prefix=".ori-model-export-", suffix=".zip", delete=False) as temporary:
             archive_path = Path(temporary.name)
-        with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=1) as archive:
-            for relative in (
-                Path("models/ori_core.keras"),
-                Path("artifacts/ori-small"),
-            ):
-                source = Path.cwd() / relative
+
+        entries = (
+            (MODEL_DIR / "ori_core.keras", "models/ori_core.keras"),
+            (LM_DIR, "artifacts/ori-small"),
+            (WORKER_ROOT / "ori-coder", "artifacts/ori-coder"),
+            (WORKER_ROOT / "ori-3d", "artifacts/ori-3d"),
+        )
+        with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_STORED) as archive:
+            for source, archive_name in entries:
                 if source.is_file():
-                    archive.write(source, relative.as_posix())
-                    included.append(relative.as_posix())
+                    archive.write(source, archive_name)
+                    included_files += 1
                 elif source.is_dir():
                     for file_path in sorted(source.rglob("*")):
                         if file_path.is_file() and not file_path.is_symlink():
-                            archive.write(file_path, file_path.relative_to(Path.cwd()).as_posix())
-                            included.append(file_path.relative_to(Path.cwd()).as_posix())
+                            relative = file_path.relative_to(source)
+                            archive.write(file_path, (Path(archive_name) / relative).as_posix())
+                            included_files += 1
 
         archive_size = archive_path.stat().st_size
         logger.info(
-            "Prepared disk-backed Ori model archive: bytes=%s files=%s",
+            "Prepared streamed Ori model export: bytes=%s files=%s",
             archive_size,
-            len(included),
+            included_files,
         )
-        parsed = urlsplit(destination)
-        if parsed.scheme != "https" or not parsed.hostname:
-            raise ValueError("Model transfer destination must be an HTTPS URL.")
-        request_path = parsed.path or "/"
-        if parsed.query:
-            request_path += "?" + parsed.query
-        connection = http.client.HTTPSConnection(parsed.hostname, parsed.port or 443, timeout=240)
-        logger.info("Streaming Ori model archive to destination runtime.")
-        connection.putrequest("POST", request_path)
-        connection.putheader("Authorization", f"Bearer {destination_key}")
-        connection.putheader("X-Ori-Model-Transfer", expected_token)
-        connection.putheader("Content-Type", "application/zip")
-        connection.putheader("Content-Length", str(archive_size))
-        connection.endheaders()
-        with archive_path.open("rb") as archive_file:
-            while chunk := archive_file.read(1024 * 1024):
-                connection.send(chunk)
-        response = connection.getresponse()
-        response_body = response.read()
-        if response.status < 200 or response.status >= 300:
-            raise RuntimeError(f"Destination returned HTTP {response.status}: {response_body[:500].decode('utf-8', 'replace')}")
-        result = json.loads(response_body.decode("utf-8"))
-        logger.info("Destination accepted Ori model transfer: %s", json.dumps(result, sort_keys=True))
-        return {
-            "status": "transfer_sent",
-            "archive_bytes": archive_size,
-            "files_included": len(included),
-            "destination_result": result,
-        }
-    except Exception as exc:
-        logger.exception("Existing model transfer failed.")
-        raise HTTPException(status_code=502, detail=f"Destination transfer failed: {type(exc).__name__}") from exc
-    finally:
-        if connection is not None:
-            connection.close()
+
+        def stream_archive():
+            try:
+                with archive_path.open("rb") as archive_file:
+                    while chunk := archive_file.read(1024 * 1024):
+                        yield chunk
+            finally:
+                archive_path.unlink(missing_ok=True)
+
+        return StreamingResponse(
+            stream_archive(),
+            media_type="application/zip",
+            headers={
+                "Content-Length": str(archive_size),
+                "Content-Disposition": 'attachment; filename="ori-models.zip"',
+            },
+        )
+    except Exception:
         if archive_path is not None:
             archive_path.unlink(missing_ok=True)
+        logger.exception("Could not prepare Ori model export.")
+        raise
 
 
 @app.get("/")
