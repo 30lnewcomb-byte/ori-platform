@@ -121,3 +121,43 @@ pre,code,kbd,samp { font-family:var(--font-mono); }
   text-overflow:ellipsis;
   white-space:nowrap;
 }
+
+
+/* Persistent notice for features backed by Render-hosted services. */
+.renderDependencyNotice {
+  min-height:40px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  padding:8px 20px;
+  border-bottom:1px solid var(--border-subtle);
+  background:#eef3fa;
+  color:#334155;
+  font-size:12px;
+  line-height:1.45;
+}
+.renderDependencyNotice strong {
+  margin-right:6px;
+  color:var(--text-primary);
+  font-weight:750;
+}
+.renderDependencyNotice a {
+  flex:0 0 auto;
+  color:var(--accent-strong);
+  font-weight:750;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+.chatPageContent { height:calc(100vh - 40px); }
+@media (max-width:760px) {
+  .renderDependencyNotice {
+    min-height:58px;
+    align-items:flex-start;
+    flex-direction:column;
+    justify-content:center;
+    gap:3px;
+    padding:8px 16px;
+  }
+  .chatPageContent { height:calc(100dvh - 122px); }
+}
