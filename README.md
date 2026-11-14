@@ -68,25 +68,28 @@ The production intelligence boundary is the standalone **[ori-intelligence repos
 
 The older `services/intelligence/` tree in this repository is a legacy compatibility snapshot. It is not the source of truth for the production runtime and should not be used for routine model or runtime changes. Make intelligence-runtime changes in `ori-intelligence` so its Render deployment remains independent from Ori Platform's web deployments.
 
-The runtime exposes stable endpoints for model discovery, health, prediction, and future generative chat:
+The runtime exposes these endpoints:
 
-- `GET /v1/status`
-- `GET /v1/models`
-- `POST /v1/predict`
-- `POST /v1/chat`
+- `GET /health` — basic process health
+- `GET /v1/status` — authenticated model-readiness status
+- `GET /v1/models` — authenticated model registry
+- `POST /v1/predict` — authenticated Ori Core intent classification
+- `POST /v1/chat` — authenticated Ori Small language generation
+- `POST /v1/title` — authenticated conversation-title generation
 
-The current `ori-core` model is a real trainable TensorFlow/Keras text classifier. It is the first native learned component, not a scripted rule system. A separate trained generative TensorFlow model will plug into the same runtime contract when available.
+The current runtime uses two existing trained TensorFlow model artifacts: **Ori Core** for intent classification and **Ori Small** for language generation. These are loaded from saved checkpoints; normal service startup does not train models. Incremental fine-tuning is a separate, explicitly configured operation, and full from-scratch rebuilding is blocked unless two separate authorization switches are enabled.
+
+The coding and 3D specialist worker interfaces exist in the runtime, but the latest observed production startup reported `workers=none`. They must not be described as loaded or available until their trained artifacts are present and readiness confirms them.
 
 ## Configuration
 
-Use `.env.example` as the reference for server-side configuration. Real credentials must never be committed. `ORI_INTELLIGENCE_API_KEY` is for the Vercel-to-runtime connection and must remain server-side.
+Use `.env.example` as the reference for server-side configuration. Real credentials must never be committed. `ORI_INTELLIGENCE_API_KEY` is for the Vercel-to-runtime connection and must remain server-side. `ORI_INTELLIGENCE_URL` identifies the standalone Render service.
 
 ## Status
 
 The live product is deliberately focused on Home and Chat. Chat now has local browser history, New Chat, automatic titles, reopening, and deletion.
 
-The native TensorFlow runtime boundary and first learned models are in place. The VM integration remains a separate capability with its own runtime and permission boundaries. Developer projects, API credentials, model/tool administration, and developer documentation are maintained in the separate Developer Platform repository.
-
+The standalone TensorFlow runtime boundary and the existing Core and Small model checkpoints are in place. The VM integration remains a separate capability with its own runtime and permission boundaries. Developer projects, API credentials, model/tool administration, and developer documentation are maintained in the separate Developer Platform repository.
 
 ## Ori VM connection
 
