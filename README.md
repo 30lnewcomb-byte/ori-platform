@@ -21,9 +21,9 @@ apps/
   web/app/api/chat/    # server-side gateway to Ori intelligence
 
 services/
-  intelligence/        # private TensorFlow runtime
+  intelligence/        # legacy compatibility snapshot; not the production source of truth
   intelligence/tensorflow_core/
-                         # native TensorFlow/Keras models
+                         # legacy TensorFlow/Keras copy; see ori-intelligence repository
 
 packages/
   ui/                  # shared Ori design system
@@ -64,7 +64,9 @@ Planned families:
 
 ## Intelligence
 
-The production intelligence boundary is now **Ori's private TensorFlow runtime**. The Vercel app calls the runtime over an authenticated server-to-server API; the browser never receives the runtime credential.
+The production intelligence boundary is the standalone **[ori-intelligence repository](https://github.com/30lnewcomb-byte/ori-intelligence)**, deployed independently on Render. The Vercel app calls that service over an authenticated server-to-server API; the browser never receives the runtime credential.
+
+The older `services/intelligence/` tree in this repository is a legacy compatibility snapshot. It is not the source of truth for the production runtime and should not be used for routine model or runtime changes. Make intelligence-runtime changes in `ori-intelligence` so its Render deployment remains independent from Ori Platform's web deployments.
 
 The runtime exposes stable endpoints for model discovery, health, prediction, and future generative chat:
 
@@ -89,6 +91,8 @@ The native TensorFlow runtime boundary and first learned models are in place. Th
 ## Ori VM connection
 
 The platform owns a server-side wrapper for the Render-hosted Ori VM at `apps/web/lib/ori-vm.ts`. The browser never receives the VM credential.
+
+**Hosting notice:** Ori Platform depends on Render-hosted services for intelligence and VM capabilities. If a supporting service is starting, unavailable, or under maintenance, the related capability may be temporarily unavailable while other parts of the platform remain accessible. The app displays this notice globally and links to the public Ori status page.
 
 The wrapper supports:
 - authenticated VM status, execution, and workspace operations
