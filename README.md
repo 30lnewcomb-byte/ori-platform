@@ -1,6 +1,6 @@
 # Ori Platform
 
-The open-source foundation for Ori: a user-owned AI platform with a professional web interface, Ori World, tools, and native learned intelligence.
+The open-source foundation for Ori: a user-owned AI platform with a professional web interface, tools, and native learned intelligence.
 
 ## Design principles
 
@@ -30,20 +30,11 @@ packages/
   typography/          # Ori type family and font tooling
   shared/              # shared types and utilities
 
-world/
-  README.md            # Ori World design and implementation boundary
-
 docs/
   design/              # design decisions and standards
 ```
 
 `ori-platform` is the main product repository. **OriOS Lite is intentionally separate** and is not a dependency of this repository.
-
-## Ori World
-
-Ori World is a small, purpose-built working environment for Ori. It is designed around code, files, tests, experiments, and other controlled work that Ori actually needs. It is not intended to be a generic hosted sandbox product or a required paid service.
-
-The current web route remains `/sandbox` because the route predates the product name; the user-facing navigation label is **Ori World everywhere**. The server-side VM connection layer is now prepared through `apps/web/lib/ori-vm.ts`; full chat/tool orchestration remains a separate integration step.
 
 ## Product boundaries
 
@@ -59,7 +50,7 @@ Ori's current primary navigation is intentionally small:
 
 The overflow menu provides access to the **About Ori** reference and **Developer Platform**. This keeps the everyday assistant experience focused on capabilities that have real behavior behind them.
 
-Home is the app workspace for starting work and understanding the current product. Chat is where the user works with Ori and manages conversations. Search, Projects, Tasks, Activity, and broad Settings controls remain longer-term product surfaces and are deliberately not exposed as primary navigation until their underlying functionality is real. Ori World is a planned controlled work environment and is documented separately.
+Home is the app workspace for starting work and understanding the current product. Chat is where the user works with Ori and manages conversations. Search, Projects, Tasks, Activity, and broad Settings controls remain longer-term product surfaces and are deliberately not exposed as primary navigation until their underlying functionality is real.
 
 ## Typography
 
@@ -92,7 +83,7 @@ Use `.env.example` as the reference for server-side configuration. Real credenti
 
 The live product is deliberately focused on Home and Chat. Chat now has local browser history, New Chat, automatic titles, reopening, and deletion.
 
-The native TensorFlow runtime boundary and first learned models are in place. Complete Ori World orchestration remains in development. Developer projects, API credentials, model/tool administration, and developer documentation are maintained in the separate Developer Platform repository.
+The native TensorFlow runtime boundary and first learned models are in place. The VM integration remains a separate capability with its own runtime and permission boundaries. Developer projects, API credentials, model/tool administration, and developer documentation are maintained in the separate Developer Platform repository.
 
 
 ## Ori VM connection
