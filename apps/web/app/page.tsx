@@ -92,8 +92,8 @@ export default async function LandingPage() {
           </article>
           <article className={styles.valueCard}>
             <span className={styles.cardNumber}>03</span>
-            <h3>Keep controls separate</h3>
-            <p>Project administration and developer documentation live in Ori Developer Platform.</p>
+            <h3>Customize your workspace</h3>
+            <p>Choose a light, dark, or system appearance and select an accent color in Settings.</p>
           </article>
         </div>
       </section>
