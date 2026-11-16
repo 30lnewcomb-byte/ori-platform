@@ -52,7 +52,7 @@ function formatChatDate(timestamp: number) {
     : date.toLocaleDateString([], { month: 'short', day: 'numeric' })
 }
 
-export type AppSection = 'Home' | 'Chat'
+export type AppSection = 'Home' | 'Chat' | 'Settings'
 
 export default function AppShell({
   active,
@@ -166,6 +166,13 @@ export default function AppShell({
         </div>
 
         <div className={styles.sidebarBottom}>
+          <a
+            className={active === 'Settings' ? styles.settingsLinkActive : styles.settingsLink}
+            href="/settings"
+            aria-current={active === 'Settings' ? 'page' : undefined}
+          >
+            Settings
+          </a>
           <div className={styles.sidebarFooter}>Ori Platform</div>
         </div>
       </aside>
@@ -174,6 +181,7 @@ export default function AppShell({
         <a href="/" className={active === 'Home' ? styles.mobileActive : ''}>Home</a>
         <a href="/chat?new=1">New chat</a>
         <a href="/chat?history=1" className={active === 'Chat' ? styles.mobileActive : ''}>Chats</a>
+        <a href="/settings" className={active === 'Settings' ? styles.mobileActive : ''}>Settings</a>
         <Show when="signed-out"><a href="/sign-in">Sign in</a></Show>
         <Show when="signed-in"><span className={styles.mobileAccount}><UserButton /></span></Show>
       </nav>
