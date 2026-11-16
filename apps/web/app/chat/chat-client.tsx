@@ -19,26 +19,14 @@ const STORAGE_KEY = 'ori.chat.history.v1'
 const MAX_CONVERSATIONS = 100
 
 const EMPTY_PROMPTS = [
-  'What’s on your mind today?',
-  'What would you like to work on?',
-  'What can we figure out together?',
-  'What are you thinking about?',
-  'Where should we start?',
-  'What would you like to explore?',
   'What are you working on today?',
-  'Got something on your mind?',
-  'What should we tackle?',
-  'What can Ori help with?',
-  'Ready when you are.',
-  'What are we working on?',
   'What would you like to figure out?',
-  'Need a hand with something?',
-  'What should we dive into?',
-  'What’s up?',
-  'What would you like to talk about?',
-  'Have something in mind?',
-  'What should we look at?',
-  'What do you want to build today?',
+  'Need a hand with a project?',
+  'Have a question in mind?',
+  'What should we explore?',
+  'What are you trying to build?',
+  'Where should we start?',
+  'Ready when you are.',
 ]
 
 function pickEmptyPrompt() {
