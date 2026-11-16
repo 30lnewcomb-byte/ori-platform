@@ -1,5 +1,5 @@
 export const DEFAULT_ORI_PREFERENCES = {
-  appearance: 'system',
+  appearance: 'light',
   accent: 'blue',
 } as const
 
