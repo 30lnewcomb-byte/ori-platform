@@ -163,78 +163,247 @@ pre,code,kbd,samp { font-family:var(--font-mono); }
 }
 
 
-/* Charcoal + white product theme */
+
+/* Ori appearance tokens: the default is the hybrid charcoal + soft-white workspace. */
+:root {
+  color-scheme: light;
+  --surface-base: #f2f4f6;
+  --surface-raised: #ffffff;
+  --surface-strong: #171b21;
+  --text-primary: #202630;
+  --text-secondary: #566171;
+  --text-muted: #7c8795;
+  --border-subtle: #dfe4ea;
+  --sidebar-bg: #171b21;
+  --sidebar-border: #303943;
+  --sidebar-brand: #f4f6f9;
+  --sidebar-text: #c3ccd7;
+  --sidebar-muted: #8491a1;
+  --sidebar-hover: #273341;
+  --sidebar-hover-text: #ffffff;
+  --sidebar-surface: #222a34;
+  --sidebar-account: #202832;
+  --sidebar-focus: #668bb8;
+  --user-bubble-bg: #e6edf7;
+  --surface-hover: #f1f4f7;
+  --floating-shadow: 0 12px 36px rgba(26, 37, 52, .09);
+  --accent-primary: #3979c6;
+  --accent-strong: #285f9d;
+  --accent-blue: #3979c6;
+  --accent-blue-strong: #285f9d;
+  --accent-blue-soft: #eaf1fa;
+  --accent-soft: #eaf1fa;
+  --focus-ring: #3979c6;
+}
+:root[data-ori-accent="green"] {
+  --accent-primary: #288357;
+  --accent-strong: #1c6843;
+  --accent-blue: #288357;
+  --accent-blue-strong: #1c6843;
+  --accent-blue-soft: #e7f3ec;
+  --accent-soft: #e7f3ec;
+  --focus-ring: #288357;
+}
+:root[data-ori-accent="yellow"] {
+  --accent-primary: #8d6000;
+  --accent-strong: #704a00;
+  --accent-blue: #8d6000;
+  --accent-blue-strong: #704a00;
+  --accent-blue-soft: #fff3d4;
+  --accent-soft: #fff3d4;
+  --focus-ring: #8d6000;
+}
+:root[data-ori-accent="pink"] {
+  --accent-primary: #bd4f83;
+  --accent-strong: #963b67;
+  --accent-blue: #bd4f83;
+  --accent-blue-strong: #963b67;
+  --accent-blue-soft: #faeaf1;
+  --accent-soft: #faeaf1;
+  --focus-ring: #bd4f83;
+}
+:root[data-ori-accent="orange"] {
+  --accent-primary: #b85c2a;
+  --accent-strong: #8e431d;
+  --accent-blue: #b85c2a;
+  --accent-blue-strong: #8e431d;
+  --accent-blue-soft: #fff0e7;
+  --accent-soft: #fff0e7;
+  --focus-ring: #b85c2a;
+}
+:root[data-ori-accent="purple"] {
+  --accent-primary: #795bc0;
+  --accent-strong: #5d4398;
+  --accent-blue: #795bc0;
+  --accent-blue-strong: #5d4398;
+  --accent-blue-soft: #f0ebfb;
+  --accent-soft: #f0ebfb;
+  --focus-ring: #795bc0;
+}
+:root[data-ori-accent="neutral"] {
+  --accent-primary: #4d5968;
+  --accent-strong: #343d49;
+  --accent-blue: #4d5968;
+  --accent-blue-strong: #343d49;
+  --accent-blue-soft: #e9edf1;
+  --accent-soft: #e9edf1;
+  --focus-ring: #4d5968;
+}
+
+/* Explicit dark appearance. Accent hues stay independent of the base theme. */
+:root[data-ori-appearance="dark"] {
+  color-scheme: dark;
+  --surface-base: #1b222b;
+  --surface-raised: #252e39;
+  --surface-strong: #10151b;
+  --text-primary: #edf1f6;
+  --text-secondary: #b4bfcc;
+  --text-muted: #8d9aaa;
+  --border-subtle: #3a4654;
+  --sidebar-bg: #11161d;
+  --sidebar-border: #303a47;
+  --sidebar-brand: #f5f7fa;
+  --sidebar-text: #c8d1dc;
+  --sidebar-muted: #91a0b0;
+  --sidebar-hover: #293746;
+  --sidebar-hover-text: #ffffff;
+  --sidebar-surface: #1c2631;
+  --sidebar-account: #1a232d;
+  --sidebar-focus: #678bb5;
+  --user-bubble-bg: #304358;
+  --surface-hover: #2d3743;
+  --floating-shadow: 0 14px 38px rgba(0, 0, 0, .28);
+  --accent-blue-soft: #293b50;
+  --accent-soft: #293b50;
+}
+:root[data-ori-appearance="dark"][data-ori-accent="green"] {
+  --accent-blue-soft: #203c32;
+  --accent-soft: #203c32;
+}
+:root[data-ori-appearance="dark"][data-ori-accent="yellow"] {
+  --accent-blue-soft: #40351f;
+  --accent-soft: #40351f;
+}
+:root[data-ori-appearance="dark"][data-ori-accent="pink"] {
+  --accent-blue-soft: #42283a;
+  --accent-soft: #42283a;
+}
+:root[data-ori-appearance="dark"][data-ori-accent="orange"] {
+  --accent-blue-soft: #432f25;
+  --accent-soft: #432f25;
+}
+:root[data-ori-appearance="dark"][data-ori-accent="purple"] {
+  --accent-blue-soft: #342c4c;
+  --accent-soft: #342c4c;
+}
+:root[data-ori-appearance="dark"][data-ori-accent="neutral"] {
+  --accent-blue-soft: #313b47;
+  --accent-soft: #313b47;
+}
+
+/* System appearance follows the current device preference. */
+@media (prefers-color-scheme: dark) {
+  :root[data-ori-appearance="system"] {
+    color-scheme: dark;
+    --surface-base: #1b222b;
+    --surface-raised: #252e39;
+    --surface-strong: #10151b;
+    --text-primary: #edf1f6;
+    --text-secondary: #b4bfcc;
+    --text-muted: #8d9aaa;
+    --border-subtle: #3a4654;
+    --sidebar-bg: #11161d;
+    --sidebar-border: #303a47;
+    --sidebar-brand: #f5f7fa;
+    --sidebar-text: #c8d1dc;
+    --sidebar-muted: #91a0b0;
+    --sidebar-hover: #293746;
+    --sidebar-hover-text: #ffffff;
+    --sidebar-surface: #1c2631;
+    --sidebar-account: #1a232d;
+    --sidebar-focus: #678bb5;
+    --user-bubble-bg: #304358;
+    --surface-hover: #2d3743;
+    --floating-shadow: 0 14px 38px rgba(0, 0, 0, .28);
+    --accent-blue-soft: #293b50;
+    --accent-soft: #293b50;
+  }
+  :root[data-ori-appearance="system"][data-ori-accent="green"] {
+    --accent-blue-soft: #203c32;
+    --accent-soft: #203c32;
+  }
+  :root[data-ori-appearance="system"][data-ori-accent="yellow"] {
+    --accent-blue-soft: #40351f;
+    --accent-soft: #40351f;
+  }
+  :root[data-ori-appearance="system"][data-ori-accent="pink"] {
+    --accent-blue-soft: #42283a;
+    --accent-soft: #42283a;
+  }
+  :root[data-ori-appearance="system"][data-ori-accent="orange"] {
+    --accent-blue-soft: #432f25;
+    --accent-soft: #432f25;
+  }
+  :root[data-ori-appearance="system"][data-ori-accent="purple"] {
+    --accent-blue-soft: #342c4c;
+    --accent-soft: #342c4c;
+  }
+  :root[data-ori-appearance="system"][data-ori-accent="neutral"] {
+    --accent-blue-soft: #313b47;
+    --accent-soft: #313b47;
+  }
+}
+
 body {
-  background: #f2f4f6;
-  color: #202630;
+  background: var(--surface-base);
+  color: var(--text-primary);
 }
-.content {
-  color: #202630;
-}
-.chatPageContent {
-  background: #f2f4f6;
-}
-.chatContent {
-  background: #f2f4f6;
-}
-.chatHeader {
-  color: #202630;
-}
-.conversation {
-  background: #f2f4f6;
-}
+.content { color: var(--text-primary); }
+.chatPageContent,
+.chatContent,
+.conversation { background: var(--surface-base); }
+.chatHeader { color: var(--text-primary); }
 .userMessage {
-  background: #e6edf7;
-  color: #202630;
+  background: var(--user-bubble-bg);
+  color: var(--text-primary);
 }
-.oriMessage {
-  color: #252d38;
-}
-.messageLabel {
-  color: #788494;
-}
-.chatEmptyState strong {
-  color: #252d38;
-}
+.oriMessage { color: var(--text-primary); }
+.messageLabel { color: var(--text-muted); }
+.chatEmptyState strong { color: var(--text-primary); }
 .composer {
-  background: rgba(255, 255, 255, .96);
-  border-color: #dce2e9;
-  box-shadow: 0 12px 36px rgba(26, 37, 52, .09);
+  background: color-mix(in srgb, var(--surface-raised) 96%, transparent);
+  border-color: var(--border-subtle);
+  box-shadow: var(--floating-shadow);
 }
 .composer:focus-within {
-  border-color: #8eadd2;
-  box-shadow: 0 12px 36px rgba(57, 121, 198, .13);
+  border-color: var(--focus-ring);
+  box-shadow: 0 10px 34px color-mix(in srgb, var(--accent-primary) 18%, transparent);
 }
 .commandMenu,
 .chatHistory {
-  background: #fff;
-  border-color: #dce2e9;
+  background: var(--surface-raised);
+  border-color: var(--border-subtle);
 }
-.chatHistoryHeader {
-  border-bottom-color: #e4e8ed;
-}
+.chatHistoryHeader { border-bottom-color: var(--border-subtle); }
 .chatHistoryItem:hover:not(:disabled),
-.commandItem:hover {
-  background: #f1f4f7;
-}
-.chatError {
-  color: #8f3036;
-  background: #fff1f2;
-  border-color: #edc8cc;
-}
+.commandItem:hover { background: var(--surface-hover); }
+.commandItem code { color: var(--accent-strong); }
 .topbar h1,
 .quickStart h2,
-.sectionHeader h3 {
-  color: #202630;
-}
+.sectionHeader h3 { color: var(--text-primary); }
 .sectionBlock {
-  background: #fff;
-  border-color: #dfe4ea;
-  box-shadow: 0 4px 16px rgba(25, 36, 50, .035);
+  background: var(--surface-raised);
+  border-color: var(--border-subtle);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--surface-strong) 4%, transparent);
 }
-.dataRow {
-  border-bottom-color: #e4e8ed;
+.dataRow { border-bottom-color: var(--border-subtle); }
+.renderDependencyNotice {
+  background: var(--accent-blue-soft);
+  color: var(--text-secondary);
+  border-bottom-color: var(--border-subtle);
 }
+.renderDependencyNotice a { color: var(--accent-blue-strong); }
 @media (prefers-reduced-motion: reduce) {
-  .composer, .sendButton { transition: none; }
+  .composer,
+  .sendButton { transition: none; }
 }
