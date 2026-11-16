@@ -24,10 +24,9 @@ export default async function LandingPage() {
       <section className={styles.hero} aria-labelledby="hero-title">
         <div className={styles.heroCopy}>
           <p className={styles.kicker}>ORI PLATFORM</p>
-          <h1 id="hero-title">A place for your ideas to become work.</h1>
+          <h1 id="hero-title">A focused workspace for working with Ori.</h1>
           <p className={styles.lede}>
-            Ori is a personal AI platform for thinking, building, coding, and creating —
-            designed to keep the experience focused on the work in front of you.
+            Chat with Ori, keep your conversations together, and work through questions or ideas. Developer settings and project administration live in the separate Ori Developer Platform.
           </p>
           <div className={styles.heroActions}>
             <SignUpButton mode="redirect" forceRedirectUrl="/onboarding">
@@ -37,18 +36,18 @@ export default async function LandingPage() {
               <button className={styles.secondaryCta} type="button">Sign in</button>
             </SignInButton>
           </div>
-          <p className={styles.note}>Start with an account. Your conversations stay with your Ori workspace.</p>
+          <p className={styles.note}>Create an account to open your Ori workspace.</p>
         </div>
 
         <div className={styles.heroPanel} aria-label="Ori workspace preview">
           <div className={styles.panelTop}>
             <span className={styles.panelBrand}>ORI</span>
-            <span className={styles.liveMark}><i /> Ready</span>
+            <span className={styles.liveMark}>Workspace preview</span>
           </div>
           <div className={styles.panelContent}>
             <span className={styles.panelEyebrow}>YOUR WORKSPACE</span>
-            <strong>What are you working on?</strong>
-            <span>Chat, code, explore an idea, or start something new.</span>
+            <strong>Start with a conversation.</strong>
+            <span>Ask a question, explore an idea, or continue a conversation.</span>
           </div>
           <div className={styles.panelComposer}>
             <span>Message Ori...</span>
@@ -59,25 +58,25 @@ export default async function LandingPage() {
 
       <section className={styles.valueSection} aria-labelledby="value-title">
         <div className={styles.sectionIntro}>
-          <p className={styles.kicker}>BUILT AROUND THE WORK</p>
-          <h2 id="value-title">Simple on the surface. Capable underneath.</h2>
-          <p>Ori keeps the interface calm while the platform handles the complexity behind it.</p>
+          <p className={styles.kicker}>THE WORKSPACE</p>
+          <h2 id="value-title">Chat stays at the center.</h2>
+          <p>The main workspace is for conversations. Developer tools and platform administration stay in their own product.</p>
         </div>
         <div className={styles.valueGrid}>
           <article className={styles.valueCard}>
             <span className={styles.cardNumber}>01</span>
-            <h3>Think</h3>
-            <p>Have a conversation, work through a problem, or turn a rough idea into a clear next step.</p>
+            <h3>Ask</h3>
+            <p>Ask a question, explore a topic, or work through a problem with Ori.</p>
           </article>
           <article className={styles.valueCard}>
             <span className={styles.cardNumber}>02</span>
-            <h3>Build</h3>
-            <p>Move from discussion into practical work, with coding and developer tools available when they are needed.</p>
+            <h3>Continue</h3>
+            <p>Return to previous conversations and pick up where you left off.</p>
           </article>
           <article className={styles.valueCard}>
             <span className={styles.cardNumber}>03</span>
-            <h3>Create</h3>
-            <p>Make room for technical and creative projects without turning the main experience into a control panel.</p>
+            <h3>Keep controls separate</h3>
+            <p>Project administration and developer documentation live in Ori Developer Platform.</p>
           </article>
         </div>
       </section>
