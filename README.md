@@ -1,6 +1,6 @@
 # Ori Platform
 
-The open-source foundation for Ori: a user-owned AI platform with a professional web interface, tools, and native learned intelligence.
+The user-facing Ori application: a chat workspace for conversations, saved chat history, account onboarding, and appearance preferences. It connects to Ori Intelligence through a server-side API.
 
 ## Design principles
 
@@ -18,7 +18,7 @@ The open-source foundation for Ori: a user-owned AI platform with a professional
 ```text
 apps/
   web/                 # Ori web application
-  web/app/api/chat/    # server-side gateway to Ori intelligence
+  web/app/api/        # authenticated chat, conversation, preference, and integration routes
 
 services/
   intelligence/        # legacy compatibility snapshot; not the production source of truth
@@ -38,7 +38,7 @@ docs/
 
 ## Product boundaries
 
-The **Ori Developer Platform** now lives in its own repository and Vercel project. This repository is intentionally focused on the user-facing Ori workspace: Home, Chat, account onboarding, conversation persistence, intelligence access, and controlled runtime integrations.
+The **Ori Developer Platform** now lives in its own repository and Vercel project. This repository contains the user-facing Ori workspace: Chat, conversation history, account onboarding, appearance settings, intelligence access, and server-side runtime integrations.
 
 Developer projects, API credentials, model/tool administration, activity, and developer documentation belong to the separate Developer Platform product.
 
@@ -87,7 +87,7 @@ Use `.env.example` as the reference for server-side configuration. Real credenti
 
 ## Status
 
-The live product is deliberately focused on Home and Chat. Chat now has local browser history, New Chat, automatic titles, reopening, and deletion.
+The current workspace includes Chat, saved conversation history, automatic conversation titles, account onboarding, and appearance settings. Users can select System, Light, or Dark appearance and choose an accent color. Chat history is stored in the account database, with a browser cache for continuity.
 
 The standalone TensorFlow runtime boundary and the existing Core and Small model checkpoints are in place. The VM integration remains a separate capability with its own runtime and permission boundaries. Developer projects, API credentials, model/tool administration, and developer documentation are maintained in the separate Developer Platform repository.
 
@@ -95,7 +95,7 @@ The standalone TensorFlow runtime boundary and the existing Core and Small model
 
 The platform owns a server-side wrapper for the Render-hosted Ori VM at `apps/web/lib/ori-vm.ts`. The browser never receives the VM credential.
 
-**Hosting notice:** Ori Platform depends on Render-hosted services for intelligence and VM capabilities. If a supporting service is starting, unavailable, or under maintenance, the related capability may be temporarily unavailable while other parts of the platform remain accessible. The app displays this notice globally and links to the public Ori status page.
+**Service dependencies:** Ori Platform uses separately hosted services for intelligence and VM capabilities. A Vercel deployment confirms the web application build; it does not confirm that those runtime services are available. The public Ori-AI status page provides point-in-time service checks.
 
 The wrapper supports:
 - authenticated VM status, execution, and workspace operations
