@@ -16,6 +16,7 @@ type SaveState = 'idle' | 'saving' | 'saved' | 'error'
 type OriThemeContextValue = {
   preferences: OriPreferences
   updatePreferences: (patch: Partial<OriPreferences>) => void
+  retrySave: () => void
   saveState: SaveState
 }
 
@@ -39,15 +40,7 @@ export function OriThemeProvider({
     document.documentElement.dataset.oriAccent = preferences.accent
   }, [preferences])
 
-  const updatePreferences = useCallback((patch: Partial<OriPreferences>) => {
-    const next = { ...preferencesRef.current, ...patch }
-    if (
-      next.appearance === preferencesRef.current.appearance &&
-      next.accent === preferencesRef.current.accent
-    ) return
-
-    preferencesRef.current = next
-    setPreferences(next)
+  const persist = useCallback((target: OriPreferences) => {
     setSaveState('saving')
     const version = ++saveVersion.current
 
@@ -58,7 +51,7 @@ export function OriThemeProvider({
         const response = await fetch('/api/preferences', {
           method: 'PATCH',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify(next),
+          body: JSON.stringify(target),
           cache: 'no-store',
         })
         if (!response.ok) throw new Error('Preference save failed.')
@@ -69,8 +62,24 @@ export function OriThemeProvider({
       })
   }, [])
 
+  const updatePreferences = useCallback((patch: Partial<OriPreferences>) => {
+    const next = { ...preferencesRef.current, ...patch }
+    if (
+      next.appearance === preferencesRef.current.appearance &&
+      next.accent === preferencesRef.current.accent
+    ) return
+
+    preferencesRef.current = next
+    setPreferences(next)
+    persist(next)
+  }, [persist])
+
+  const retrySave = useCallback(() => {
+    persist(preferencesRef.current)
+  }, [persist])
+
   return (
-    <OriThemeContext.Provider value={{ preferences, updatePreferences, saveState }}>
+    <OriThemeContext.Provider value={{ preferences, updatePreferences, retrySave, saveState }}>
       {children}
     </OriThemeContext.Provider>
   )
