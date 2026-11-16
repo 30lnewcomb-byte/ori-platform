@@ -188,3 +188,96 @@
     background: #f2f4f6;
   }
 }
+
+
+/* Theme-aware workspace navigation */
+.sidebar {
+  background: var(--sidebar-bg);
+  border-right-color: var(--sidebar-border);
+  color: var(--sidebar-text);
+}
+.brand { color: var(--sidebar-brand); }
+.newChat {
+  border-color: var(--sidebar-border);
+  background: var(--sidebar-surface);
+  color: var(--sidebar-text);
+}
+.newChat span { background: var(--accent-primary); }
+.newChat:hover {
+  border-color: var(--sidebar-focus);
+  background: var(--sidebar-hover);
+  color: var(--sidebar-hover-text);
+}
+.sectionLabel { color: var(--sidebar-muted); }
+.sectionLink { color: var(--sidebar-muted); }
+.sectionLink:hover { color: var(--sidebar-hover-text); }
+.sidebarItem { color: var(--sidebar-text); }
+.sidebarItem:hover {
+  background: var(--sidebar-hover);
+  color: var(--sidebar-hover-text);
+}
+.chatItem { color: var(--sidebar-text); }
+.chatItem:hover {
+  background: var(--sidebar-hover);
+  color: var(--sidebar-hover-text);
+}
+.chatItem time,
+.emptyChats { color: var(--sidebar-muted); }
+.emptyChats:hover {
+  background: var(--sidebar-hover);
+  color: var(--sidebar-hover-text);
+}
+.authButton {
+  border-color: var(--sidebar-border);
+  background: var(--sidebar-surface);
+  color: var(--sidebar-text);
+}
+.authButton:hover {
+  border-color: var(--sidebar-focus);
+  background: var(--sidebar-hover);
+}
+.authPrimary {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary);
+}
+.authPrimary:hover { background: var(--accent-strong); }
+.accountRow {
+  border-color: var(--sidebar-border);
+  background: var(--sidebar-account);
+}
+.accountLabel { color: var(--sidebar-text); }
+.sidebarFooter { color: var(--sidebar-muted); }
+.settingsLink,
+.settingsLinkActive {
+  display: block;
+  padding: 9px 10px;
+  border-radius: 8px;
+  color: var(--sidebar-text);
+  font-size: 13px;
+  transition: background .16s ease, color .16s ease;
+}
+.settingsLink:hover,
+.settingsLinkActive {
+  background: var(--sidebar-hover);
+  color: var(--sidebar-hover-text);
+}
+.mobileNav {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  background: var(--sidebar-bg);
+  border-top-color: var(--sidebar-border);
+}
+.mobileNav a { color: var(--sidebar-text); }
+.mobileNav a:hover,
+.mobileNav a.mobileActive {
+  background: var(--sidebar-hover);
+  color: var(--sidebar-hover-text);
+}
+.authPage {
+  background: var(--surface-base);
+  color: var(--text-primary);
+}
+.authBrand { color: var(--text-primary); }
+@media (prefers-reduced-motion: reduce) {
+  .settingsLink,
+  .settingsLinkActive { transition: none; }
+}
