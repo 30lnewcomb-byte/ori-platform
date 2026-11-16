@@ -184,7 +184,7 @@ pre,code,kbd,samp { font-family:var(--font-mono); }
   --sidebar-surface: #222a34;
   --sidebar-account: #202832;
   --sidebar-focus: #668bb8;
-  --user-bubble-bg: #e6edf7;
+  --user-bubble-bg: var(--accent-blue-soft);
   --surface-hover: #f1f4f7;
   --floating-shadow: 0 12px 36px rgba(26, 37, 52, .09);
   --accent-primary: #3979c6;
@@ -270,7 +270,7 @@ pre,code,kbd,samp { font-family:var(--font-mono); }
   --sidebar-surface: #1c2631;
   --sidebar-account: #1a232d;
   --sidebar-focus: #678bb5;
-  --user-bubble-bg: #304358;
+  --user-bubble-bg: var(--accent-blue-soft);
   --surface-hover: #2d3743;
   --floating-shadow: 0 14px 38px rgba(0, 0, 0, .28);
   --accent-blue-soft: #293b50;
