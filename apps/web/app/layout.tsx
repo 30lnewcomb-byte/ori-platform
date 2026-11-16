@@ -5,7 +5,7 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'Ori',
-  description: 'Ori is a focused AI platform for thinking, building, coding, and creating.',
+  description: 'The Ori chat workspace for questions, ideas, and ongoing conversations. Developer administration lives in a separate workspace.',
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -13,13 +13,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en">
       <body>
         <ClerkProvider afterSignOutUrl="/">
-          <aside className="renderDependencyNotice" role="note" aria-label="Service hosting notice">
-            <span>
-              <strong>Service hosting notice</strong>
-              Ori Platform uses Render-hosted services for intelligence and VM capabilities. If a supporting service is starting, unavailable, or under maintenance, those features may be temporarily unavailable while other parts of the platform can remain accessible.
-            </span>
-            <a href="https://ori-ai-tan.vercel.app/status">System status</a>
-          </aside>
           {children}
           <Analytics />
         </ClerkProvider>
