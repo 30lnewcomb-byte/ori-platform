@@ -84,8 +84,7 @@ export default function OnboardingClient({ firstName }: { firstName: string }) {
           <span className={styles.kicker}>YOUR ORI WORKSPACE</span>
           <h1>You&apos;re ready.</h1>
           <p>
-            Your account is set up. Ori can start with conversation and bring in the right tools
-            when your work calls for them.
+            Your account is ready. Start a conversation with Ori now; you can change your preferences later.
           </p>
 
           <div className={styles.summary}>
