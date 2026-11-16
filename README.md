@@ -18,7 +18,7 @@ The user-facing Ori application: a chat workspace for conversations, saved chat 
 ```text
 apps/
   web/                 # Ori web application
-  web/app/api/        # authenticated chat, conversation, preference, and integration routes
+  web/app/api/         # authenticated chat, conversation, preference, and integration routes
 
 services/
   intelligence/        # legacy compatibility snapshot; not the production source of truth
