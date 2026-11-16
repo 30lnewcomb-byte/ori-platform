@@ -26,9 +26,10 @@ services/
                          # legacy TensorFlow/Keras copy; see ori-intelligence repository
 
 packages/
-  ui/                  # shared Ori design system
   typography/          # Ori type family and font tooling
-  shared/              # shared types and utilities
+
+tools/
+  fonts/               # font generation tools
 
 docs/
   design/              # design decisions and standards
@@ -44,19 +45,11 @@ Developer projects, API credentials, model/tool administration, activity, and de
 
 ## UI direction
 
-Ori's current primary navigation is intentionally small:
-
-**Home → Chat**
-
-The overflow menu provides access to the **About Ori** reference and **Developer Platform**. This keeps the everyday assistant experience focused on capabilities that have real behavior behind them.
-
-Home is the app workspace for starting work and understanding the current product. Chat is where the user works with Ori and manages conversations. Search, Projects, Tasks, Activity, and broad Settings controls remain longer-term product surfaces and are deliberately not exposed as primary navigation until their underlying functionality is real.
+The workspace navigation provides access to new chats, recent conversations, and Settings. The public landing page is shown to signed-out visitors; signed-in users are redirected to Chat. Developer project records, API credentials, model administration, and developer documentation belong to the separate Ori Developer Platform.
 
 ## Typography
 
-An original **Ori Text starter font** is now shipped at `apps/web/public/fonts/OriText-Regular.woff2` and loaded by the web app. The app currently reuses that original starter glyph set for the Ori Display and Ori Mono roles while the dedicated designs are refined.
-
-Planned families:
+The web app ships the Ori type family in `apps/web/public/fonts/` and loads all three font files. Global styles use the families for body text, display headings, and technical text:
 
 - **Ori Display** — branding and major headings
 - **Ori Text** — UI, chat, and documentation
