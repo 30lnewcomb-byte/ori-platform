@@ -58,3 +58,133 @@
 .mobileAccount { display:grid; place-items:center; }
 .authPage { min-height:100vh; display:grid; place-items:center; padding:28px 18px; background:var(--surface-base); color:var(--text-primary); }
 .authBrand { position:fixed; top:24px; left:28px; font-family:var(--font-display); font-size:18px; font-weight:800; letter-spacing:.18em; color:var(--text-primary); }
+
+
+/* Charcoal navigation paired with a light workspace */
+.shell {
+  background: #f2f4f6;
+}
+.sidebar {
+  background: #171b21;
+  border-right-color: #303943;
+  color: #edf1f6;
+}
+.brand {
+  color: #f4f6f9;
+}
+.newChat {
+  border-color: #3b4653;
+  background: #222a34;
+  color: #f0f4f8;
+}
+.newChat span {
+  background: #3979c6;
+  color: #fff;
+}
+.newChat:hover {
+  border-color: #668bb8;
+  background: #293747;
+  color: #fff;
+}
+.sectionLabel {
+  color: #8491a1;
+}
+.sectionLink {
+  color: #9da9b8;
+}
+.sectionLink:hover {
+  color: #b8d6fa;
+}
+.sidebarItem {
+  color: #c3ccd7;
+}
+.sidebarItem:hover {
+  background: #273341;
+  color: #fff;
+}
+.chatItem {
+  color: #c4cdd8;
+}
+.chatItem:hover {
+  background: #222b36;
+  color: #fff;
+}
+.chatItem time,
+.emptyChats {
+  color: #8794a4;
+}
+.emptyChats:hover {
+  background: #222b36;
+  color: #e1e8f1;
+}
+.authButton {
+  border-color: #3b4653;
+  background: #222a34;
+  color: #edf2f7;
+}
+.authButton:hover {
+  border-color: #667b95;
+  background: #293747;
+}
+.authPrimary {
+  border-color: #3979c6;
+  background: #3979c6;
+}
+.authPrimary:hover {
+  background: #2d69b1;
+}
+.accountRow {
+  border-color: #3b4653;
+  background: #202832;
+}
+.accountLabel {
+  color: #c2ccd8;
+}
+.sidebarFooter {
+  color: #8593a4;
+}
+.moreButton {
+  color: #c3ccd7;
+}
+.moreButton:hover {
+  background: #222b36;
+  color: #fff;
+}
+.morePanel {
+  background: #202832;
+  border-color: #3b4653;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .32);
+}
+.moreItem strong {
+  color: #f0f4f8;
+}
+.moreItem span {
+  color: #a2afbe;
+}
+.moreItem:hover {
+  background: #2a3746;
+}
+.mobileNav {
+  background: #171b21;
+  border-top-color: #303943;
+}
+.mobileNav a {
+  color: #c2ccd7;
+}
+.mobileNav a:hover,
+.mobileNav a.mobileActive {
+  background: #283747;
+  color: #d9e9fc;
+}
+.authPage {
+  background: #f2f4f6;
+  color: #202630;
+}
+.authBrand {
+  color: #202630;
+}
+@media (max-width:760px) {
+  .shell {
+    background: #f2f4f6;
+  }
+}
