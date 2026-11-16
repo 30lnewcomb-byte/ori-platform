@@ -2,16 +2,14 @@
 
 The user-facing Ori application: a chat workspace for conversations, saved chat history, account onboarding, and appearance preferences. It connects to Ori Intelligence through a server-side API.
 
-## Design principles
+## Product rules
 
-- **User-owned:** Ori is built for the creator to own and control.
-- **Truthful UI:** the interface reflects real system state; it never invents activity or capabilities.
-- **Professional:** Intentional typography, spacing, hierarchy, accessibility, and responsive behavior.
-- **Human:** approachable without becoming childish or gimmicky.
-- **Technical:** powerful developer capabilities without exposing unnecessary complexity.
-- **Calm:** important problems are clear without creating noise.
-- **Iterative:** the system is tested, reviewed, and improved continuously.
-- **Technical ownership:** Ori's production intelligence is designed around Ori-owned TensorFlow/Keras models rather than a hosted inference provider.
+- **Account scope:** Conversation and appearance preferences are read and written for the authenticated user.
+- **Accurate status:** Distinguish implemented features, setup requirements, disconnected services, and planned work.
+- **Clear interface:** Use the Ori font family, readable contrast, keyboard access, and responsive layouts.
+- **Project boundaries:** Keep chat, intelligence runtime, and developer administration in their separate applications and services.
+- **Server-side credentials:** Runtime credentials stay on the server and never enter browser code.
+- **Cost control:** Reuse existing infrastructure; do not introduce paid dependencies without approval.
 
 ## Current architecture
 
