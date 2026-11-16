@@ -12,6 +12,9 @@ export default async function LandingPage() {
       <nav className={styles.nav} aria-label="Main navigation">
         <a href="/" className={styles.brand} aria-label="Ori home">ORI</a>
         <div className={styles.navActions}>
+          <a className={styles.developerLink} href="https://ori-developer-platform.vercel.app" target="_blank" rel="noopener noreferrer">
+            Developer Platform <span aria-hidden="true">↗</span>
+          </a>
           <SignInButton mode="redirect" forceRedirectUrl="/chat">
             <button className={styles.signIn} type="button">Sign in</button>
           </SignInButton>
@@ -39,20 +42,34 @@ export default async function LandingPage() {
           <p className={styles.note}>Create an account to open your Ori workspace.</p>
         </div>
 
-        <div className={styles.heroPanel} aria-label="Ori workspace preview">
+        <div className={styles.heroPanel} aria-label="Illustrative preview of the Ori chat workspace">
           <div className={styles.panelTop}>
             <span className={styles.panelBrand}>ORI</span>
-            <span className={styles.liveMark}>Workspace preview</span>
+            <span className={styles.previewLabel}>WORKSPACE PREVIEW</span>
           </div>
-          <div className={styles.panelContent}>
-            <span className={styles.panelEyebrow}>YOUR WORKSPACE</span>
-            <strong>Start with a conversation.</strong>
-            <span>Ask a question, explore an idea, or continue a conversation.</span>
+
+          <div className={styles.workspaceMock}>
+            <aside className={styles.previewSidebar} aria-label="Example workspace navigation">
+              <div className={styles.previewNewChat}><span aria-hidden="true">＋</span> New chat</div>
+              <span className={styles.previewSectionLabel}>TOOLS</span>
+              <div className={styles.previewNavItem}><span aria-hidden="true">◇</span> Chat</div>
+              <span className={styles.previewSectionLabel}>CHATS</span>
+              <p className={styles.previewEmpty}>Your conversations appear here.</p>
+            </aside>
+
+            <div className={styles.panelContent}>
+              <div className={styles.previewWelcome}>
+                <span className={styles.panelEyebrow}>NEW CHAT</span>
+                <strong>What’s on your mind today?</strong>
+                <span>Start a conversation with Ori and keep your chats together in one workspace.</span>
+              </div>
+              <div className={styles.panelComposer}>
+                <span>Message Ori...</span>
+                <span className={styles.sendIcon} aria-hidden="true">↑</span>
+              </div>
+            </div>
           </div>
-          <div className={styles.panelComposer}>
-            <span>Message Ori...</span>
-            <span className={styles.sendIcon}>↑</span>
-          </div>
+          <p className={styles.previewCaption}>Illustrative interface preview · not a live session</p>
         </div>
       </section>
 
@@ -89,7 +106,7 @@ export default async function LandingPage() {
           rel="noopener noreferrer"
           aria-label="Visit Ori's GitHub creator profile"
           title="GitHub profile"
-          style={{ display: 'inline-flex', alignItems: 'center', color: '#000000' }}
+          className={styles.githubLink}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.1 2.651.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
@@ -100,9 +117,3 @@ export default async function LandingPage() {
   )
 }
 
-function LandingRedirect() {
-  const destination = '/chat'
-  return (
-    <meta httpEquiv="refresh" content={`0;url=${destination}`} />
-  )
-}
