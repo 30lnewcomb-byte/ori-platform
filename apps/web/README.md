@@ -1,17 +1,27 @@
 # Ori Web
 
-The web application for the Ori platform.
+The user-facing Ori Platform web application.
 
-## Intended stack
+## Stack
 
-- Next.js
-- React
-- TypeScript
-- Shared Ori UI package
-- Shared design tokens
+- Next.js App Router, React, and TypeScript
+- Clerk for account authentication
+- Neon Postgres for server-side conversation storage
+- Ori Text, Ori Display, and Ori Mono fonts
+- CSS modules and global design tokens
 
-## First implementation target
+## Routes
 
-Build the responsive application shell and Home experience first. Chat and the user-facing workspace should plug into the same shell. Developer controls are maintained by the separate Ori Developer Platform.
+- `/` — public landing page; signed-in users are redirected to Chat
+- `/chat` — conversations with Ori and chat history
+- `/settings` — appearance and accent preferences
+- `/onboarding` — initial account setup
+- `/sign-in` and `/sign-up` — authentication
 
-This directory is intentionally a foundation until the application bootstrap is added.
+## Local development
+
+Run `npm install` from the repository root, then `npm run dev --workspace @ori/web`. The app uses the server environment variables documented in the root `.env.example`.
+
+## Product boundary
+
+This application owns the user-facing chat experience. Developer project records and developer documentation live in the separate Ori Developer Platform. Model inference runs in the separately deployed Ori Intelligence service; credentials stay on the server.
