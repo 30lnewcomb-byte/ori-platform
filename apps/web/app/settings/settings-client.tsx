@@ -20,14 +20,14 @@ export default function SettingsClient() {
       <header className={styles.header}>
         <p className="eyebrow">ORI PLATFORM</p>
         <h1>Settings</h1>
-        <p>Make your workspace feel like yours.</p>
+        <p>Choose an appearance and accent color.</p>
       </header>
 
       <section className={styles.section} aria-labelledby="appearance-title">
         <div className={styles.sectionHeading}>
           <div>
             <h2 id="appearance-title">Appearance</h2>
-            <p>Choose how Ori looks across your workspace.</p>
+            <p>Select System, Light, or Dark appearance.</p>
           </div>
         </div>
 
@@ -92,9 +92,9 @@ export default function SettingsClient() {
         <div className={styles.previewHeading}>
           <div>
             <h2 id="preview-title">Preview</h2>
-            <p>Your choices update the workspace as you make them.</p>
+            <p>The preview reflects your current appearance and accent.</p>
           </div>
-          <span className={styles.previewLabel}>LIVE</span>
+          <span className={styles.previewLabel}>PREVIEW</span>
         </div>
         <div className={styles.previewCard}>
           <div className={styles.previewSidebar}>
