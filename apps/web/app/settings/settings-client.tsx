@@ -1,11 +1,11 @@
 'use client'
 
-import { ACCENT_OPTIONS, APPEARANCE_OPTIONS } from '../../lib/theme-settings-ui'
+import { ACCENT_OPTIONS, APPEARANCE_OPTIONS } from '../../lib/theme-settings'
 import { useOriTheme } from '../../components/theme-provider'
 import styles from './settings.module.css'
 
 export default function SettingsClient() {
-  const { preferences, updatePreferences, saveState } = useOriTheme()
+  const { preferences, updatePreferences, retrySave, saveState } = useOriTheme()
 
   const saveMessage = saveState === 'saving'
     ? 'Saving to your account…'
@@ -115,7 +115,7 @@ export default function SettingsClient() {
         </div>
       </section>
 
-      <p className={styles.saveStatus} role="status" aria-live="polite">{saveMessage}</p>
+      <div className={styles.saveStatus} role="status" aria-live="polite"><span>{saveMessage}</span>{saveState === "error" && <button type="button" onClick={retrySave}>Try again</button>}</div>
     </div>
   )
 }
