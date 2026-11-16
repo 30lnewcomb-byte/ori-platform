@@ -64,6 +64,7 @@
   box-shadow: 0 0 0 2px var(--accent-blue-soft);
 }
 .appearancePreview {
+  position: relative;
   height: 92px;
   display: flex;
   gap: 5px;
@@ -279,9 +280,22 @@
   font-size: 17px;
 }
 .saveStatus {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin: 18px 0 0;
   color: var(--text-muted);
   font-size: 12px;
+}
+.saveStatus button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 @media (max-width: 680px) {
   .appearanceOptions {
