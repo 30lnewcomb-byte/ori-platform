@@ -1,7 +1,7 @@
 @font-face { font-family:'Ori Text'; src:url('/fonts/OriText-Regular.woff2') format('woff2'); font-style:normal; font-weight:400; font-display:swap; }
 @font-face { font-family:'Ori Display'; src:url('/fonts/OriDisplay-Regular.woff2') format('woff2'); font-style:normal; font-weight:400; font-display:swap; }
 @font-face { font-family:'Ori Mono'; src:url('/fonts/OriMono-Regular.woff2') format('woff2'); font-style:normal; font-weight:400; font-display:swap; }
-:root { --font-text:'Ori Text',Arial,Helvetica,sans-serif; --font-display:'Ori Display','Ori Text',Arial,Helvetica,sans-serif; --font-mono:'Ori Mono','SFMono-Regular',Consolas,'Liberation Mono',monospace; --surface-base:#f7f7f5; --surface-raised:#fff; --surface-strong:#111210; --text-primary:#171815; --text-secondary:#686b64; --text-muted:#92958d; --border-subtle:#e4e5df; --accent-primary:#183a73; --accent-soft:#eef3fa; --accent-strong:#12305f; --accent-blue:#183a73; --accent-blue-soft:#eef3fa; --accent-blue-strong:#12305f; --status-success:#2f7d4a; --focus-ring:#183a73; --radius-sm:8px; --radius-md:12px; --radius-lg:18px; }
+:root { --font-text:'Ori Text',Arial,Helvetica,sans-serif; --font-display:'Ori Display','Ori Text',Arial,Helvetica,sans-serif; --font-mono:'Ori Mono','SFMono-Regular',Consolas,'Liberation Mono',monospace; --surface-base:#f2f4f6; --surface-raised:#ffffff; --surface-strong:#171b21; --text-primary:#202630; --text-secondary:#566171; --text-muted:#7c8795; --border-subtle:#dfe4ea; --accent-primary:#3979c6; --accent-soft:#eaf1fa; --accent-strong:#285f9d; --accent-blue:#3979c6; --accent-blue-soft:#eaf1fa; --accent-blue-strong:#285f9d; --status-success:#34845a; --focus-ring:#3979c6; --radius-sm:8px; --radius-md:12px; --radius-lg:18px; }
 * { box-sizing:border-box; }
 html, body { margin:0; min-height:100%; overflow-x:hidden; }
 body { background:var(--surface-base); color:var(--text-primary); font-family:var(--font-text); font-kerning:normal; }
@@ -160,4 +160,81 @@ pre,code,kbd,samp { font-family:var(--font-mono); }
     padding:8px 16px;
   }
   .chatPageContent { height:calc(100dvh - 122px); }
+}
+
+
+/* Charcoal + white product theme */
+body {
+  background: #f2f4f6;
+  color: #202630;
+}
+.content {
+  color: #202630;
+}
+.chatPageContent {
+  background: #f2f4f6;
+}
+.chatContent {
+  background: #f2f4f6;
+}
+.chatHeader {
+  color: #202630;
+}
+.conversation {
+  background: #f2f4f6;
+}
+.userMessage {
+  background: #e6edf7;
+  color: #202630;
+}
+.oriMessage {
+  color: #252d38;
+}
+.messageLabel {
+  color: #788494;
+}
+.chatEmptyState strong {
+  color: #252d38;
+}
+.composer {
+  background: rgba(255, 255, 255, .96);
+  border-color: #dce2e9;
+  box-shadow: 0 12px 36px rgba(26, 37, 52, .09);
+}
+.composer:focus-within {
+  border-color: #8eadd2;
+  box-shadow: 0 12px 36px rgba(57, 121, 198, .13);
+}
+.commandMenu,
+.chatHistory {
+  background: #fff;
+  border-color: #dce2e9;
+}
+.chatHistoryHeader {
+  border-bottom-color: #e4e8ed;
+}
+.chatHistoryItem:hover:not(:disabled),
+.commandItem:hover {
+  background: #f1f4f7;
+}
+.chatError {
+  color: #8f3036;
+  background: #fff1f2;
+  border-color: #edc8cc;
+}
+.topbar h1,
+.quickStart h2,
+.sectionHeader h3 {
+  color: #202630;
+}
+.sectionBlock {
+  background: #fff;
+  border-color: #dfe4ea;
+  box-shadow: 0 4px 16px rgba(25, 36, 50, .035);
+}
+.dataRow {
+  border-bottom-color: #e4e8ed;
+}
+@media (prefers-reduced-motion: reduce) {
+  .composer, .sendButton { transition: none; }
 }
