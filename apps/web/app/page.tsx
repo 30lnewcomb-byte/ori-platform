@@ -27,9 +27,9 @@ export default async function LandingPage() {
       <section className={styles.hero} aria-labelledby="hero-title">
         <div className={styles.heroCopy}>
           <p className={styles.kicker}>ORI PLATFORM</p>
-          <h1 id="hero-title">A focused workspace for working with Ori.</h1>
+          <h1 id="hero-title">Your conversations with Ori, in one workspace.</h1>
           <p className={styles.lede}>
-            Chat with Ori, keep your conversations together, and work through questions or ideas. Developer settings and project administration live in the separate Ori Developer Platform.
+            Ask questions, continue previous conversations, and adjust your workspace appearance. Developer project records and documentation live in the separate Ori Developer Platform.
           </p>
           <div className={styles.heroActions}>
             <SignUpButton mode="redirect" forceRedirectUrl="/onboarding">
@@ -76,8 +76,8 @@ export default async function LandingPage() {
       <section className={styles.valueSection} aria-labelledby="value-title">
         <div className={styles.sectionIntro}>
           <p className={styles.kicker}>THE WORKSPACE</p>
-          <h2 id="value-title">Chat stays at the center.</h2>
-          <p>The main workspace is for conversations. Developer tools and platform administration stay in their own product.</p>
+          <h2 id="value-title">Start, return, and customize.</h2>
+          <p>Ori keeps conversations and appearance settings together. Developer tools and project administration stay in their own product.</p>
         </div>
         <div className={styles.valueGrid}>
           <article className={styles.valueCard}>
